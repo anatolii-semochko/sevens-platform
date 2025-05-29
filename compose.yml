@@ -15,7 +15,7 @@ services:
       context: web-interface/docker/development/node
     environment:
       WDS_SOCKET_PORT: 0
-      REACT_APP_AUTH_URL: http://api.localhost
+      REACT_APP_AUTH_URL: http://localhost:8008
     command: sh -c "until [ -f .ready ] ; do sleep 1 ; done && yarn start"
     volumes:
       - ./web-interface:/app
@@ -69,9 +69,11 @@ services:
     image: mysql:9.3
     environment:
       MYSQL_USER: app
-      MYSQL_DATABASE: app
+      MYSQL_DATABASE: tokens-platform
       MYSQL_PASSWORD_FILE: /run/secrets/api_db_password
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/api_db_password
+    ports:
+      - "3307:3306"
     networks:
       - default
     secrets:
@@ -102,4 +104,4 @@ volumes:
 
 networks:
   blockchain.dev:
-    name: blockchain.dev
+    name: tokens-platform.dev
