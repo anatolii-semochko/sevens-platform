@@ -198,3 +198,6 @@ bash:
 
 node:
 	docker compose run --rm ${APP_NODE_CLI} bash
+
+mysql:
+	docker compose exec api-mysql mysql -uapp -p

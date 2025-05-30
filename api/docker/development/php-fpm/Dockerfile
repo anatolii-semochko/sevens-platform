@@ -7,7 +7,9 @@ RUN apk add --no-cache libpq-dev fcgi git linux-headers \
     && git clone --branch $XDEBUG_VERSION --depth 1 https://github.com/xdebug/xdebug.git /usr/src/php/ext/xdebug \
     && docker-php-ext-configure xdebug --enable-xdebug-dev \
     && docker-php-ext-install pdo_pgsql xdebug \
-    && apk del git linux-headers
+    && docker-php-ext-install pdo_mysql \
+    && apk del git linux-headers \
+    && apk add --no-cache mariadb-dev
 
 RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
 

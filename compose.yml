@@ -79,7 +79,7 @@ services:
     secrets:
       - api_db_password
     volumes:
-      - api-mysql:/var/lib/mysql
+      - ./../.data/tokens-platform:/var/lib/mysql
 
 secrets:
   api_db_password:
@@ -98,7 +98,7 @@ secrets:
     file: ./docker/development/secrets/backup_aws_secret_access_key
 
 volumes:
-  api-mysql:
+  #api-mysql:/var/lib/mysql
   api-mysql-backup:
   backup-storage:
 
