@@ -1,0 +1,41 @@
+{
+  "name": "sevenstime-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "encore dev",
+    "dev-watch": "encore dev --watch",
+    "build": "encore production"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.27.4",
+    "@babel/preset-env": "^7.27.2",
+    "@babel/preset-react": "^7.27.1",
+    "@symfony/webpack-encore": "^5.1.0",
+    "babel-loader": "^10.0.0",
+    "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
+    "postcss-loader": "^8.1.0",
+    "sass": "^1.64.0",
+    "sass-loader": "^16.0.1",
+    "webpack": "^5.99.9",
+    "webpack-cli": "^6.0.1",
+    "webpack-notifier": "^1.15.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
