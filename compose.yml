@@ -45,13 +45,13 @@ services:
     image: mysql:9.3
     environment:
       MYSQL_USER: app
-      MYSQL_DATABASE: tokens-platform
+      MYSQL_DATABASE: sevens
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
     ports:
       - "3307:3306"
     volumes:
-      - ./../.data/tokens-platform:/var/lib/mysql
+      - ./../.data/sevens:/var/lib/mysql
     secrets:
       - db_password
     networks:
@@ -80,4 +80,4 @@ volumes:
 networks:
   blockchain.dev:
     external: true
-    name: tokens-platform.dev
+    name: sevens.dev

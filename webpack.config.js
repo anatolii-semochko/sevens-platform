@@ -6,6 +6,11 @@ Encore
 
     // App для звичайних публічних сторінок
     .addEntry('app', './assets/app/app.js')
+    
+    .copyFiles({
+        from: './assets/img',
+        to: 'images/[path][name].[ext]',
+    })
 
     .enableReactPreset()
 
