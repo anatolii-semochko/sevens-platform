@@ -1,0 +1,29 @@
+FROM php:8.4-fpm-alpine
+
+ENV XDEBUG_VERSION 3.4.1
+
+RUN apk add --no-cache libpq-dev fcgi git linux-headers \
+    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && git clone --branch $XDEBUG_VERSION --depth 1 https://github.com/xdebug/xdebug.git /usr/src/php/ext/xdebug \
+    && docker-php-ext-configure xdebug --enable-xdebug-dev \
+    && docker-php-ext-install pdo_pgsql xdebug \
+    && docker-php-ext-install pdo_mysql \
+    && apk del git linux-headers \
+    && apk add --no-cache mariadb-dev
+
+RUN mv $PHP_INI_DIR/php.ini-development $PHP_INI_DIR/php.ini
+
+COPY docker/common/php/conf.d /usr/local/etc/php/conf.d
+COPY docker/common/php/php-fpm.d /usr/local/etc/php-fpm.d
+COPY docker/development/php/conf.d /usr/local/etc/php/conf.d
+COPY docker/development/php-fpm/conf.d /usr/local/etc
+
+WORKDIR /app
+
+COPY docker/development/php-fpm/entrypoint.sh /usr/local/bin/docker-php-entrypoint
+
+RUN chmod +x /usr/local/bin/docker-php-entrypoint
+
+HEALTHCHECK --interval=5s --timeout=3s --start-period=1s \
+    CMD REDIRECT_STATUS=true SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET \
+    cgi-fcgi -bind -connect 127.0.0.1:9000 || exit 1

@@ -1,89 +1,67 @@
 services:
-  web-interface:
+  web:
     build:
-      context: web-interface/docker/development/nginx
-    networks:
-      - default
-      - blockchain.dev
+      context: .
+      dockerfile: docker/development/nginx/Dockerfile
     ports:
       - "8080:80"
     volumes:
-      - ./web-interface:/app
-
-  web-interface-node:
-    build:
-      context: web-interface/docker/development/node
-    environment:
-      WDS_SOCKET_PORT: 0
-      REACT_APP_AUTH_URL: http://api.localhost
-    command: sh -c "until [ -f .ready ] ; do sleep 1 ; done && yarn start"
-    volumes:
-      - ./web-interface:/app
-    tty: true
-
-  web-interface-node-cli:
-    build:
-      context: web-interface/docker/development/node
-    volumes:
-      - ./web-interface:/app
-
-  api:
-    build:
-      context: api/docker
-      dockerfile: development/nginx/Dockerfile
-    volumes:
-      - ./api:/app
+      - .:/app
     networks:
       - default
       - blockchain.dev
-    ports:
-      - "8008:80"
     depends_on:
-      - api-php-fpm
+      - php-fpm
 
-  api-php-fpm:
+  php-fpm:
     build:
-      context: api/docker
-      dockerfile: development/php-fpm/Dockerfile
-#    environment:
-#      APP_ENV: dev
-#      APP_DEBUG: 1
+      context: .
+      dockerfile: docker/development/php-fpm/Dockerfile
+    volumes:
+      - .:/app
     networks:
       - default
-    volumes:
-      - ./api:/app
 
-  api-php-cli:
+  php-cli:
     build:
-      context: api/docker
-      dockerfile: development/php-cli/Dockerfile
-#    environment:
-#      APP_ENV: dev
-#      APP_DEBUG: 1
+      context: .
+      dockerfile: docker/development/php-cli/Dockerfile
+    volumes:
+      - .:/app
     networks:
       - default
-    volumes:
-      - ./api:/app
 
-  api-mysql:
+  web-node:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: sh -c "yarn install && yarn encore dev --watch"
+    tty: true
+    networks:
+      - default
+
+  mysql:
     image: mysql:9.3
     environment:
       MYSQL_USER: app
-      MYSQL_DATABASE: app
-      MYSQL_PASSWORD_FILE: /run/secrets/api_db_password
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/api_db_password
+      MYSQL_DATABASE: sevens
+      MYSQL_PASSWORD_FILE: /run/secrets/db_password
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./../.data/sevens:/var/lib/mysql
+    secrets:
+      - db_password
     networks:
       - default
-    secrets:
-      - api_db_password
-    volumes:
-      - api-mysql:/var/lib/mysql
 
 secrets:
-  api_db_password:
-    file: ./docker/development/secrets/api_db_password
-  api_mailer_password:
-    file: ./docker/development/secrets/api_mailer_password
+  db_password:
+    file: ./docker/development/secrets/db_password
+  mailer_password:
+    file: ./docker/development/secrets/mailer_password
   sentry_dsn:
     file: ./docker/development/secrets/sentry_dsn
   jwt_encryption_key:
@@ -96,10 +74,10 @@ secrets:
     file: ./docker/development/secrets/backup_aws_secret_access_key
 
 volumes:
-  api-mysql:
-  api-mysql-backup:
+  mysql-backup:
   backup-storage:
 
 networks:
   blockchain.dev:
-    name: blockchain.dev
+    external: true
+    name: sevens.dev
