@@ -23,4 +23,21 @@ class CategoryRepository extends ServiceEntityRepository
 
         return $category;
     }
+
+    public function fetchCategories(string $categoryId): array
+    {        
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.childrenCategories', 'child')
+            ->addSelect('child')
+            ->leftJoin('c.translations', 'translation')
+            ->addSelect('translation')
+            ->leftJoin('child.translations', 'child_translation')
+            ->addSelect('child_translation')
+            ->where('c.parentCategory = :parentId')
+            ->andWhere('c.active = 1')
+            ->setParameter('parentId', $categoryId)
+            ->orderBy('c.order', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
