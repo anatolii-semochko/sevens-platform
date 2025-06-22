@@ -12,10 +12,7 @@
             <div class="layout-wrapper d-flex">
                 {% include 'main-template/sidebar.twig' %}
                 <main class="main-content d-flex flex-column">
-                    <div class="flex-grow-1 pictures-container">
-                        <div id="active-category-label" class="mb-3"></div>
-                        <?php include 'includes/gallery.php'; ?>
-                    </div>
+                    {% include main_template with main_data %}
                     {% include 'main-template/footer.twig' %}
                 </main>
             </div>
