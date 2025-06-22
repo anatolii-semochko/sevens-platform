@@ -2,6 +2,7 @@
 
 namespace App\Entity\Category;
 
+use App\Service\LocaleStorage;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,6 +16,8 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
 #[ORM\UniqueConstraint(name: "url_main_unique", columns: ["main_parent_id", "url"])]
 class Category
 {
+    private ?string $currentLocale = null;
+
     #[ORM\Id]
     #[ORM\Column(type: "string", length: 36)]
     #[Groups(['category:read'])]
@@ -80,7 +83,7 @@ class Category
     #[Groups(['category:read'])]
     private Collection $translations;
 
-    public function __construct()
+    public function __construct(private LocaleStorage $localeStorage)
     {
         $this->translations = new ArrayCollection();
     }
@@ -112,12 +115,6 @@ class Category
     public function getPath(): ?string { return $this->path; }
 
     public function getTranslations(): Collection { return $this->translations; }
-    public function addTranslation(CategoryLanguages $translation): void {
-        if (!$this->translations->contains($translation)) {
-            $this->translations[] = $translation;
-            $translation->setCategory($this);
-        }
-    }
 
     public function getParent(): ?self
     {
@@ -135,5 +132,46 @@ class Category
             $child->getTranslations();
             return $child;
         })->toArray();
+    }
+
+    public function setCurrentLocale(?string $locale): void
+    {
+        $this->currentLocale = $locale;
+    }
+    
+    private function getTranslationByLocale(): ?CategoryLanguages
+    {
+        foreach ($this->translations as $translation) {
+            if ($translation->getLanguage()->getCode() === $this->currentLocale) {
+                return $translation;
+            }
+        }
+
+        return null;
+    }
+
+    public function getNameTranslation(): string
+    {
+        return $this->getTranslationByLocale()?->getName() ?? $this->translations[0]?->getName() ?? $this->name;
+    }
+
+    public function getTitleTranslation(): string
+    {
+        return $this->getTranslationByLocale()?->getTitle() ?? $this->translations[0]?->getTitle() ?? '';
+    }
+
+    public function getLogoAltTranslation(): string
+    {
+        return $this->getTranslationByLocale()?->getLogoAlt() ?? $this->translations[0]?->getLogoAlt() ?? '';
+    }
+
+    public function getShortDescriptionTranslation(): string
+    {
+        return $this->getTranslationByLocale()?->getShortDescription() ?? $this->translations[0]?->getShortDescription() ?? '';
+    }
+
+    public function getDescriptionTranslation(): string
+    {
+        return $this->getTranslationByLocale()?->getDescription() ?? $this->translations[0]?->getDescription() ?? '';
     }
 }

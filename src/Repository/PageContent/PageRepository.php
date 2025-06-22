@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository\PagesContent;
+namespace App\Repository\PageContent;
 
 use App\Entity\PagesContent\Page;
 use App\Exception\NotFoundException;

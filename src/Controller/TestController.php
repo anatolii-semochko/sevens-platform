@@ -17,8 +17,12 @@ class TestController extends AbstractController
     public function test(): Response
     {
         
-//        $this->materialService->import();
-        
+        // Тимчасовий імпорт матеріалів
+        // $this->materialService->import();
+
+        // Генерація URL з урахуванням мови
+        // <a href="{{ path('main_page', {'_locale': app.request.locale}) }}">Home</a>
+        // $this->generateUrl('main_page', ['_locale' => $request->getLocale()])
         
         return $this->render('base.html.twig', [
             'some_variable' => 'Platform Success!',

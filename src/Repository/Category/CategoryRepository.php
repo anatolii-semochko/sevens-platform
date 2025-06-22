@@ -4,13 +4,16 @@ namespace App\Repository\Category;
 
 use App\Entity\Category\Category;
 use App\Exception\NotFoundException;
+use App\Service\LocaleStorage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 class CategoryRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        private ManagerRegistry $registry,
+        private LocaleStorage $localeStorage,
+    ) {
         parent::__construct($registry, Category::class);
     }
 
@@ -25,19 +28,34 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     public function fetchCategories(string $categoryId): array
-    {        
-        return $this->createQueryBuilder('c')
+    {
+        $locale = $this->localeStorage->getLocale();
+
+        $categories = $this->createQueryBuilder('c')
             ->leftJoin('c.childrenCategories', 'child')
             ->addSelect('child')
             ->leftJoin('c.translations', 'translation')
             ->addSelect('translation')
+            ->leftJoin('translation.language', 'translation_language')
+            ->addSelect('translation_language')
             ->leftJoin('child.translations', 'child_translation')
             ->addSelect('child_translation')
+            ->leftJoin('child_translation.language', 'child_translation_language')
+            ->addSelect('child_translation_language')
             ->where('c.parentCategory = :parentId')
             ->andWhere('c.active = 1')
             ->setParameter('parentId', $categoryId)
             ->orderBy('c.order', 'ASC')
             ->getQuery()
             ->getResult();
+
+        foreach ($categories as $category) {
+            $category->setCurrentLocale($locale);
+            foreach ($category->getChildren() as $child) {
+                $child->setCurrentLocale($locale);
+            }
+        }
+
+        return $categories;
     }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Entity\Category;
 
-use App\Entity\Language;
+use App\Entity\Language\Language;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;

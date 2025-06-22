@@ -2,7 +2,7 @@
 
 namespace App\Entity\Help;
 
-use App\Entity\Language;
+use App\Entity\Language\Language;
 use App\Repository\Help\HelpContentRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;

@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity(repositoryClass: \App\Repository\PagesContent\PageRepository::class)]
+#[ORM\Entity(repositoryClass: \App\Repository\PageContent\PageRepository::class)]
 #[ORM\Table(name: 'pages')]
 class Page
 {

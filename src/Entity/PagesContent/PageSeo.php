@@ -2,12 +2,12 @@
 
 namespace App\Entity\PagesContent;
 
-use App\Entity\Language;
+use App\Entity\Language\Language;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity(repositoryClass: \App\Repository\PagesContent\PageSeoRepository::class)]
+#[ORM\Entity(repositoryClass: \App\Repository\PageContent\PageSeoRepository::class)]
 #[ORM\Table(name: 'pages_seo')]
 class PageSeo
 {

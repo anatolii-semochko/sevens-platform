@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Language;
+use App\Entity\Language\Language;
 use App\Exception\NotFoundException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -15,7 +15,7 @@ class LanguageRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Language::class);
     }
-    
+
     public function get(string $id): Object 
     {
         $language = $this->find($id);
@@ -29,10 +29,9 @@ class LanguageRepository extends ServiceEntityRepository
     public function findActiveLanguages(): array
     {
         return $this->createQueryBuilder('l')
-            ->where('l.isActive = :active')
-            ->setParameter('active', true)
-            ->orderBy('l.isMain', 'DESC')
-            ->addOrderBy('l.id', 'ASC')
+            ->where('l.active = :active')
+            ->setParameter('active', 1)
+            ->orderBy('l.order', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -41,7 +40,7 @@ class LanguageRepository extends ServiceEntityRepository
     {        
         try {
             return $this->createQueryBuilder('l')
-                ->where('l.isMain = true')
+                ->where('l.main = true')
                 ->setMaxResults(1)
                 ->getQuery()
                 ->getOneOrNullResult();
