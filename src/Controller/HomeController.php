@@ -3,35 +3,29 @@
 namespace App\Controller;
 
 use App\Entity\Category\CategoryConstants;
-use App\Exception\NotFoundException;
 use App\Repository\Category\CategoryRepository;
-use App\Repository\Material\MaterialRepository;
 use App\Service\Category\CategoryService;
 use App\Service\Material\MaterialService;
 use App\Service\PageContent\PageService;
-use App\Service\Template\TemplateService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
 
-#[Route('/material', name: 'material_')]
-class MaterialController extends AbstractController
+#[Route('/', name: 'home_')]
+class HomeController extends AbstractController
 {
     public function __construct(
         private PageService $pageService,
-        private MaterialRepository $materialRepository,
         private MaterialService $materialService,
         private CategoryService $categoryService,
         private CategoryRepository $categoryRepository,
-        private TemplateService $templateService,
     ) {}
 
-    #[Route('/{token}', name: 'page', methods: ['GET'])]
-    public function get(string $token, Request $request): Response
+    #[Route('/', name: 'page', methods: ['GET'])]
+    public function index(Request $request): Response
     {
-
-        $this->pageService->init('/material');
+        $this->pageService->init('/');
 
         $category = $this->categoryRepository->get(CategoryConstants::MATERIALS_MAIN_ID);
 
@@ -40,16 +34,10 @@ class MaterialController extends AbstractController
             $request->attributes->get('_locale'),
         );
 
-        try {
-            $material = $this->materialRepository->get($token);
-        } catch (NotFoundException $e) {
-            return new Response($this->renderView('pages/404.twig'), 404);
-        }
-
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/material/material.twig',
+            'main_template' => 'pages/gallery/index.twig',
             'main_data' => [
-                'material' => $material,
+                'materials' => $this->materialService->fetch(),
             ],
             'categories' => $categories,
         ]);

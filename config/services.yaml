@@ -24,7 +24,7 @@ services:
     App\Service\LocaleStorage:
         public: true
         
-    App\EventListener\LocaleInitializerListener:
+    App\EventListener\PageInitializerListener:
         tags:
             - { name: kernel.event_listener, event: kernel.request, priority: -100 }
 

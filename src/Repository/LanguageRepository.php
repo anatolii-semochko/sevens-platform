@@ -48,4 +48,13 @@ class LanguageRepository extends ServiceEntityRepository
             throw new UnprocessableEntityHttpException($e->getMessage());
         }
     }
+
+    public function getByLocale(string $locale): ?Language
+    {
+        return $this->createQueryBuilder('l')
+            ->where('l.code = :locale')
+            ->setParameter('locale', $locale)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

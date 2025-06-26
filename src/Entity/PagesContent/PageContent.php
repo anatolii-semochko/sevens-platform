@@ -37,30 +37,12 @@ class PageContent
     }
 
     public function getId(): ?string { return $this->id; }
+
     public function setId(string $id): void { $this->id = $id; }
-    
-    public function getPage(): ?Page { return $this->page; }
+
     public function setPage(?Page $page): void { $this->page = $page; }
 
-    public function getTerm(): string { return $this->term; }
     public function setTerm(string $term): void { $this->term = $term; }
 
     public function getTranslations(): Collection { return $this->translations; }
-
-    public function addTranslation(PageContentTranslation $translation): self
-    {
-        if (!$this->translations->contains($translation)) {
-            $this->translations[] = $translation;
-            $translation->setPageContent($this);
-        }
-        return $this;
-    }
-
-    public function removeTranslation(PageContentTranslation $translation): self
-    {
-        if ($this->translations->removeElement($translation) && $translation->getPageContent() === $this) {
-            $translation->setPageContent(null);
-        }
-        return $this;
-    }
 }

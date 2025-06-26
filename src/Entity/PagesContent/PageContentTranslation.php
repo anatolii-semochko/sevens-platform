@@ -36,12 +36,5 @@ class PageContentTranslation
 
     public function getId(): ?string { return $this->id; }
 
-    public function getPageContent(): ?PageContent { return $this->pageContent; }
-    public function setPageContent(?PageContent $pageContent): void { $this->pageContent = $pageContent; }
-
-    public function getLanguage(): ?Language { return $this->language; }
-    public function setLanguage(?Language $language): void { $this->language = $language; }
-
     public function getTranslation(): ?string { return $this->translation; }
-    public function setTranslation(?string $translation): void { $this->translation = $translation; }
 }

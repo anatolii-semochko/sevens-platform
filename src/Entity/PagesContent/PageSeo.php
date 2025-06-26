@@ -27,19 +27,19 @@ class PageSeo
 
     #[ORM\Column(length: 100, nullable: true)]
     #[Groups(['page-seo:read'])]
-    private string $breadcrumbs;
+    private ?string $breadcrumbs;
 
     #[ORM\Column(length: 70, nullable: true)]
     #[Groups(['page-seo:read'])]
-    private string $title;
+    private ?string $title;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['page-seo:read'])]
-    private string $keywords;
+    private ?string $keywords;
 
     #[ORM\Column(length: 160, nullable: true)]
     #[Groups(['page-seo:read'])]
-    private string $description;
+    private ?string $description;
     
     public function __construct()
     {
@@ -54,15 +54,11 @@ class PageSeo
     public function getLanguage(): ?Language { return $this->language; }
     public function setLanguage(?Language $language): void { $this->language = $language; }
 
-    public function getBreadcrumbs(): string { return $this->breadcrumbs; }
-    public function setBreadcrumbs(string $breadcrumbs): void { $this->breadcrumbs = trim($breadcrumbs); }
+    public function getBreadcrumbs(): ?string { return $this->breadcrumbs; }
 
-    public function getTitle(): string { return $this->title; }
-    public function setTitle(string $title): void { $this->title = trim($title); }
+    public function getTitle(): ?string { return $this->title; }
 
-    public function getKeywords(): string { return $this->keywords; }
-    public function setKeywords(string $keywords): void { $this->keywords = trim($keywords); }
+    public function getKeywords(): ?string { return $this->keywords; }
 
-    public function getDescription(): string { return $this->description; }
-    public function setDescription(string $description): void { $this->description = trim($description); }
+    public function getDescription(): ?string { return $this->description; }
 }

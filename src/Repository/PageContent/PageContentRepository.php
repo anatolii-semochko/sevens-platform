@@ -5,15 +5,18 @@ namespace App\Repository\PageContent;
 use App\Entity\PagesContent\PageContent;
 use App\Exception\NotFoundException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class PageContentRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, PageContent::class);
+    }
+
+    public function create(): PageContent
+    {
+        return new PageContent();
     }
 
     public function get(string $id): Object
@@ -26,16 +29,26 @@ class PageContentRepository extends ServiceEntityRepository
         return $term;
     }
 
-    public function findByPage(int $pageId): ?PageContent
+    public function findOneByTermUrlLocale(string $term, ?string $pageUrl, string $locale): ?PageContent
     {
-        try {
-            return $this->createQueryBuilder('pc')
-                ->where('pc.page = :pageId')
-                ->setParameter('pageId', $pageId)
-                ->getQuery()
-                ->getOneOrNullResult();
-        } catch (NonUniqueResultException $e) {
-            throw new UnprocessableEntityHttpException($e->getMessage());
+        $qb = $this->createQueryBuilder('pc')
+            ->leftJoin('pc.translations', 't', 'WITH', 't.language IN (
+                SELECT l_sub FROM App\Entity\Language\Language l_sub WHERE l_sub.code = :locale
+            )')
+            ->leftJoin('t.language', 'l')
+            ->addSelect('t', 'l')
+            ->where('pc.term = :term')
+            ->setParameter('term', $term)
+            ->setParameter('locale', $locale);
+
+        if ($pageUrl !== null) {
+            $qb->join('pc.page', 'p')
+                ->andWhere('p.url = :url')
+                ->setParameter('url', $pageUrl);
+        } else {
+            $qb->andWhere('pc.page IS NULL');
         }
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 }

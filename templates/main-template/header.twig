@@ -6,26 +6,26 @@
             <button class="menu-toggle d-md-none" id="menuToggle"><i class="bi bi-list"></i></button>
             <img src="{{ asset('build/images/logo/logo-sample.svg') }}" alt="Logo" height="40">
     
-    
             <div class="position-relative search-wrapper">
                 <input type="text" class="form-control rounded-pill ps-5 search-input w-100" placeholder="Search...">
                 <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
             </div>
     
             <nav class="d-none d-md-flex align-items-center gap-2 header-nav">
-                <a href="#" class="nav-link px-2">Video</a>
-                <a href="#" class="nav-link px-2">Photo</a>
-                <a href="#" class="nav-link px-2">Music</a>
-                <a href="#" class="nav-link px-2">Documents</a>
+                <a href="#" class="nav-link px-2">{{ t('Video') }}</a>
+                <a href="#" class="nav-link px-2">{{ t('Photo') }}</a>
+                <a href="#" class="nav-link px-2">{{ t('Music') }}</a>
+                <a href="#" class="nav-link px-2">{{ t('Documents') }}</a>
+                <a href="#" class="nav-link px-2">{{ t('UUU') }}</a>
             </nav>
         </div>
     
         <!-- Right side: Create + Icons -->
         <div class="d-flex align-items-center gap-3 header-right">
             <a href="#" class="create-btn">
-                <i class="bi bi-patch-check me-1"></i> Check
+                <i class="bi bi-patch-check me-1"></i> {{ t('Check Material Button') }}
             </a>
-            <a href="#" class="create-btn">+ Create</a>
+            <a href="#" class="create-btn">+ {{ t('Create Material Button') }}</a>
             {% include 'main-template/header/language-selector.twig' %}
             <a href="#" class="text-dark"><i class="bi bi-envelope fs-4 icon-button"></i></a>
             <a href="#" class="text-dark"><i class="bi bi-person fs-4 icon-button"></i></a>

@@ -25,13 +25,27 @@ class PageRepository extends ServiceEntityRepository
 
         return $page;
     }
-    
-    public function findOneByTerm(string $term): ?Page
+
+    public function create(): Page
+    {
+        return new Page();
+    }
+
+    public function save(Page $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function findByUrl(string $url): ?Page
     {
         try {
             return $this->createQueryBuilder('p')
-                ->where('p.term = :term')
-                ->setParameter('term', $term)
+                ->where('p.url = :url')
+                ->setParameter('url', $url)
                 ->getQuery()
                 ->getOneOrNullResult();   
         } catch (NonUniqueResultException $e) {

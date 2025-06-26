@@ -2,7 +2,6 @@
 
 namespace App\Entity\PagesContent;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,7 +27,6 @@ class Page
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
-        $this->seo = new ArrayCollection();
     }
 
     public function getId(): ?string { return $this->id; }
@@ -36,42 +34,4 @@ class Page
 
     public function getUrl(): string { return $this->url; }
     public function setUrl(string $url): void { $this->url = trim($url); }
-
-    public function getSeo(): Collection { return $this->seo; }
-
-    public function addSeo(PageSeo $seo): self
-    {
-        if (!$this->seo->contains($seo)) {
-            $this->seo[] = $seo;
-            $seo->setPage($this);
-        }
-        return $this;
-    }
-
-    public function removeSeo(PageSeo $seo): self
-    {
-        if ($this->seo->removeElement($seo) && $seo->getPage() === $this) {
-            $seo->setPage(null);
-        }
-        return $this;
-    }
-
-    public function getContents(): Collection { return $this->contents; }
-
-    public function addContent(PageContent $content): self
-    {
-        if (!$this->contents->contains($content)) {
-            $this->contents[] = $content;
-            $content->setPage($this);
-        }
-        return $this;
-    }
-
-    public function removeContent(PageContent $content): self
-    {
-        if ($this->contents->removeElement($content) && $content->getPage() === $this) {
-            $content->setPage(null);
-        }
-        return $this;
-    }
 }
