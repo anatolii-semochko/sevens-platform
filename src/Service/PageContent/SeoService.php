@@ -19,6 +19,8 @@ class SeoService
     
     public function get(): PageSeo
     {
+        // TODO - Add page seo terms {material.name}
+        // TODO - Add messages about empty SEO translations to Admin Panel
         if (
             !$seo = $this->pageSeoRepository->findOneByPageLocale(
                 $this->localeStorage->getPage(),
@@ -28,6 +30,10 @@ class SeoService
             $seo = $this->pageSeoRepository->create();
             $seo->setPage($this->localeStorage->getPage());
             $seo->setLanguage($this->localeStorage->getLanguage());
+            $seo->setBreadcrumbs(null);
+            $seo->setTitle(null);
+            $seo->setDescription(null);
+            $seo->setKeywords(null);
             $this->pageSeoRepository->save($seo, true);
         }
 

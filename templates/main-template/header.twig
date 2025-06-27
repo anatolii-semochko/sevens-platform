@@ -4,7 +4,10 @@
         <!-- Left side: Burger + Logo + Search + Categories -->
         <div class="d-flex align-items-center gap-3 header-left">
             <button class="menu-toggle d-md-none" id="menuToggle"><i class="bi bi-list"></i></button>
-            <img src="{{ asset('build/images/logo/logo-sample.svg') }}" alt="Logo" height="40">
+
+            <a href="{{ path('home_page', {'_locale': app.request.locale}) }}">
+                <img src="{{ asset('build/images/logo/logo-sample.svg') }}" alt="Logo" height="40">
+            </a>
 
             <div class="position-relative search-wrapper">
                 <input type="text" class="form-control rounded-pill ps-5 search-input w-100" placeholder="Search...">

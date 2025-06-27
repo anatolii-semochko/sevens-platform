@@ -55,10 +55,14 @@ class PageSeo
     public function setLanguage(?Language $language): void { $this->language = $language; }
 
     public function getBreadcrumbs(): ?string { return $this->breadcrumbs; }
+    public function setBreadcrumbs(?string $breadcrumbs): void { $this->breadcrumbs = trim($breadcrumbs); }
 
     public function getTitle(): ?string { return $this->title; }
+    public function setTitle(?string $title): void { $this->title = trim($title); }
 
     public function getKeywords(): ?string { return $this->keywords; }
+    public function setKeywords(?string $keywords): void { $this->keywords = trim($keywords); }
 
     public function getDescription(): ?string { return $this->description; }
+    public function setDescription(?string $description): void { $this->description = trim($description); }
 }
