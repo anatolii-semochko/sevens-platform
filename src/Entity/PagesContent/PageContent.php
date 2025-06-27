@@ -10,6 +10,7 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: \App\Repository\PageContent\PageContentRepository::class)]
 #[ORM\Table(name: 'pages_content')]
+#[ORM\UniqueConstraint(name: "unique", columns: ["term", "page_id"])]
 class PageContent
 {
     #[ORM\Id]
@@ -22,7 +23,7 @@ class PageContent
     #[Groups(['page-content:read'])]
     private ?Page $page = null;
 
-    #[ORM\Column(type: 'string', length: 64, unique: true)]
+    #[ORM\Column(type: 'string', length: 64)]
     #[Groups(['page-content:read'])]
     private string $term;
 
