@@ -16,7 +16,7 @@ class ExceptionListener
         $exception = $event->getThrowable();
 
         if ($exception instanceof NotFoundHttpException) {
-            $content = $this->twig->render('pages/404.twig');
+            $content = $this->twig->render('pages/404.html.twig');
             $response = new Response($content, 404);
             $event->setResponse($response);
         }
