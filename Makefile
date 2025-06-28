@@ -58,8 +58,10 @@ deps-update:
 wait-db:
 	docker compose run --rm ${APP_PHP_CLI} wait-for-it mysql:3306 -t 30
 
-migrations:
-	docker compose run --rm ${APP_PHP_CLI} composer app migrations:migrate -- --no-interaction
+migration-diff:
+	docker compose run --rm ${APP_PHP_CLI} bin/console doctrine:migrations:diff
+migration-migrate:
+	docker compose run --rm ${APP_PHP_CLI} bin/console doctrine:migrations:migrate
 
 fixtures:
 	docker compose run --rm ${APP_PHP_CLI} composer app fixtures:load

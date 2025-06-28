@@ -1,0 +1,39 @@
+<div class="main-header sticky-top border-bottom bg-white d-flex align-items-center" style="height: 70px;">
+    <div class="container-fluid d-flex justify-content-between align-items-center px-4 w-100 header-inner">
+
+        <!-- Left side: Burger + Logo + Search + Categories -->
+        <div class="d-flex align-items-center gap-3 header-left">
+            <button class="menu-toggle d-md-none" id="menuToggle"><i class="bi bi-list"></i></button>
+
+            <a href="{{ path('home_page', {'_locale': app.request.locale}) }}">
+                <img src="{{ asset('build/images/logo/logo-sample.svg') }}" alt="Logo" height="40">
+            </a>
+
+            <div class="position-relative search-wrapper">
+                <input type="text" class="form-control rounded-pill ps-5 search-input w-100" placeholder="Search...">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            </div>
+
+            <nav class="d-none d-md-flex align-items-center gap-2 header-nav">
+                <a href="#" class="nav-link px-2">{{ t('Video') }}</a>
+                <a href="#" class="nav-link px-2">{{ t('Photo') }}</a>
+                <a href="#" class="nav-link px-2">{{ t('Music') }}</a>
+                <a href="#" class="nav-link px-2">{{ t('Documents') }}</a>
+            </nav>
+        </div>
+
+        <!-- Right side: Create + Icons -->
+        <div class="d-flex align-items-center gap-3 header-right">
+            <a href="{{ path('check_token', {'_locale': app.request.locale}) }}" class="create-btn">
+                <i class="bi bi-patch-check me-1"></i> {{ t('Check Material Button') }}
+            </a>
+            <a href="{{ path('create_material', {'_locale': app.request.locale}) }}" class="create-btn">
+                + {{ t('Create Material Button') }}
+            </a>
+            {% include 'main-template/header/language-selector.html.twig' %}
+            <a href="#" class="text-dark"><i class="bi bi-envelope fs-4 icon-button"></i></a>
+            <a href="#" class="text-dark"><i class="bi bi-person fs-4 icon-button"></i></a>
+        </div>
+
+    </div>
+</div>

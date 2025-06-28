@@ -1,0 +1,29 @@
+<div class="d-flex align-items-center">
+    <div class="dropdown">
+        <a href="#" role="button" id="languageDropdown" data-bs-toggle="dropdown">
+            <img src="{{ asset('build/images/language-flags/' ~ currentLocale ~ '.png') }}"
+                 title="{{ currentLocale|upper }}" 
+                 alt="{{ currentLocale|upper }}" 
+                 height="20" 
+                 style="border-radius: 3px;"
+            >
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+            {% set current_route = app.request.attributes.get('_route') %}
+            {% set current_params = app.request.query.all|merge(app.request.attributes.get('_route_params')|default({})) %}
+            {% for lang in global.languages %}
+                <li class="mx-4 my-3">
+                    <a class="dropdown-item d-flex align-items-center gap-2 {% if currentLocale == lang.code %}active{% endif %}"
+                       href="{{ path(current_route, current_params|merge({'_locale': lang.code})) }}">
+                        <img src="/build/images/language-flags/{{ lang.code }}.png"
+                             alt="{{ lang.name }}"
+                             height="20"
+                             style="border-radius: 3px;"
+                        >
+                        {{ lang.name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

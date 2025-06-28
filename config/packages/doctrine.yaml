@@ -8,6 +8,8 @@ doctrine:
 
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
+#        dbal:
+#            schema_filter: '^app_~^(?!users|external_table2)~'
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true
