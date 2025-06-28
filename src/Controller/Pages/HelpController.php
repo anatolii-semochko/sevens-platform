@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Pages;
 
 use App\Entity\Category\CategoryConstants;
 use App\Repository\Category\CategoryRepository;
@@ -44,7 +44,7 @@ class HelpController extends AbstractController
 //        dd($this->helpService->getBreadcrumbs($help->getParentId()));
 
         return $this->render('base.html.twig', [
-            'main_template' => 'help/main.twig',
+            'main_template' => 'help/main.html.twig',
             'main_data' => [
                 'help' => $help,
                 //'breadcrumbs' => $help->getBreadcrumbs(),

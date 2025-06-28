@@ -14,12 +14,12 @@
 </head>
     <body>
         <div>
-            {% include 'main-template/header.twig' %}
+            {% include 'main-template/header.html.twig' %}
             <div class="layout-wrapper d-flex">
-                {% include 'main-template/sidebar.twig' %}
+                {% include 'main-template/sidebar.html.twig' %}
                 <main class="main-content d-flex flex-column">
                     {% include main_template with main_data %}
-                    {% include 'main-template/footer.twig' %}
+                    {% include 'main-template/footer.html.twig' %}
                 </main>
             </div>
         </div>

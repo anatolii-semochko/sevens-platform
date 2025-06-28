@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Pages\Material;
 
 use App\Entity\Category\CategoryConstants;
-use App\Exception\NotFoundException;
 use App\Repository\Category\CategoryRepository;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Category\CategoryService;
@@ -12,11 +11,10 @@ use App\Service\PageContent\PageService;
 use App\Service\Template\TemplateService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/material', name: 'material_')]
-class MaterialController extends AbstractController
+class CreateMaterialController extends AbstractController
 {
     public function __construct(
         private PageService $pageService,
@@ -27,11 +25,11 @@ class MaterialController extends AbstractController
         private TemplateService $templateService,
     ) {}
 
-    #[Route('/{token}', name: 'page', methods: ['GET'])]
-    public function get(string $token, Request $request): Response
+    #[Route('/create-material', name: 'create_material', methods: ['GET'])]
+    public function get(Request $request): Response
     {
 
-        $this->pageService->init('/material');
+        $this->pageService->init('/create-material');
 
         $category = $this->categoryRepository->get(CategoryConstants::MATERIALS_MAIN_ID);
 
@@ -40,16 +38,10 @@ class MaterialController extends AbstractController
             $request->attributes->get('_locale'),
         );
 
-        try {
-            $material = $this->materialRepository->get($token);
-        } catch (NotFoundException $e) {
-            return new Response($this->renderView('pages/404.twig'), 404);
-        }
-
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/material/material.twig',
+            'main_template' => 'pages/material/create.html.twig',
             'main_data' => [
-                'material' => $material,
+
             ],
             'categories' => $categories,
         ]);
