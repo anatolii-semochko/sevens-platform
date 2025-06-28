@@ -70,6 +70,79 @@ class Help
     public function getParentId(): ?string { return $this->parentId; }
     public function setParentId(?string $parentId): void { $this->parentId = $parentId; }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //==================================================================================================================
+    //==================================================================================================================
+    //==================================================================================================================
+    //==================================================================================================================
+    //==================================================================================================================
+    #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Help::class)]
+    private Collection $children;
+
+    #[ORM\ManyToOne(targetEntity: Help::class, inversedBy: 'children')]
+    #[ORM\JoinColumn(name: 'parent_id', referencedColumnName: 'id', nullable: true)]
+    private ?Help $parent = null;
+
+
+    public function getContent(): Collection { return $this->contents; }
+
+    public function getPageUrl(): string
+    {
+        $path = [];
+        foreach (json_decode($this->getPath(), true) as $parent) {
+            $path[] = $parent['url'];
+        }
+        $path[] = $this->getUrl();
+
+        return implode('/', $path);
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        $breadcrumbs = [];
+        foreach (json_decode($this->getPath(), true) ?? [] as $parent) {
+            $breadcrumbs[] = [
+                'title' => $parent['name'],
+                'url' => $parent['url'],
+            ];
+        }
+        $breadcrumbs[] = [
+            'title' => $this->getName(),
+        ];
+
+        return $breadcrumbs;
+    }
+    //==================================================================================================================
+    //==================================================================================================================
+    //==================================================================================================================
+    //==================================================================================================================
+    //==================================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public function getChildren(): Collection { return $this->children; }
 
     public function getOrder(): int { return $this->order; }
