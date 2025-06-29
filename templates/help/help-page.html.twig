@@ -1,0 +1,32 @@
+<div class="mb-5">
+    <div class="pt-3 mb-4">
+        {% if help.breadcrumbs %}
+            <a href="{{ path('help_index', {'_locale': app.request.locale}) }}">{{ t('Help') }}</a>
+        {% else %}
+            {{ t('Help') }}
+        {% endif %}
+
+        {% for breadcrumb in help.breadcrumbs %}
+            {% if breadcrumb.url is defined %}
+                / <a href="{{ path('help_page', {'_locale': app.request.locale, slugPath: breadcrumb.url}) }}">{{ breadcrumb.title }}</a>
+            {% else %}
+                / {{ breadcrumb.title }}
+            {% endif %}
+        {% endfor %}
+    </div>
+    <h1>{{ help.name }}</h1>
+    <h2>{{ help.title }}</h2>
+    <h3>{{ help.shortDescription }}</h3>
+    <p>{{ help.description }}</p>
+    {% for childHelp in help.children %}
+        <div class="mt-4">
+            <div class=""><h2>{{ childHelp.name }}</h2></div>
+            <div class="">{{ childHelp.shortDescription }}</div>
+            <div>
+                <a class="" href="{{ path('help_page', {'_locale': app.request.locale, slugPath: childHelp.pageUrl}) }}">
+                    Read More
+                </a>
+            </div>
+        </div>
+    {% endfor %}
+</div>

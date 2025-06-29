@@ -1,0 +1,8 @@
+<div class="">
+    <div class="pt-3 mb-4">
+        <h1>{{ 'Help'|trans }}</h1>
+    </div>
+    <div>
+        {% include 'help/tree.html.twig' with {'nodes': tree} %}
+    </div>
+</div>

@@ -6,7 +6,7 @@ use App\Entity\Language\Language;
 use App\Exception\NotFoundException;
 use App\Repository\LanguageRepository;
 
-class LanguagesService
+readonly class LanguagesService
 {
     public function __construct(private LanguageRepository $repository) {}
 
@@ -25,7 +25,7 @@ class LanguagesService
         if (!$language = $this->repository->findMainLanguage()) {
             throw new NotFoundException('Main language not found');
         }
-        
+
         return $language;
     }
 
