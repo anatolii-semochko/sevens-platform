@@ -21,15 +21,30 @@ readonly class HelpService
         private LanguagesService $languagesService,
     ) {}
 
+    public function findByName(string $url): ?HelpObject
+    {
+        $help = $this->helpRepository->findByName($url);
+        $help->setContents($this->getContent($help));
+
+        return new HelpObject($help);
+    }
+
     public function findByUrl(string $url, string $locale): ?Help
     {
         $help = $this->helpRepository->findByUrl($url);
-        if (!$helpContent = $this->helpContentRepository->getByHelpId($help->getId(), $locale)) {
-            $helpContent = $this->helpContentRepository->create($help, $this->localeStorage->getLanguage());
-        }
-        $help->setContents(new ArrayCollection([$helpContent]));
+        $help->setContents($this->getContent($help));
 
         return $help;
+    }
+
+    private function getContent(Help $help): ArrayCollection
+    {
+        $helpContent = $this->helpContentRepository->getByHelpId($help->getId(), $this->localeStorage->getLocale());
+        if (!$helpContent) {
+            $helpContent = $this->helpContentRepository->create($help, $this->localeStorage->getLanguage());
+        }
+
+        return new ArrayCollection([$helpContent]);
     }
 
     public function fetchByIds(array $ids, string $locale): array
@@ -81,30 +96,24 @@ readonly class HelpService
         $locale = $this->localeStorage->getLocale();
         $helpPages = $this->fetchAll($locale);
 
-        // 1. Індексування всіх сторінок по ID
         $indexed = [];
         foreach ($helpPages as $help) {
             $indexed[$help->getId()] = new HelpObject($help);
         }
 
-        // 2. Побудова дерева на основі parentId
         foreach ($indexed as $helpObject) {
-            // Якщо немає parentId — це корінь
             if (empty($helpObject->parentId)) {
                 $tree[] = $helpObject;
             } else {
-                // Якщо батько існує — додаємо в children
                 if (isset($indexed[$helpObject->parentId])) {
                     $parent = $indexed[$helpObject->parentId];
                     $parent->children[] = $helpObject;
                 } else {
-                    // Якщо parentId вказаний, але не знайдений — все одно додаємо на верхній рівень
                     $tree[] = $helpObject;
                 }
             }
         }
 
-        // 3. Рекурсивне сортування дітей
         $sortFn = function (HelpObject $a, HelpObject $b) {
             return $a->order <=> $b->order;
         };

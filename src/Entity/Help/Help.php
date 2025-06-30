@@ -10,8 +10,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: HelpRepository::class)]
 #[ORM\Table(name: 'help')]
-#[ORM\UniqueConstraint(name: 'unique_name', columns: ['parent_id', 'name'])]
-#[ORM\UniqueConstraint(name: 'unique_url', columns: ['url'])]
 class Help
 {
     #[ORM\Id]
@@ -31,11 +29,11 @@ class Help
     #[Groups(['help:read'])]
     private int $level = 0;
 
-    #[ORM\Column(type: 'string', length: 36)]
+    #[ORM\Column(type: 'string', length: 36, unique: true)]
     #[Groups(['help:read'])]
     private string $name = '';
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     #[Groups(['help:read'])]
     private ?string $url = null;
 

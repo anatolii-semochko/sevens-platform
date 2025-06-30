@@ -13,13 +13,13 @@ class HelpObject
 
     public readonly int $order;
 
-    public readonly string $url;
-    public readonly string $pageUrl;
+    public readonly ?string $url;
+    public readonly ?string $pageUrl;
 
     public readonly string $name;
-    public readonly string $title;
-    public readonly string $shortDescription;
-    public readonly string $description;
+    public readonly ?string $title;
+    public readonly ?string $shortDescription;
+    public readonly ?string $description;
     public readonly object $seo;
 
 
@@ -35,7 +35,7 @@ class HelpObject
         $this->url = $help->getUrl();
         $this->pageUrl = $this->getPageUrl($help);
         $this->name = $help->getName();
-        $this->title = $help->getContents()[0]?->getTitle();
+        $this->title = $help->getContents()[0]?->getTitle() ?? $this->name;
         $this->shortDescription = $help->getContents()[0]?->getShortDescription();
         $this->description = $help->getContents()[0]?->getDescription();
         $this->seo = $this->getSeo($help);

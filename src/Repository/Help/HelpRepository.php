@@ -13,6 +13,15 @@ class HelpRepository extends ServiceEntityRepository
         parent::__construct($registry, Help::class);
     }
 
+    public function findByName(string $name): ?Help
+    {
+        return $this->createQueryBuilder('h')
+            ->where('h.name = :name')
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findByUrl(string $url): ?Help
     {
         return $this->createQueryBuilder('h')

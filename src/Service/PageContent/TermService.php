@@ -35,7 +35,7 @@ readonly class TermService
     {
         $pageContent = $this->pageContentRepository->findOneByTermUrlLocale(
             $term,
-            $private ? $this->localeStorage->getUrl() : null,
+            $private ? $this->localeStorage->getPage()->getUrl() : null,
             $this->localeStorage->getLocale(),
         );
 

@@ -17,7 +17,7 @@
     <h1>{{ help.name }}</h1>
     <h2>{{ help.title }}</h2>
     <h3>{{ help.shortDescription }}</h3>
-    <p>{{ help.description }}</p>
+    {{ help.description|raw }}
     {% for childHelp in help.children %}
         <div class="mt-4">
             <div class=""><h2>{{ childHelp.name }}</h2></div>
