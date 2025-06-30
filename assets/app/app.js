@@ -1,11 +1,11 @@
-import 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import 'bootstrap-icons/font/bootstrap-icons.css';
-import '../app/styles/main.scss';
-import React from 'react';
+import 'bootstrap'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap-icons/font/bootstrap-icons.css'
+import '@css/main.scss'
+import React from 'react'
 import { createRoot } from 'react-dom/client';
-import CreateMaterial from "./js/create-material/CreateMaterial";
-import CheckToken from "./js/check-token/CheckToken";
+import CreateMaterial from '@components/create-material/CreateMaterial'
+import CheckToken from '@components/check-token/CheckToken'
 
 const createMaterial = document.getElementById('create-material');
 if (createMaterial) {
@@ -21,7 +21,7 @@ if (checkToken) {
 
 
 
-
+// TODO - move to separate file
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.help-link .toggle-help').forEach(function (link) {
         link.addEventListener('click', function (e) {

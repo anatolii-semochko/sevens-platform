@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Controller\Pages;
+namespace App\Controller\Pages\Help;
 
+use App\Controller\Pages\BaseController;
 use App\Exception\NotFoundException;
 use App\Service\Help\HelpService;
 use App\Service\PageContent\PageService;
