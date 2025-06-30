@@ -21,17 +21,17 @@ readonly class HelpService
         private LanguagesService $languagesService,
     ) {}
 
-    public function findByName(string $url): ?HelpObject
+    public function getByName(string $url): ?HelpObject
     {
-        $help = $this->helpRepository->findByName($url);
+        $help = $this->helpRepository->getByName($url);
         $help->setContents($this->getContent($help));
 
         return new HelpObject($help);
     }
 
-    public function findByUrl(string $url, string $locale): ?Help
+    public function getByUrl(string $url): ?Help
     {
-        $help = $this->helpRepository->findByUrl($url);
+        $help = $this->helpRepository->getByUrl($url);
         $help->setContents($this->getContent($help));
 
         return $help;
@@ -83,7 +83,7 @@ readonly class HelpService
         $url = $segments[count($segments) - 1];
 
         $locale = $this->localeStorage->getLocale();
-        $help = $this->findByUrl($url, $locale);
+        $help = $this->getByUrl($url, $locale);
         $helpObject = new HelpObject($help);
         $helpObject->setNeighbours($this->fetchByIds($helpObject->neighboursIds, $locale));
 

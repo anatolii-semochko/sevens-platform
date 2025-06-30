@@ -3,6 +3,7 @@
 namespace App\Repository\Help;
 
 use App\Entity\Help\Help;
+use App\Exception\NotFoundException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -13,22 +14,22 @@ class HelpRepository extends ServiceEntityRepository
         parent::__construct($registry, Help::class);
     }
 
-    public function findByName(string $name): ?Help
+    public function getByName(string $name): Help
     {
         return $this->createQueryBuilder('h')
             ->where('h.name = :name')
             ->setParameter('name', $name)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult() ?? throw new NotFoundException('Help not found');
     }
 
-    public function findByUrl(string $url): ?Help
+    public function getByUrl(string $url): ?Help
     {
         return $this->createQueryBuilder('h')
             ->where('h.url = :url')
             ->setParameter('url', $url)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult() ?? throw new NotFoundException('Help not found');
     }
 
     public function fetchByIds(array $ids): array
