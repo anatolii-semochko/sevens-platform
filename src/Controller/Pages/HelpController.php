@@ -3,6 +3,7 @@
 namespace App\Controller\Pages;
 
 use App\Entity\Category\CategoryConstants;
+use App\Exception\NotFoundException;
 use App\Repository\Category\CategoryRepository;
 use App\Service\Help\HelpService;
 use App\Service\PageContent\PageService;
@@ -22,8 +23,12 @@ class HelpController extends AbstractController
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
-        $this->pageService->init('/help');
-        $tree = $this->helpService->getTree();
+        try {
+            $this->pageService->init('/help');
+            $tree = $this->helpService->getTree();
+        } catch (NotFoundException $e) {
+            return new Response($this->renderView('pages/404.html.twig'), 404);
+        }
 
         $categories = $this->categoryRepository->fetchCategories(
             CategoryConstants::MATERIALS_MAIN_ID,
@@ -41,8 +46,12 @@ class HelpController extends AbstractController
     #[Route('/{slugPath}', name: 'page', requirements: ['slugPath' => '.+'], methods: ['GET'])]
     public function page(string $slugPath): Response
     {
-        $this->pageService->init('/help');
-        $help = $this->helpService->findHelpByUrlPath($slugPath);
+        try {
+            $this->pageService->init('/help');
+            $help = $this->helpService->findHelpByUrlPath($slugPath);
+        } catch (NotFoundException $e) {
+            return new Response($this->renderView('pages/404.html.twig'), 404);
+        }
 
         $categories = $this->categoryRepository->fetchCategories(
             CategoryConstants::MATERIALS_MAIN_ID,

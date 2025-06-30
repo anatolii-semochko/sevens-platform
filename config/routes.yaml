@@ -2,8 +2,6 @@ controllers:
     resource: ../src/Controller/
     type: attribute
     prefix: /{_locale}
-    defaults:
-        _locale: en
 
 home_redirect:
     path: /

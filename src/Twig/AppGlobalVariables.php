@@ -2,10 +2,12 @@
 
 namespace App\Twig;
 
+use App\Exception\NotFoundException;
 use App\Service\Help\HelpService;
 use App\Service\LanguagesService;
 use App\Service\PageContent\SeoService;
 use App\Service\PageContent\TermService;
+use Exception;
 use Twig\Environment;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
@@ -57,11 +59,15 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
     public function getHelp(string $helpName): Markup
     {
         try {
-            return new Markup($this->twig->render('help/help-link.html.twig', [
-                'help' => $this->helpService->findByName($helpName),
-            ]), 'UTF-8');
-        } catch (\Exception $e) {
-            dd($e); // TODO
+            $html = $this->twig->render('help/help-link.html.twig', [
+                'help' => $this->helpService->getByName($helpName),
+            ]);
+        } catch (NotFoundException $e) {
+            $html = "<b class='text-danger font-weight-bold'>$helpName</b>";
+        } catch (Exception $e) {
+            dd($e); // TODO throw InternalServerException
         }
+
+        return new Markup($html, 'UTF-8');
     }
 }
