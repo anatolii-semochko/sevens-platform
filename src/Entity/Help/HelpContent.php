@@ -19,11 +19,11 @@ class HelpContent
     private string $id;
 
     #[ORM\ManyToOne(targetEntity: Help::class, inversedBy: 'contents')]
-    #[ORM\JoinColumn(name: 'help_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'help_id', referencedColumnName: 'id', nullable: false)]
     private Help $help;
 
     #[ORM\ManyToOne(targetEntity: Language::class)]
-    #[ORM\JoinColumn(name: 'language_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'language_id', referencedColumnName: 'id', nullable: false)]
     #[Groups(['help-content:read'])]
     private Language $language;
 

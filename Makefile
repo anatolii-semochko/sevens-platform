@@ -162,11 +162,11 @@ mysql:
 node:
 	docker compose run --rm web-node bash
 
-npm-install:
+yarn-install:
 	docker compose run --rm -w /app web-node yarn install
 
-npm-build:
+yarn-build:
 	docker compose run --rm -w /app web-node yarn build
 
-npm-watch:
+yarn-watch:
 	docker compose run --rm -w /app web-node yarn dev-watch

@@ -19,35 +19,41 @@ class HelpController extends AbstractController
         private readonly CategoryRepository $categoryRepository,
     ) {}
 
-//    #[Route('/api/help/tree', name: 'api_help_tree', methods: ['GET'])]
-//    public function getHelpTree(): JsonResponse
-//    {
-//        $tree = $this->helpService->getHelpTree();
-//        return $this->json($tree);
-//    }
-
-    #[Route('/{slugPath}', name: 'page', requirements: ['slugPath' => '.+'], methods: ['GET'])]
-    public function index(string $slugPath): Response
+    #[Route('', name: 'index', methods: ['GET'])]
+    public function index(): Response
     {
         $this->pageService->init('/help');
-
-//        $this->helpService->generate();
-
-        $help = $this->helpService->findHelpByUrlPath($slugPath);
-//        dd($help->getBreadcrumbs());
-//        dd($help);
+        $tree = $this->helpService->getTree();
 
         $categories = $this->categoryRepository->fetchCategories(
             CategoryConstants::MATERIALS_MAIN_ID,
         );
 
-//        dd($this->helpService->getBreadcrumbs($help->getParentId()));
+        return $this->render('base.html.twig', [
+            'main_template' => 'help/help-main.html.twig',
+            'main_data' => [
+                'tree' => $tree,
+            ],
+            'categories' => $categories,
+        ]);
+    }
+
+    #[Route('/{slugPath}', name: 'page', requirements: ['slugPath' => '.+'], methods: ['GET'])]
+    public function page(string $slugPath): Response
+    {
+        $this->pageService->init('/help');
+        $help = $this->helpService->findHelpByUrlPath($slugPath);
+
+        $categories = $this->categoryRepository->fetchCategories(
+            CategoryConstants::MATERIALS_MAIN_ID,
+        );
+
+//        $this->helpService->generate();
 
         return $this->render('base.html.twig', [
-            'main_template' => 'help/main.html.twig',
+            'main_template' => 'help/help-page.html.twig',
             'main_data' => [
                 'help' => $help,
-                //'breadcrumbs' => $help->getBreadcrumbs(),
             ],
             'categories' => $categories,
         ]);

@@ -6,22 +6,21 @@ use App\Entity\Material\Material;
 use App\Repository\Material\MaterialRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
-class MaterialService
+readonly class MaterialService
 {
     public function __construct(
         private EntityManagerInterface $em,
         private MaterialRepository $repository,
     ) {}
 
-    
     public function fetch(): array
     {
         return $this->repository->findBy([]);
     }
-    
-    
+
     public function create(array $data): void
     {
+        // TODO - IS TEMPORARY and NOT IN USE
         $material = new Material();
         $material->setToken(substr(md5(uniqid((string) microtime(), true)), 0, 44));
         $material->setTitle($data['title']);
@@ -31,20 +30,4 @@ class MaterialService
         $this->em->persist($material);
         $this->em->flush();
     }
-
-    
-    
-    
-    
-    public function import(): void
-    {
-        foreach ($this->data() as $data) {
-            $this->create($data);
-        }
-    }
-    private function data(): array
-    {
-        return json_decode(file_get_contents('/app/src/Service/Material/temp/media-data.json'), true);
-    }
-    
 }

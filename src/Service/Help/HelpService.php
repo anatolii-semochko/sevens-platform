@@ -2,78 +2,144 @@
 
 namespace App\Service\Help;
 
+use App\Entity\Help\Help;
 use App\Entity\Help\HelpContent;
 use App\Repository\Help\HelpContentRepository;
 use App\Repository\Help\HelpRepository;
-use App\Entity\Help\Help;
 use App\Service\LanguagesService;
 use App\Service\LocaleStorage;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 
-class HelpService
+readonly class HelpService
 {
     public function __construct(
         private EntityManagerInterface $em,
         private LocaleStorage $localeStorage,
-        private readonly HelpRepository $helpRepository,
-        private readonly HelpContentRepository $helpContentRepository,
-        private readonly LanguagesService $languagesService,
+        private HelpRepository $helpRepository,
+        private HelpContentRepository $helpContentRepository,
+        private LanguagesService $languagesService,
     ) {}
 
-    public function findHelpByUrlPath(string $path): ?Help
+    public function findByName(string $url): ?HelpObject
     {
-        $segments = array_filter(explode('/', trim($path, '/')));
-        $url = $segments[count($segments) - 1];
+        $help = $this->helpRepository->findByName($url);
+        $help->setContents($this->getContent($help));
 
+        return new HelpObject($help);
+    }
 
-//        Така вибірка не "відсікає" зайві контенти в Doctrine-серіалізації. Щоб після завантаження обмежити масив contents тільки одним HelpContent для мови $locale, використай:
-//        Фільтрація після завантаження (на рівні PHP)
-//        $help = $this->findByUrl($url, $locale);
-//        $help->getContents()->filter(fn($c) => $c->getLanguage()->getCode() === $locale);
-//        foreach ($help->getChildren() as $child) {
-//            $child->getContents()->filter(fn($c) => $c->getLanguage()->getCode() === $locale);
-//        }
-
-        $locale = $this->localeStorage->getLocale();
-        $help = $this->helpRepository->findByUrl($url, $locale);
-
-//        if ($help) {
-//            foreach ($help->getChildren() as $child) {
-//                $filtered = $child->getContents()->filter(
-//                    fn($content) => $content->getLanguage()->getCode() === $locale
-//                );
-//                $child->getContents()->clear();
-//                foreach ($filtered as $item) {
-//                    $child->addContent($item);
-//                }
-//            }
-//        }
+    public function findByUrl(string $url, string $locale): ?Help
+    {
+        $help = $this->helpRepository->findByUrl($url);
+        $help->setContents($this->getContent($help));
 
         return $help;
     }
 
-    public function getBreadcrumbs(): array
+    private function getContent(Help $help): ArrayCollection
     {
+        $helpContent = $this->helpContentRepository->getByHelpId($help->getId(), $this->localeStorage->getLocale());
+        if (!$helpContent) {
+            $helpContent = $this->helpContentRepository->create($help, $this->localeStorage->getLanguage());
+        }
 
-        return [];
+        return new ArrayCollection([$helpContent]);
     }
 
-//    public function getHelpTree(string $parentId = null): array
-//    {
-//        $tree = [];
-//        $children = $this->helpRepository->findChildren($parentId);
-//
-//        foreach ($children as $child) {
-//            $tree[] = [
-//                'id' => $child->getId(),
-//                'name' => $child->getName(),
-//                'url' => $child->getUrl(),
-//                'children' => $this->getHelpTree($child->getId()),
-//            ];
-//        }
-//
-//        return $tree;
-//    }
+    public function fetchByIds(array $ids, string $locale): array
+    {
+        $helps = $this->helpRepository->fetchByIds($ids);
+        $helpContents = $this->helpContentRepository->fetchByHelpIds($ids, $locale);
+        $helpContentsIndexed = [];
+        foreach ($helpContents as $helpContent) {
+            $helpContentsIndexed[$helpContent->getHelp()->getId()] = $helpContent;
+        }
+        foreach ($helps as $help) {
+            $helpContent = $helpContentsIndexed[$help->getId()] ?? $this->helpContentRepository->create(
+                $help,
+                $this->localeStorage->getLanguage(),
+            );
+            $help->setContents(new ArrayCollection([$helpContent]));
+        }
+
+        return $helps;
+    }
+
+    public function fetchAll(string $locale): array
+    {
+        return $this->fetchByIds(
+            array_map(
+                fn(Help $help) => $help->getId(),
+                $this->helpRepository->fetchAll(),
+            ),
+            $locale,
+        );
+    }
+
+    public function findHelpByUrlPath(string $path): HelpObject
+    {
+        $segments = array_filter(explode('/', trim($path, '/')));
+        $url = $segments[count($segments) - 1];
+
+        $locale = $this->localeStorage->getLocale();
+        $help = $this->findByUrl($url, $locale);
+        $helpObject = new HelpObject($help);
+        $helpObject->setNeighbours($this->fetchByIds($helpObject->neighboursIds, $locale));
+
+        return $helpObject;
+    }
+
+    public function getTree(): array
+    {
+        $tree = [];
+        $locale = $this->localeStorage->getLocale();
+        $helpPages = $this->fetchAll($locale);
+
+        $indexed = [];
+        foreach ($helpPages as $help) {
+            $indexed[$help->getId()] = new HelpObject($help);
+        }
+
+        foreach ($indexed as $helpObject) {
+            if (empty($helpObject->parentId)) {
+                $tree[] = $helpObject;
+            } else {
+                if (isset($indexed[$helpObject->parentId])) {
+                    $parent = $indexed[$helpObject->parentId];
+                    $parent->children[] = $helpObject;
+                } else {
+                    $tree[] = $helpObject;
+                }
+            }
+        }
+
+        $sortFn = function (HelpObject $a, HelpObject $b) {
+            return $a->order <=> $b->order;
+        };
+
+        $walk = function (array &$nodes) use (&$walk, $sortFn) {
+            usort($nodes, $sortFn);
+            foreach ($nodes as $node) {
+                if (!empty($node->children)) {
+                    $walk($node->children);
+                }
+            }
+        };
+
+        $walk($tree);
+
+        return $tree;
+    }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -83,24 +149,30 @@ class HelpService
     {
         foreach ($this->helpRepository->fetchAll() as $help) {
             foreach($this->languagesService->fetch() as $language) {
-                $helpContent = $this->helpContentRepository->getByHelpId($help->getId(), $language->getCode());
-                if (!$helpContent) {
-                    $helpContent = new HelpContent();
-                    $helpContent->setHelp($help);
-                    $helpContent->setLanguage($language);
+                try {
+                    $helpContent = $this->helpContentRepository->getByHelpId($help->getId(), $language->getCode());
+                    if (!$helpContent) {
+                        $helpContent = new HelpContent();
+                        $helpContent->setHelp($help);
+                        $helpContent->setLanguage($language);
+                    }
+                    $helpContent->setTitle($this->generatePseudoText(10, 30, $language->getCode()));
+                    $helpContent->setShortDescription($this->generatePseudoText(50, 200, $language->getCode()));
+                    $helpContent->setDescription($this->generatePseudoText(300, 3000, $language->getCode()));
+                    $helpContent->setSeoDescription($this->generatePseudoText(10, 60, $language->getCode()));
+
+                    $this->em->persist($helpContent);
+                    $this->em->flush();
+                } catch (\Exception $e) {
+                    dd($e->getMessage(), $helpContent ?? 'no help content');
                 }
-                $helpContent->setTitle($this->generatePseudoText(10, 30, $language->getCode()));
-                $helpContent->setShortDescription($this->generatePseudoText(50, 200, $language->getCode()));
-                $helpContent->setDescription($this->generatePseudoText(300, 3000, $language->getCode()));
-                $helpContent->setSeoDescription($this->generatePseudoText(10, 60, $language->getCode()));
-                $this->em->persist($helpContent);
-                $this->em->flush();
             }
         }
     }
 
     // TODO - TEMPORARY FOR TESTING - TO REMOVE
-    function generatePseudoText($minLength = 100, $maxLength = 300, $language = 'ua') {
+    function generatePseudoText($minLength = 100, $maxLength = 300, $language = 'ua'): string
+    {
         $alphabets = [
             'ua' => 'абвгґдеєжзиіїйклмнопрстуфхцчшщьюя',
             'en' => 'abcdefghijklmnopqrstuvwxyz',
@@ -158,10 +230,9 @@ class HelpService
 
         // Якщо коротше minLength — продовжуємо
         if (mb_strlen($text) < $minLength) {
-            $text .= generatePseudoText($minLength - mb_strlen($text), $maxLength - mb_strlen($text), $language);
+            $text .= $this->generatePseudoText($minLength - mb_strlen($text), $maxLength - mb_strlen($text), $language);
         }
 
         return $text;
     }
-
 }

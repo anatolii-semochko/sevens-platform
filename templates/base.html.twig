@@ -18,7 +18,9 @@
             <div class="layout-wrapper d-flex">
                 {% include 'main-template/sidebar.html.twig' %}
                 <main class="main-content d-flex flex-column">
-                    {% include main_template with main_data %}
+                    <div class="flex-grow-1 pictures-container">
+                        {% include main_template with main_data %}
+                    </div>
                     {% include 'main-template/footer.html.twig' %}
                 </main>
             </div>

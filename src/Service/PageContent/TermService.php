@@ -7,16 +7,16 @@ use App\Service\LocaleStorage;
 use Symfony\Component\Uid\Uuid;
 use Doctrine\ORM\EntityManagerInterface;
 
-class TermService
+readonly class TermService
 {
     public function __construct(
-        private LocaleStorage $localeStorage,
+        private LocaleStorage          $localeStorage,
         private EntityManagerInterface $em,
-        private PageContentRepository $pageContentRepository,
+        private PageContentRepository  $pageContentRepository,
     ) {}
 
     /**
-     * Returns term translation not assigned to any page 
+     * Returns term translation not assigned to any page
      */
     public function get(string $term): string
     {
@@ -30,12 +30,12 @@ class TermService
     {
         return $this->getTranslation($term, true);
     }
-    
+
     private function getTranslation(string $term, bool $private = false): string
     {
         $pageContent = $this->pageContentRepository->findOneByTermUrlLocale(
             $term,
-            $private ? $this->localeStorage->getUrl() : null,
+            $private ? $this->localeStorage->getPage()->getUrl() : null,
             $this->localeStorage->getLocale(),
         );
 

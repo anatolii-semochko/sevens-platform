@@ -10,8 +10,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: HelpRepository::class)]
 #[ORM\Table(name: 'help')]
-#[ORM\UniqueConstraint(name: 'unique_name', columns: ['parent_id', 'name'])]
-#[ORM\UniqueConstraint(name: 'unique_url', columns: ['url'])]
 class Help
 {
     #[ORM\Id]
@@ -31,11 +29,11 @@ class Help
     #[Groups(['help:read'])]
     private int $level = 0;
 
-    #[ORM\Column(type: 'string', length: 36)]
+    #[ORM\Column(type: 'string', length: 36, unique: true)]
     #[Groups(['help:read'])]
     private string $name = '';
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, unique: true, nullable: true)]
     #[Groups(['help:read'])]
     private ?string $url = null;
 
@@ -55,7 +53,7 @@ class Help
     #[Groups(['help:read'])]
     private ?string $path = null;
 
-    #[ORM\OneToMany(mappedBy: 'help', targetEntity: HelpContent::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: HelpContent::class, mappedBy: 'help')]
     #[Groups(['help:read'])]
     private Collection $contents;
 
@@ -68,119 +66,27 @@ class Help
     public function setId(string $id): void { $this->id = $id; }
 
     public function getParentId(): ?string { return $this->parentId; }
-    public function setParentId(?string $parentId): void { $this->parentId = $parentId; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //==================================================================================================================
-    //==================================================================================================================
-    //==================================================================================================================
-    //==================================================================================================================
-    //==================================================================================================================
-    #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Help::class)]
-    private Collection $children;
-
-    #[ORM\ManyToOne(targetEntity: Help::class, inversedBy: 'children')]
-    #[ORM\JoinColumn(name: 'parent_id', referencedColumnName: 'id', nullable: true)]
-    private ?Help $parent = null;
-
-
-    public function getContent(): Collection { return $this->contents; }
-
-    public function getPageUrl(): string
-    {
-        $path = [];
-        foreach (json_decode($this->getPath(), true) as $parent) {
-            $path[] = $parent['url'];
-        }
-        $path[] = $this->getUrl();
-
-        return implode('/', $path);
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        $breadcrumbs = [];
-        foreach (json_decode($this->getPath(), true) ?? [] as $parent) {
-            $breadcrumbs[] = [
-                'title' => $parent['name'],
-                'url' => $parent['url'],
-            ];
-        }
-        $breadcrumbs[] = [
-            'title' => $this->getName(),
-        ];
-
-        return $breadcrumbs;
-    }
-    //==================================================================================================================
-    //==================================================================================================================
-    //==================================================================================================================
-    //==================================================================================================================
-    //==================================================================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     public function getChildren(): Collection { return $this->children; }
 
     public function getOrder(): int { return $this->order; }
-    public function setOrder(int $order): void { $this->order = $order; }
-
-    public function getLevel(): int { return $this->level; }
-    public function setLevel(int $level): void { $this->level = $level; }
 
     public function getName(): string { return $this->name; }
     public function setName(string $name): void { $this->name = $name; }
 
     public function getUrl(): ?string { return $this->url; }
-    public function setUrl(?string $url): void { $this->url = $url; }
 
     public function getParents(): ?string { return $this->parents; }
-    public function setParents(?string $parents): void { $this->parents = $parents; }
 
     public function getChildrenData(): ?string { return $this->childrenData; }
-    public function setChildrenData(?string $childrenData): void { $this->childrenData = $childrenData; }
-
-    public function getChildrenInside(): ?string { return $this->childrenInside; }
-    public function setChildrenInside(?string $childrenInside): void { $this->childrenInside = $childrenInside; }
 
     public function getPath(): ?string { return $this->path; }
     public function setPath(?string $path): void { $this->path = $path; }
 
     public function getContents(): Collection { return $this->contents; }
-    public function addContent(HelpContent $content): void {
-        if (!$this->contents->contains($content)) {
-            $this->contents[] = $content;
-            $content->setHelp($this);
-        }
-    }
-    public function removeContent(HelpContent $content): void {
-        if ($this->contents->removeElement($content)) {
-            if ($content->getHelp() === $this) {
-                $content->setHelp(null);
-            }
-        }
+
+    public function setContents(Collection $contents): void
+    {
+        $this->contents = $contents;
     }
 }
