@@ -43,9 +43,10 @@ module.exports = Encore.getWebpackConfig();
 const config = Encore.getWebpackConfig();
 config.resolve.alias = {
     '@': path.resolve(__dirname, 'assets/app'),
+    '@js': path.resolve(__dirname, 'assets/app/js'),
     '@api': path.resolve(__dirname, 'assets/app/js/api'),
+    '@store': path.resolve(__dirname, 'assets/app/js/store'),
     '@components': path.resolve(__dirname, 'assets/app/js/components'),
     '@css': path.resolve(__dirname, 'assets/app/styles'),
-    // можеш додавати інші псевдоніми за потреби
 };
 module.exports = config;

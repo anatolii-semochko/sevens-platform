@@ -16,9 +16,9 @@ readonly class HelpService
         private HelpContentRepository $helpContentRepository,
     ) {}
 
-    public function getByName(string $url): ?HelpObject
+    public function getByName(string $name): ?HelpObject
     {
-        $help = $this->helpRepository->getByName($url);
+        $help = $this->helpRepository->getByName($name);
         $help->setContents($this->getContent($help));
 
         return new HelpObject($help);
@@ -59,6 +59,31 @@ readonly class HelpService
         }
 
         return $helps;
+    }
+
+    public function fetchByName(array $names): array
+    {
+        $helps = $this->helpRepository->fetchByName($names);
+        $helpContents = $this->helpContentRepository->fetchByHelpIds(
+            array_map(fn(Help $help) => $help->getId(), $helps),
+            $this->localeStorage->getLocale(),
+        );
+        $helpContentsIndexed = [];
+        foreach ($helpContents as $helpContent) {
+            $helpContentsIndexed[$helpContent->getHelp()->getId()] = $helpContent;
+        }
+
+        $result = [];
+        foreach ($helps as $help) {
+
+            $result[$help->getName()] = [
+                'title' => $helpContentsIndexed[$help->getId()]->getTitle(),
+                'url' => $help->getPageUrl(),
+                'shortDescription' => $helpContentsIndexed[$help->getId()]->getShortDescription(),
+            ];
+        }
+
+        return $result;
     }
 
     public function fetchAll(string $locale): array

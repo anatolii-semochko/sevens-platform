@@ -14,13 +14,12 @@
             {% endif %}
         {% endfor %}
     </div>
-    <h1>{{ help.name }}</h1>
-    <h2>{{ help.title }}</h2>
+    <h1>{{ help.title }}</h1>
     <h3>{{ help.shortDescription }}</h3>
     {{ help.description|raw }}
     {% for childHelp in help.children %}
         <div class="mt-4">
-            <div class=""><h2>{{ childHelp.name }}</h2></div>
+            <div class=""><h2>{{ childHelp.title }}</h2></div>
             <div class="">{{ childHelp.shortDescription }}</div>
             <div>
                 <a class="" href="{{ path('help_page', {'_locale': app.request.locale, slugPath: childHelp.pageUrl}) }}">

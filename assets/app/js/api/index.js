@@ -1,8 +1,9 @@
 import axios from 'axios'
+import store from '@store/index'
 import { toast } from 'react-hot-toast'
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: `/${store.getState().current_locale}/api`,
   withCredentials: true, // якщо використовуєш cookie-based автентифікацію
   headers: {
     'Content-Type': 'application/json',

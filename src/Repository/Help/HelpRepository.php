@@ -42,6 +42,15 @@ class HelpRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function fetchByName(array $names): array
+    {
+        return $this->createQueryBuilder('h')
+            ->where('h.name IN (:name)')
+            ->setParameter('name', $names)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function fetchAll(): array
     {
         return $this->createQueryBuilder('h')
