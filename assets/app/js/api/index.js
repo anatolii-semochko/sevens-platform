@@ -3,7 +3,7 @@ import store from '@store/index'
 import { toast } from 'react-hot-toast'
 
 const api = axios.create({
-  baseURL: `/${store.getState().current_locale}/api`,
+  baseURL: `/${store.getState().currentLocale}/api`,
   withCredentials: true, // якщо використовуєш cookie-based автентифікацію
   headers: {
     'Content-Type': 'application/json',

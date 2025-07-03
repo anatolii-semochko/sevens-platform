@@ -69,7 +69,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
                 'help' => $this->helpService->getByName($helpName),
             ]);
         } catch (NotFoundException $e) {
-            $html = "<b class='text-danger font-weight-bold'>$helpName</b>";
+            $html = "<div class='text-danger font-weight-bold'>$helpName</div>";
         } catch (Exception $e) {
             dd($e); // TODO throw InternalServerException
         }

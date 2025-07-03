@@ -577,13 +577,3 @@ html, body {
         padding: 0.2rem;
     }
 }
-
-.help-link a {
-    text-decoration: none;
-}
-.help-link p {
-    display: none;
-}
-.help-link.active p {
-    display: block;
-}

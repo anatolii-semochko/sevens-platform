@@ -1,7 +1,9 @@
-import { legacy_createStore as createStore } from 'redux';
+import { legacy_createStore as createStore } from 'redux'
 
 const initialState = {
-    current_locale: window.AppConfig?.currentLocale || 'en',
+    currentLocale: window.AppConfig?.currentLocale || 'en',
+    helpLinks: {},
+    terms: {},
 };
 
 const reducer = (state = initialState, action) => {
@@ -9,13 +11,21 @@ const reducer = (state = initialState, action) => {
         case 'SET_LOCALE':
             return {
                 ...state,
-                current_locale: action.payload,
-            };
+                currentLocale: action.payload,
+            }
+        case 'SET_HELP_LINK':
+            return {
+                ...state,
+                helpLinks: {
+                    ...state.helpLinks,
+                    [action.payload.name]: action.payload.data,
+                }
+            }
         default:
-            return state;
+            return state
     }
-};
+}
 
-const store = createStore(reducer);
+const store = createStore(reducer)
 
-export default store;
+export default store
