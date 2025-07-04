@@ -6,10 +6,9 @@ use App\Entity\PagesContent\Page;
 
 class LocaleStorage
 {
-    private string $currentLocale;
+    private string $currentLocale = ''; // TODO - Set locale as not initialized and FIX Page 404 LANGUAGE !!!
     private Language $language;
-    public string $url;
-    private Page $page;
+    private ?Page $page = null;
 
     public function setLocale(string $locale): void
     {
@@ -29,20 +28,11 @@ class LocaleStorage
         return $this->language;
     }
 
-    public function settUrl(string $url): void
-    {
-        $this->url = $url;
-    }
-    public function getUrl(): ?string
-    {
-        return $this->url;
-    }
-
     public function setPage(Page $page): void
     {
         $this->page = $page;
     }
-    public function getPage(): Page
+    public function getPage(): ?Page
     {
         return $this->page;
     }

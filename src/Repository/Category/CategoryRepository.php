@@ -8,16 +8,32 @@ use App\Service\LocaleStorage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Category>
+ */
 class CategoryRepository extends ServiceEntityRepository
 {
     public function __construct(
-        private ManagerRegistry $registry,
-        private LocaleStorage $localeStorage,
+        private readonly ManagerRegistry $registry,
+        private readonly LocaleStorage $localeStorage,
     ) {
         parent::__construct($registry, Category::class);
     }
 
-    public function get(string $id): Object
+    public function getByUrl(string $url): Category
+    {
+        $category = $this->findOneBy([
+            'url' => $url,
+            'active' => 1,
+        ]);
+        if (!$category->getId()) {
+            throw new NotFoundException('Category not found');
+        }
+
+        return $category;
+    }
+
+    public function get(string $id): Category
     {
         $category = $this->find($id);
         if (!$category->getId()) {

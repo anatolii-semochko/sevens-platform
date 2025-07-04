@@ -4,5 +4,8 @@
     }}" class="toggle-help">
         {{ help.title }} <i class="bi bi-question-circle px-1"></i>
     </a>
-    <p>{{ help.shortDescription }}{% if help.url %} <a href="#" class="read-more" target="_blank">Read more</a>{% endif %}</p>
+    <div>
+        {{ help.shortDescription }}
+        {% if help.url %} <a href="#" class="read-more" target="_blank">Read more</a>{% endif %}
+    </div>
 </div>

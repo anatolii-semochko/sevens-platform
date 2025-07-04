@@ -89,4 +89,19 @@ class Help
     {
         $this->contents = $contents;
     }
+
+    public function getPageUrl(): ?string
+    {
+        if (!$this->url) {
+            return null;
+        }
+
+        $pageUrl = [];
+        foreach (json_decode($this->getPath(), true) ?? [] as $parent) {
+            $pageUrl[] = $parent['url'];
+        }
+        $pageUrl[] = $this->url;
+
+        return implode('/', $pageUrl);
+    }
 }

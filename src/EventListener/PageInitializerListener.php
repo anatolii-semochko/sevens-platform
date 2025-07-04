@@ -21,7 +21,6 @@ readonly class PageInitializerListener
             return;
         }
         $this->initLanguage();
-        $this->initUrl($event);
     }
 
     /**
@@ -47,13 +46,5 @@ readonly class PageInitializerListener
         $this->localeStorage->setLanguage(
             $this->languagesService->getByLocale($this->localeStorage->getLocale()),
         );
-    }
-
-    private function initUrl(RequestEvent $event): void
-    {
-        $path = $event->getRequest()->getPathInfo();
-        if (str_starts_with($path, "/{$this->localeStorage->getLocale()}/")) {
-            $this->localeStorage->settUrl(substr($path, 3));
-        }
     }
 }

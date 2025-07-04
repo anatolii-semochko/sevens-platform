@@ -33,7 +33,7 @@ class HelpObject
         $this->parentId = $help->getParentId();
         $this->order = $help->getOrder();
         $this->url = $help->getUrl();
-        $this->pageUrl = $this->getPageUrl($help);
+        $this->pageUrl = $help->getPageUrl();
         $this->name = $help->getName();
         $this->title = $help->getContents()[0]?->getTitle() ?? $this->name;
         $this->shortDescription = $help->getContents()[0]?->getShortDescription();
@@ -42,17 +42,6 @@ class HelpObject
         $this->parentIds = $help->getParents() ? explode(',', $help->getParents()) : [];
         $this->childrenIds = $help->getChildrenData() ? explode(',', $help->getChildrenData()) : [];
         $this->neighboursIds = array_merge($this->parentIds, $this->childrenIds);
-    }
-
-    private function getPageUrl(Help $help): string
-    {
-        $pageUrl = [];
-        foreach (json_decode($help->getPath(), true) ?? [] as $parent) {
-            $pageUrl[] = $parent['url'];
-        }
-        $pageUrl[] = $this->url;
-
-        return implode('/', $pageUrl);
     }
 
     private function getSeo(Help $help): Object

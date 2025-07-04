@@ -1,0 +1,17 @@
+.help-link {
+  a {
+    text-decoration: none;
+  }
+  div {
+    display: none;
+  }
+  &.active {
+    div {
+      display: block;
+    }
+  }
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}

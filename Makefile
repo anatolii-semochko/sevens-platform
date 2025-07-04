@@ -170,3 +170,6 @@ yarn-build:
 
 yarn-watch:
 	docker compose run --rm -w /app web-node yarn dev-watch
+
+build-permissions:
+	sudo chmod 777 composer.json composer.lock config/bundles.php package.json symfony.lock

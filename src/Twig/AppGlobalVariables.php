@@ -2,7 +2,9 @@
 
 namespace App\Twig;
 
+use App\Entity\Category\CategoryConstants;
 use App\Exception\NotFoundException;
+use App\Repository\Category\CategoryRepository;
 use App\Service\Help\HelpService;
 use App\Service\LanguagesService;
 use App\Service\PageContent\SeoService;
@@ -24,14 +26,17 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
         private readonly TermService $termService,
         private readonly HelpService $helpService,
         private readonly SeoService $seoService,
+        private readonly CategoryRepository $categoryRepository,
     ) {}
 
     public function getGlobals(): array
     {
         $request = $this->requestStack->getCurrentRequest();
+        $category = $this->categoryRepository->getByUrl(CategoryConstants::MATERIALS_URL);
+        $categories = $this->categoryRepository->fetchCategories($category->getId());
 
         return [
-            'currentLocale' => $request->getLocale(),
+            'current_locale' => $request->getLocale(),
             'global' => [
                 'host' => $request->getSchemeAndHttpHost(),
                 'canonicalUrl' => $request->getUri(),
@@ -39,6 +44,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
                 'seoAlternates' => $this->seoService->getAlternates(),
                 'languages' => $this->languagesService->fetch(),
                 'mainLanguage' => $this->languagesService->getMainLanguage(),
+                'categories' => $categories,
             ]
         ];
     }
@@ -63,7 +69,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
                 'help' => $this->helpService->getByName($helpName),
             ]);
         } catch (NotFoundException $e) {
-            $html = "<b class='text-danger font-weight-bold'>$helpName</b>";
+            $html = "<div class='text-danger font-weight-bold'>$helpName</div>";
         } catch (Exception $e) {
             dd($e); // TODO throw InternalServerException
         }
