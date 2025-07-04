@@ -1,7 +1,7 @@
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
-import '@css/main.scss'
+import '@css/template.scss'
 import '@css/custom.scss'
 import '@js/help-link'
 import React from 'react'
