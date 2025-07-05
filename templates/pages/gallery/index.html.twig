@@ -1,7 +1,7 @@
 <div class="gallery-wrapper" id="gallery">
    {% for material in data.materials %}
        <a class="card" href="{{ path('material_page', {'_locale': app.request.locale, token: material.getToken()}) }}">
-           <img src="{{ asset('uploads/materials/' ~ material.getLogo()) }}" alt="${item.title}">
+           <img src="{{ asset('files/materials/' ~ material.getLogo()) }}" alt="${item.title}">
            <div class="card-body">
                <div class="card-title">{{ material.getTitle() }}</div>
                <div class="card-description">material.getDescription()</div>

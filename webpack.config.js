@@ -9,7 +9,7 @@ Encore
     .addEntry('app', './assets/app/app.js')
 
     .copyFiles({
-        from: './assets/img',
+        from: './assets/images',
         to: 'images/[path][name].[ext]',
     })
 
