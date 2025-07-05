@@ -3,26 +3,24 @@
 namespace App\Service\Help;
 
 use App\Entity\Help\Help;
+use App\Exception\NotFoundException;
 use App\Repository\Help\HelpContentRepository;
 use App\Repository\Help\HelpRepository;
 use App\Service\LocaleStorage;
 use Doctrine\Common\Collections\ArrayCollection;
+use Exception;
+use Twig\Environment;
+use Twig\Markup;
 
-readonly class HelpService
+class HelpService
 {
     public function __construct(
-        private LocaleStorage $localeStorage,
-        private HelpRepository $helpRepository,
-        private HelpContentRepository $helpContentRepository,
+        private readonly string $helpTranslationsFolder,
+        private readonly LocaleStorage $localeStorage,
+        private readonly Environment $twig,
+        private readonly HelpRepository $helpRepository,
+        private readonly HelpContentRepository $helpContentRepository,
     ) {}
-
-    public function getByName(string $name): ?HelpObject
-    {
-        $help = $this->helpRepository->getByName($name);
-        $help->setContents($this->getContent($help));
-
-        return new HelpObject($help);
-    }
 
     public function getByUrl(string $url): ?Help
     {
@@ -59,31 +57,6 @@ readonly class HelpService
         }
 
         return $helps;
-    }
-
-    public function fetchByName(array $names): array
-    {
-        $helps = $this->helpRepository->fetchByName($names);
-        $helpContents = $this->helpContentRepository->fetchByHelpIds(
-            array_map(fn(Help $help) => $help->getId(), $helps),
-            $this->localeStorage->getLocale(),
-        );
-        $helpContentsIndexed = [];
-        foreach ($helpContents as $helpContent) {
-            $helpContentsIndexed[$helpContent->getHelp()->getId()] = $helpContent;
-        }
-
-        $result = [];
-        foreach ($helps as $help) {
-
-            $result[$help->getName()] = [
-                'title' => $helpContentsIndexed[$help->getId()]->getTitle(),
-                'url' => $help->getPageUrl(),
-                'shortDescription' => $helpContentsIndexed[$help->getId()]->getShortDescription(),
-            ];
-        }
-
-        return $result;
     }
 
     public function fetchAll(string $locale): array
@@ -150,5 +123,40 @@ readonly class HelpService
         $walk($tree);
 
         return $tree;
+    }
+
+    public function getHelp(string $helpName): Markup
+    {
+        try {
+            $html = $this->twig->render('help/help-link.html.twig', [
+                'help' => $this->getHelpFromFile($helpName) ?? [
+                        'title' => $helpName,
+                        'pageUrl' => null,
+                        'shortDescription' => null,
+                    ],
+            ]);
+        } catch (NotFoundException $e) {
+            $html = "<div class='text-danger font-weight-bold'>$helpName</div>";
+        } catch (Exception $e) {
+            dd($e); // TODO throw InternalServerException
+        }
+
+        return new Markup($html, 'UTF-8');
+    }
+
+    private array $helpFileData = [];
+    private function getHelpFromFile(string $helpName): ?array
+    {
+        try {
+            if (!$this->helpFileData) {
+                $this->helpFileData = json_decode(file_get_contents(
+                    $this->helpTranslationsFolder . "/help-{$this->localeStorage->getLocale()}.json"
+                ), true);
+            }
+        } catch (Exception $e) {
+            return null;
+        }
+
+        return $this->helpFileData[$helpName] ?? null;
     }
 }
