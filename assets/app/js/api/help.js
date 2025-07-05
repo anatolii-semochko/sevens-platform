@@ -1,9 +1,8 @@
-import api, { fetchErrorMessage } from './index'
+import store from '@store/index'
 
-const mainUrl = '/help'
-
-export const fetchHelps = (params) => api
-  .get(mainUrl, {params})
-  .then(res => res.data)
-
-export const fetchError = (error) => fetchErrorMessage(error)
+export const fetchHelps = async () => {
+    const url = `${store.getState().helpTranslationsFolder}/help.${store.getState().currentLocale}.json`
+    return fetch(url)
+        .then(response => response.ok ? response.json() : {})
+        .catch(() => {})
+}

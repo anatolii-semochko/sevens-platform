@@ -3,6 +3,8 @@ import store from '@store/index'
 import { fetchHelps } from '@api/help'
 
 export default class HelpLink extends React.Component {
+    static helpLinksPromise = null
+
     constructor(props) {
         super(props)
         this.state = {
@@ -14,20 +16,30 @@ export default class HelpLink extends React.Component {
     }
 
     componentDidMount() {
-        const { helpName, helpLink } = this.state
-        if (!helpLink) {
-            fetchHelps({ help: [helpName] }).then((response) => {
-                const fetchedLink = response[helpName];
-                if (fetchedLink) {
-                    store.dispatch({
-                        type: 'SET_HELP_LINK',
-                        payload: {
-                            name: helpName,
-                            data: fetchedLink,
-                        },
-                    });
-                    this.setState({ helpLink: fetchedLink })
-                }
+        const state = store.getState()
+        const helpLinks = state.helpLinks
+        const helpName = this.state.helpName
+
+        if (!helpLinks || Object.keys(helpLinks).length === 0) {
+            if (!HelpLink.helpLinksPromise) {
+                HelpLink.helpLinksPromise = fetchHelps()
+                    .then((result) => {
+                        if (result) {
+                            store.dispatch({
+                                type: 'SET_HELP_LINKS',
+                                payload: result,
+                            })
+                        }
+                        return result
+                    })
+                    .finally(() => HelpLink.helpLinksPromise = null)
+            }
+            HelpLink.helpLinksPromise.then((result) => this.setState({
+                helpLink: result?.[helpName] ?? null,
+            }))
+        } else {
+            this.setState({
+                helpLink: helpLinks[helpName] ?? null,
             })
         }
     }
@@ -36,20 +48,21 @@ export default class HelpLink extends React.Component {
         const { currentLocale, helpName, helpLink } = this.state
         const toggle = () => this.setState({ opened: !this.state.opened })
 
-        return helpLink ? (
+        return (
             <div className={`help-link${this.state.opened ? ' active' : ''}`}>
-                <a onClick={() => toggle()} className="toggle-help cursor-pointer">
-                    {helpLink.title}
-                    <i className={`bi bi-question-circle px-1${helpLink.title ? '' : ' text-danger'}`}></i>
+                <a
+                    onClick={toggle}
+                    className={`toggle-help cursor-pointer${!helpLink?.title || !helpLink?.shortDescription ? ' text-danger' : ''}`}
+                >
+                    {helpLink ? helpLink.title : helpName}
+                    <i className={`bi bi-${this.state.opened ? 'x' : 'question'}-circle px-1`}></i>
                 </a>
                 <div>
-                    {helpLink.shortDescription} {helpLink.url &&
-                        <a href={`/${currentLocale}/help/${helpLink.url}`} target="_blank">Read more</a>
-                    }
+                    {helpLink?.shortDescription} {helpLink?.pageUrl &&
+                    <a href={`/${currentLocale}/help/${helpLink.pageUrl}`} target="_blank">Read more</a>
+                }
                 </div>
             </div>
-        ) : (
-            <div className="text-danger font-weight-bold">{helpName}</div>
-        );
+        )
     }
 }

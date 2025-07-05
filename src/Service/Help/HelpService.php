@@ -14,7 +14,10 @@ use Twig\Markup;
 
 class HelpService
 {
+    private array $helpFileData = [];
+
     public function __construct(
+        private readonly string $publicFolder,
         private readonly string $helpTranslationsFolder,
         private readonly LocaleStorage $localeStorage,
         private readonly Environment $twig,
@@ -130,10 +133,10 @@ class HelpService
         try {
             $html = $this->twig->render('help/help-link.html.twig', [
                 'help' => $this->getHelpFromFile($helpName) ?? [
-                        'title' => $helpName,
-                        'pageUrl' => null,
-                        'shortDescription' => null,
-                    ],
+                    'title' => $helpName,
+                    'pageUrl' => null,
+                    'shortDescription' => null,
+                ],
             ]);
         } catch (NotFoundException $e) {
             $html = "<div class='text-danger font-weight-bold'>$helpName</div>";
@@ -144,14 +147,12 @@ class HelpService
         return new Markup($html, 'UTF-8');
     }
 
-    private array $helpFileData = [];
     private function getHelpFromFile(string $helpName): ?array
     {
+        $file = $this->publicFolder . $this->helpTranslationsFolder . "/help.{$this->localeStorage->getLocale()}.json";
         try {
             if (!$this->helpFileData) {
-                $this->helpFileData = json_decode(file_get_contents(
-                    $this->helpTranslationsFolder . "/help-{$this->localeStorage->getLocale()}.json"
-                ), true);
+                $this->helpFileData = json_decode(file_get_contents($file), true);
             }
         } catch (Exception $e) {
             return null;

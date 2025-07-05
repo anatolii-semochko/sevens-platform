@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     uploads_directory: '%kernel.project_dir%/public/uploads'
+    public_folder: '%env(PUBLIC_FOLDER)%'
     help_translations_folder: '%env(HELP_TRANSLATIONS_FOLDER)%'
 
 services:
@@ -35,6 +36,12 @@ services:
 
     App\Service\Help\HelpService:
       arguments:
+        $publicFolder: '%public_folder%'
+        $helpTranslationsFolder: '%help_translations_folder%'
+
+    App\Twig\AppGlobalVariables:
+      arguments:
+        $publicFolder: '%public_folder%'
         $helpTranslationsFolder: '%help_translations_folder%'
 
     # add more service definitions when explicit configuration is needed
