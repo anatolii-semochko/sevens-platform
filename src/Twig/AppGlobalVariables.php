@@ -17,6 +17,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
 {
     public function __construct(
         private readonly string $publicFolder,
+        private readonly string $translationsFolder,
         private readonly string $helpTranslationsFolder,
         private readonly RequestStack $requestStack,
         private readonly LanguagesService $languagesService,
@@ -38,6 +39,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
                 'host' => $request->getSchemeAndHttpHost(),
                 'canonicalUrl' => $request->getUri(),
                 'publicFolder' => $this->publicFolder,
+                'translationsFolder' => $this->translationsFolder,
                 'helpTranslationsFolder' => $this->helpTranslationsFolder,
                 'seo' => $this->seoService->get(),
                 'seoAlternates' => $this->seoService->getAlternates(),

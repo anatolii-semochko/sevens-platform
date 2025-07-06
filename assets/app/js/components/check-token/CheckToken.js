@@ -1,14 +1,13 @@
 import React from 'react'
 import { Toaster, toast } from 'react-hot-toast'
-import HelpLink from '@components/help/HelpLink'
+import HelpLink from '@components/translation/HelpLink'
+import Translation from "@components/translation/Translation";
 
 export default class CheckToken extends React.Component {
 
-
     render() {
         return (
-            <div>
-
+            <div className="pb-3">
                 <Toaster position="top-right" reverseOrder={false}/>
                 <h2>React</h2>
                 <table className="table">
@@ -33,22 +32,28 @@ export default class CheckToken extends React.Component {
                     </tr>
                     <tr>
                         <td>Translation</td>
-                        <td></td>
+                        <td><Translation text={'Home'} /></td>
                     </tr>
                     <tr>
-                        <td>Toaster</td>
-                        <td>
-                            <button className="btn btn-success"
-                                    onClick={() => toast.success('Toaster Success!')}>Success
-                            </button>
-                        </td>
-                        <td>
-                            <button className="btn btn-danger" onClick={() => toast.error('Toaster Error!')}>Error
-                            </button>
-                        </td>
+                        <td>Translation with domain</td>
+                        <td><Translation text={'Price'} domain={'material'} /></td>
+                    </tr>
+                    <tr>
+                        <td>Translation with domain and parameters</td>
+                        <td><Translation text={'Author: {{ name }}'} params={{name: 'Ali Baba'}} domain={'material'} /></td>
+                    </tr>
+                    <tr>
+                        <td>Absent translation</td>
+                        <td><Translation text={'Absent translation: {{ name }}'} /></td>
                     </tr>
                     </tbody>
                 </table>
+                <button className="btn btn-success" onClick={() => toast.success('Toaster Success!')}>
+                    Success
+                </button>
+                <button className="btn btn-danger ms-2" onClick={() => toast.error('Toaster Error!')}>
+                    Error
+                </button>
             </div>
         );
     }

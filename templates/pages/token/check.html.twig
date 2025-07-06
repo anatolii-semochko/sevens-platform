@@ -31,6 +31,10 @@
         <td>Translation with domain and parameters</td>
         <td>{{ 'Author: {{ name }}'|trans({'{{ name }}': 'Ali Baba'}, 'material') }}</td>
     </tr>
+    <tr>
+        <td>Absent translation</td>
+        <td>{{ 'Absent translation: {{ name }}'|trans }}</td>
+    </tr>
     </tbody>
 </table>
 
