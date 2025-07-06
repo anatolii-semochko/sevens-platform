@@ -6,6 +6,7 @@
 parameters:
     uploads_directory: '%kernel.project_dir%/public/uploads'
     public_folder: '%env(PUBLIC_FOLDER)%'
+    translations_folder: '%env(TRANSLATIONS_FOLDER)%'
     help_translations_folder: '%env(HELP_TRANSLATIONS_FOLDER)%'
 
 services:
@@ -36,12 +37,12 @@ services:
 
     App\Service\Help\HelpService:
       arguments:
-        $publicFolder: '%public_folder%'
         $helpTranslationsFolder: '%help_translations_folder%'
 
     App\Twig\AppGlobalVariables:
       arguments:
         $publicFolder: '%public_folder%'
+        $translationsFolder: '%translations_folder%'
         $helpTranslationsFolder: '%help_translations_folder%'
 
     # add more service definitions when explicit configuration is needed

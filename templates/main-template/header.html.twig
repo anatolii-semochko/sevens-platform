@@ -15,20 +15,20 @@
             </div>
 
             <nav class="d-none d-md-flex align-items-center gap-2 header-nav">
-                <a href="#" class="nav-link px-2">{{ t('Video') }}</a>
-                <a href="#" class="nav-link px-2">{{ t('Photo') }}</a>
-                <a href="#" class="nav-link px-2">{{ t('Music') }}</a>
-                <a href="#" class="nav-link px-2">{{ t('Documents') }}</a>
+                <a href="#" class="nav-link px-2">{{ 'Video'|trans }}</a>
+                <a href="#" class="nav-link px-2">{{ 'Photo'|trans }}</a>
+                <a href="#" class="nav-link px-2">{{ 'Music'|trans }}</a>
+                <a href="#" class="nav-link px-2">{{ 'Documents'|trans }}</a>
             </nav>
         </div>
 
         <!-- Right side: Create + Icons -->
         <div class="d-flex align-items-center gap-3 header-right">
             <a href="{{ path('check_token', {'_locale': app.request.locale}) }}" class="create-btn">
-                <i class="bi bi-patch-check me-1"></i> {{ t('Check Material Button') }}
+                <i class="bi bi-patch-check me-1"></i> {{ 'Check Material'|trans }}
             </a>
             <a href="{{ path('create_material', {'_locale': app.request.locale}) }}" class="create-btn">
-                + {{ t('Create Material Button') }}
+                + {{ 'Create Material'|trans }}
             </a>
             {% include 'main-template/header/language-selector.html.twig' %}
             <a href="#" class="text-dark"><i class="bi bi-envelope fs-4 icon-button"></i></a>

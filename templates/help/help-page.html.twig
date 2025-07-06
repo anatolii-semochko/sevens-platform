@@ -1,9 +1,9 @@
 <div class="mb-5">
     <div class="pt-3 mb-4">
         {% if help.breadcrumbs %}
-            <a href="{{ path('help_index', {'_locale': app.request.locale}) }}">{{ t('Help') }}</a>
+            <a href="{{ path('help_index', {'_locale': app.request.locale}) }}">{{ 'Help'|trans }}</a>
         {% else %}
-            {{ t('Help') }}
+            {{ 'Help'|trans }}
         {% endif %}
 
         {% for breadcrumb in help.breadcrumbs %}
