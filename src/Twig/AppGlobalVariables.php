@@ -7,7 +7,6 @@ use App\Repository\Category\CategoryRepository;
 use App\Service\Help\HelpService;
 use App\Service\LanguagesService;
 use App\Service\PageContent\SeoService;
-use App\Service\PageContent\TermService;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -21,7 +20,6 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
         private readonly string $helpTranslationsFolder,
         private readonly RequestStack $requestStack,
         private readonly LanguagesService $languagesService,
-        private readonly TermService $termService,
         private readonly HelpService $helpService,
         private readonly SeoService $seoService,
         private readonly CategoryRepository $categoryRepository,
@@ -53,13 +51,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('t', [$this, 'getTerm']),
             new TwigFunction('h', [$this->helpService, 'getHelp']),
         ];
-    }
-
-    public function getTerm(string $term, array $options = []): string
-    {
-        return $options['private'] ?? false ? $this->termService->getPrivate($term) : $this->termService->get($term);
     }
 }
