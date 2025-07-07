@@ -24,7 +24,7 @@ class HelpController extends BaseController
             $this->pageService->init('/help');
             $tree = $this->helpService->getTree();
         } catch (NotFoundException $e) {
-            return $this->redirectPage404();
+            return $this->page404();
         }
 
         return $this->render('base.html.twig', [
@@ -42,7 +42,7 @@ class HelpController extends BaseController
         try {
             $help = $this->helpService->findHelpByUrlPath($slugPath);
         } catch (NotFoundException $e) {
-            return $this->redirectPage404();
+            return $this->page404();
         }
 
         return $this->render('base.html.twig', [

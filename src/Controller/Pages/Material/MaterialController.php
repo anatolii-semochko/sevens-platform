@@ -21,12 +21,13 @@ class MaterialController extends BaseController
     #[Route('/{token}', name: 'page', methods: ['GET'])]
     public function get(string $token, Request $request): Response
     {
-        $this->pageService->init('/material');
         try {
             $material = $this->materialRepository->get($token);
         } catch (NotFoundException $e) {
-            return $this->redirectPage404();
+            return $this->page404();
         }
+
+        $this->pageService->init('/material');
 
         return $this->render('base.html.twig', [
             'main_template' => 'pages/material/material.html.twig',

@@ -9,12 +9,16 @@
             >
         </a>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
-            {% set current_route = app.request.attributes.get('_route') %}
-            {% set current_params = app.request.query.all|merge(app.request.attributes.get('_route_params')|default({})) %}
+            {% set current_path = app.request.pathInfo %}
             {% for lang in global.languages %}
                 <li class="mx-4 my-3">
-                    <a class="dropdown-item d-flex align-items-center gap-2 {% if current_locale == lang.code %}active{% endif %}"
-                       href="{{ path(current_route, current_params|merge({'_locale': lang.code})) }}">
+                    {% set has_lang_prefix = current_path matches '/^\\/[a-z]{2}(\\/|$)/' %}
+                    {% set new_path = has_lang_prefix
+                        ? '/' ~ lang.code ~ current_path|slice(3)
+                        : '/' ~ lang.code ~ current_path
+                    %}
+                    <a class="dropdown-item d-flex align-items-center gap-2{% if current_locale == lang.code %} active{% endif %}"
+                       href="{{ new_path }}">
                         <img src="/build/images/language-flags/{{ lang.code }}.png"
                              alt="{{ lang.name }}"
                              height="20"
