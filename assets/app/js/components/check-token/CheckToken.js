@@ -9,7 +9,7 @@ export default class CheckToken extends React.Component {
         return (
             <div className="pb-3">
                 <Toaster position="top-right" reverseOrder={false}/>
-                <h2>React</h2>
+                <h2>React (file assets/app/js/components/check-token/CheckToken.js)</h2>
                 <table className="table">
                     <thead>
                     <tr>
