@@ -32,6 +32,8 @@
 </html>
 <script>
     window.AppConfig = {
-        currentLocale: '{{ current_locale }}'
+        currentLocale: '{{ current_locale }}',
+        translationsFolder: '{{ global.translationsFolder|replace({'/app/public': ''}) }}',
+        helpTranslationsFolder: '{{ global.helpTranslationsFolder|replace({'/app/public': ''}) }}',
     };
 </script>

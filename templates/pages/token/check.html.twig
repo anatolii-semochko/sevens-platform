@@ -1,16 +1,41 @@
-<h4>React</h4>
-<hr/>
+<h2>Twig (file templates/pages/token/check.html.twig)</h2>
+<table class="table">
+    <thead>
+    <tr>
+        <th class="w-25">Twig Element</th>
+        <th>Content</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Help Link without page</td>
+        <td>{{ h('Test') }}</td>
+    </tr>
+    <tr>
+        <td>Not Existing Help LinK</td>
+        <td>{{ h('Test is Absent') }}</td>
+    </tr>
+    <tr>
+        <td>Help Link with page</td>
+        <td>{{ h('Container files') }}</td>
+    </tr>
+    <tr>
+        <td>Translation</td>
+        <td>{{ 'Home'|trans }}</td>
+    </tr>
+    <tr>
+        <td>Translation with domain</td>
+        <td>{{ 'Price'|trans({}, 'material') }}</td>
+    </tr>
+    <tr>
+        <td>Translation with domain and parameters</td>
+        <td>{{ 'Author: {{ name }}'|trans({'{{ name }}': 'Ali Baba'}, 'material') }}</td>
+    </tr>
+    <tr>
+        <td>Absent translation</td>
+        <td>{{ 'Absent translation: {{ name }}'|trans }}</td>
+    </tr>
+    </tbody>
+</table>
+
 <div id="check-token"></div>
-
-<hr/>
-<h4>Twig</h4>
-<hr/>
-
-{{ t('TEST') }} <br>
-{{ t('TEST')|raw }} <br>
-{{ t('TEST', { private: true }) }} <br>
-{{ t('TEST', { private: true })|raw }} <br>
-
-{{ h('Test') }}
-{{ h('Test is Absent') }}
-{{ h('Container files') }}

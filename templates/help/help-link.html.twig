@@ -1,11 +1,11 @@
 <div class="help-link">
     <a href="{{
-        help.url ? path('help_page', {'_locale': app.request.locale, 'slugPath': help.pageUrl}) : '#'
-    }}" class="toggle-help">
+        help.pageUrl ? path('help_page', {'_locale': app.request.locale, 'slugPath': help.pageUrl}) : '#'
+    }}" class="toggle-help{% if not help.title or not help.shortDescription %} text-danger{% endif %}">
         {{ help.title }} <i class="bi bi-question-circle px-1"></i>
     </a>
     <div>
         {{ help.shortDescription }}
-        {% if help.url %} <a href="#" class="read-more" target="_blank">Read more</a>{% endif %}
+        {% if help.pageUrl %} <a href="#" class="read-more" target="_blank">Read more</a>{% endif %}
     </div>
 </div>

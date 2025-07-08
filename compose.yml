@@ -9,6 +9,7 @@ services:
       - .:/app
       - ../sevenstime-storage/files:/app/public/files
       - ../sevenstime-storage/images:/app/assets/images
+      - ../sevenstime-storage/files:/app/assets/files
     networks:
       - default
       - blockchain.dev
@@ -27,6 +28,7 @@ services:
       - .:/app
       - ../sevenstime-storage/files:/app/public/files
       - ../sevenstime-storage/images:/app/assets/images
+      - ../sevenstime-storage/files:/app/assets/files
     networks:
       - default
     extra_hosts:
@@ -40,6 +42,7 @@ services:
       - .:/app
       - ../sevenstime-storage/files:/app/public/files
       - ../sevenstime-storage/images:/app/assets/images
+      - ../sevenstime-storage/files:/app/assets/files
     networks:
       - default
 
@@ -50,6 +53,7 @@ services:
       - .:/app
       - ../sevenstime-storage/files:/app/public/files
       - ../sevenstime-storage/images:/app/assets/images
+      - ../sevenstime-storage/files:/app/assets/files
     command: sh -c "yarn install && yarn encore dev --watch"
     tty: true
     networks:

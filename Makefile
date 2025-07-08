@@ -9,6 +9,7 @@ APP_PATH=.
 init: docker-down-clear \
 	clear \
 	docker-pull docker-build docker-up
+init-build: init app-build
 
 up: docker-up
 down: docker-down
@@ -121,6 +122,11 @@ push:
 	docker push ${REGISTRY}/${IMAGE_NAME}-php-fpm:${IMAGE_TAG}
 	docker push ${REGISTRY}/${IMAGE_NAME}-php-cli:${IMAGE_TAG}
 	docker push ${REGISTRY}/${IMAGE_NAME}-postgres-backup:${IMAGE_TAG}
+
+app-build:
+	docker compose run --rm --user root ${APP_PHP_CLI} composer install
+	docker compose run --rm -w /app web-node npm install
+	docker compose run --rm -w /app web-node yarn build
 
 ##########
 ## Deploy

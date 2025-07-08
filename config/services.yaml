@@ -5,6 +5,9 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     uploads_directory: '%kernel.project_dir%/public/uploads'
+    public_folder: '%env(PUBLIC_FOLDER)%'
+    translations_folder: '%env(TRANSLATIONS_FOLDER)%'
+    help_translations_folder: '%env(HELP_TRANSLATIONS_FOLDER)%'
 
 services:
     # default configuration for services in *this* file
@@ -31,6 +34,16 @@ services:
     App\EventListener\ExceptionListener:
         tags:
             - { name: kernel.event_listener, event: kernel.exception }
+
+    App\Service\Help\HelpService:
+      arguments:
+        $helpTranslationsFolder: '%help_translations_folder%'
+
+    App\Twig\AppGlobalVariables:
+      arguments:
+        $publicFolder: '%public_folder%'
+        $translationsFolder: '%translations_folder%'
+        $helpTranslationsFolder: '%help_translations_folder%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
