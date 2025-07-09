@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_locale }}">
     <head>
         <title>{{ global.seo.getTitle() }}</title>
         <meta name="description" content="{{ global.seo.getDescription() }}"/>
         <link rel="canonical" href="{{ global.canonicalUrl }}"/>
     {% for alternate in global.seoAlternates %}
-    <link rel="alternate" href="{{ alternate.href }}" hreflang="{{ alternate.hreflang }}" />
+    <link rel="alternate" href="{{ alternate.href }}" hreflang="{{ alternate.hreflang }}"/>
     {% endfor %}
-    <link rel=“alternate“ href=“{{ global.canonicalUrl }}“ hreflang=“x-default“ />
+    <link rel="alternate" href="{{ global.host }}" hreflang="x-default"/>
     {% block stylesheets %}
     {{ encore_entry_link_tags('app') }}
     {% endblock %}
