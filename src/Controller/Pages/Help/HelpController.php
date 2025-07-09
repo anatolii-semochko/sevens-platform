@@ -40,7 +40,11 @@ class HelpController extends BaseController
     {
         try {
             $help = $this->helpService->findHelpByUrlPath($slugPath);
-            $this->pageService->init('/help');
+            $this->pageService->init('/help/page', [
+                'title' => $help->seo->title,
+                'keywords' => $help->seo->keywords,
+                'description' => $help->seo->description,
+            ]);
         } catch (NotFoundException $e) {
             return $this->page404($this->pageService);
         }

@@ -24,6 +24,10 @@ class Page
     #[Groups(['page:read'])]
     private Collection $seo;
 
+    #[ORM\Column(type: 'string', length: 128)]
+    #[Groups(['page:read'])]
+    private string $terms;
+
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
@@ -34,4 +38,11 @@ class Page
 
     public function getUrl(): string { return $this->url; }
     public function setUrl(string $url): void { $this->url = trim($url); }
+
+    public function getTerms(): array { return explode(',', $this->terms); }
+    public function setTerms(array $terms): void { $this->terms = implode(',', $terms); }
+
+    public array $seoTerms = [];
+    public function getSeoTerms(): array { return $this->seoTerms; }
+    public function setSeoTerms(array $seoTerms): void { $this->seoTerms = $seoTerms; }
 }

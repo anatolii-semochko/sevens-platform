@@ -6,7 +6,6 @@ use App\Controller\BaseController;
 use App\Exception\NotFoundException;
 use App\Repository\Material\MaterialRepository;
 use App\Service\PageContent\PageService;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -19,11 +18,15 @@ class MaterialController extends BaseController
     ) {}
 
     #[Route('/{token}', name: 'page', methods: ['GET'])]
-    public function get(string $token, Request $request): Response
+    public function get(string $token): Response
     {
         try {
             $material = $this->materialRepository->get($token);
-            $this->pageService->init('/material');
+            $this->pageService->init('/material', [
+                'token' => $material->getToken(),
+                'title' => $material->getTitle(),
+                'description' => $material->getDescription(),
+            ]);
         } catch (NotFoundException $e) {
             return $this->page404($this->pageService);
         }
