@@ -21,10 +21,10 @@ class HelpController extends BaseController
     public function index(): Response
     {
         try {
-            $this->pageService->init('/help');
             $tree = $this->helpService->getTree();
+            $this->pageService->init('/help');
         } catch (NotFoundException $e) {
-            return $this->page404();
+            return $this->page404($this->pageService);
         }
 
         return $this->render('base.html.twig', [
@@ -38,11 +38,11 @@ class HelpController extends BaseController
     #[Route('/{slugPath}', name: 'page', requirements: ['slugPath' => '.+'], methods: ['GET'])]
     public function page(string $slugPath): Response
     {
-        $this->pageService->init('/help');
         try {
             $help = $this->helpService->findHelpByUrlPath($slugPath);
+            $this->pageService->init('/help');
         } catch (NotFoundException $e) {
-            return $this->page404();
+            return $this->page404($this->pageService);
         }
 
         return $this->render('base.html.twig', [

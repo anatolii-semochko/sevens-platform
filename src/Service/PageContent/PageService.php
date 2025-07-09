@@ -6,14 +6,14 @@ use App\Entity\PagesContent\Page;
 use App\Repository\PageContent\PageRepository;
 use App\Service\LocaleStorage;
 
-class PageService
+readonly class PageService
 {
     public function __construct(
         private LocaleStorage $localeStorage,
         private PageRepository $pageRepository,
     ) {}
-    
-    public function get(string $url): Page
+
+    public function findByUrl(string $url): Page
     {
         if (!$page = $this->pageRepository->findByUrl($url)) {
             $page = $this->pageRepository->create();
@@ -27,6 +27,6 @@ class PageService
     public function init(
         string $mainUrl,
     ): void {
-        $this->localeStorage->setPage($this->get($mainUrl));;
+        $this->localeStorage->setPage($this->findByUrl($mainUrl));;
     }
 }

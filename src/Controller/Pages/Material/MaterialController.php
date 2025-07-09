@@ -23,11 +23,10 @@ class MaterialController extends BaseController
     {
         try {
             $material = $this->materialRepository->get($token);
+            $this->pageService->init('/material');
         } catch (NotFoundException $e) {
-            return $this->page404();
+            return $this->page404($this->pageService);
         }
-
-        $this->pageService->init('/material');
 
         return $this->render('base.html.twig', [
             'main_template' => 'pages/material/material.html.twig',
