@@ -15,9 +15,7 @@ use Twig\TwigFunction;
 class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
 {
     public function __construct(
-        private readonly string $publicFolder,
-        private readonly string $translationsFolder,
-        private readonly string $helpTranslationsFolder,
+        private readonly array $path,
         private readonly RequestStack $requestStack,
         private readonly LanguagesService $languagesService,
         private readonly HelpService $helpService,
@@ -36,9 +34,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
             'global' => [
                 'host' => $request->getSchemeAndHttpHost(),
                 'canonicalUrl' => $request->getUri(),
-                'publicFolder' => $this->publicFolder,
-                'translationsFolder' => $this->translationsFolder,
-                'helpTranslationsFolder' => $this->helpTranslationsFolder,
+                'path' => $this->path,
                 'seo' => $this->seoService->get(),
                 'seoAlternates' => $this->seoService->getAlternates(),
                 'languages' => $this->languagesService->fetch(),

@@ -7,9 +7,7 @@ services:
       - "8080:80"
     volumes:
       - .:/app
-      - ../sevenstime-storage/files:/app/public/files
-      - ../sevenstime-storage/images:/app/assets/images
-      - ../sevenstime-storage/files:/app/assets/files
+      - ../sevenstime-storage:/app/public/storage
     networks:
       - default
       - blockchain.dev
@@ -26,9 +24,7 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - .:/app
-      - ../sevenstime-storage/files:/app/public/files
-      - ../sevenstime-storage/images:/app/assets/images
-      - ../sevenstime-storage/files:/app/assets/files
+      - ../sevenstime-storage:/app/public/storage
     networks:
       - default
     extra_hosts:
@@ -40,9 +36,7 @@ services:
       dockerfile: docker/development/php-cli/Dockerfile
     volumes:
       - .:/app
-      - ../sevenstime-storage/files:/app/public/files
-      - ../sevenstime-storage/images:/app/assets/images
-      - ../sevenstime-storage/files:/app/assets/files
+      - ../sevenstime-storage:/app/public/storage
     networks:
       - default
 
@@ -51,9 +45,7 @@ services:
     working_dir: /app
     volumes:
       - .:/app
-      - ../sevenstime-storage/files:/app/public/files
-      - ../sevenstime-storage/images:/app/assets/images
-      - ../sevenstime-storage/files:/app/assets/files
+      - ../sevenstime-storage:/app/public/storage
     command: sh -c "yarn install && yarn encore dev --watch"
     tty: true
     networks:
