@@ -1,4 +1,4 @@
 <div class="gallery-wrapper" id="gallery">
     {{ data.material.getTitle }}
-    <img src="/files/materials/{{ data.material.getLogo() }}">
+    <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
 </div>

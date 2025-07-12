@@ -2,8 +2,7 @@ import { legacy_createStore as createStore } from 'redux'
 
 const initialState = {
     currentLocale: window.AppConfig?.currentLocale,
-    translationsFolder: window.AppConfig?.translationsFolder,
-    helpTranslationsFolder: window.AppConfig?.helpTranslationsFolder,
+    path: window.AppConfig?.path,
     translations: {},
     helpLinks: {},
     terms: {},
