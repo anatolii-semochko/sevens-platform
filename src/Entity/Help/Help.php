@@ -62,28 +62,70 @@ class Help
         $this->contents = new ArrayCollection();
     }
 
-    public function getId(): string { return $this->id; }
-    public function setId(string $id): void { $this->id = $id; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
-    public function getParentId(): ?string { return $this->parentId; }
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
 
-    public function getChildren(): Collection { return $this->children; }
+    public function getParentId(): ?string
+    {
+        return $this->parentId;
+    }
 
-    public function getOrder(): int { return $this->order; }
+    public function getChildren(): Collection
+    {
+        return $this->children;
+    }
 
-    public function getName(): string { return $this->name; }
-    public function setName(string $name): void { $this->name = $name; }
+    public function getOrder(): int
+    {
+        return $this->order;
+    }
 
-    public function getUrl(): ?string { return $this->url; }
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
-    public function getParents(): ?string { return $this->parents; }
+    public function setName(string $name): void
+    {
+        $this->name = $name;
+    }
 
-    public function getChildrenData(): ?string { return $this->childrenData; }
+    public function getUrl(): ?string
+    {
+        return $this->url;
+    }
 
-    public function getPath(): ?string { return $this->path; }
-    public function setPath(?string $path): void { $this->path = $path; }
+    public function getParents(): ?string
+    {
+        return $this->parents;
+    }
 
-    public function getContents(): Collection { return $this->contents; }
+    public function getChildrenData(): ?string
+    {
+        return $this->childrenData;
+    }
+
+    public function getPath(): ?string
+    {
+        return $this->path;
+    }
+
+    public function setPath(?string $path): void
+    {
+        $this->path = $path;
+    }
+
+    public function getContents(): Collection
+    {
+        return $this->contents;
+    }
 
     public function setContents(Collection $contents): void
     {
