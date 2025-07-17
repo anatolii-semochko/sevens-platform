@@ -20,7 +20,7 @@ class Page
     #[Groups(['page:read'])]
     private string $url;
 
-    #[ORM\OneToMany(mappedBy: 'page', targetEntity: PageSeo::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: PageSeo::class, mappedBy: 'page', cascade: ['persist', 'remove'])]
     #[Groups(['page:read'])]
     private Collection $seo;
 
@@ -28,21 +28,49 @@ class Page
     #[Groups(['page:read'])]
     private string $terms;
 
+    public array $seoTerms = [];
+
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
     }
 
-    public function getId(): ?string { return $this->id; }
-    public function setId(string $id): void { $this->id = $id; }
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
 
-    public function getUrl(): string { return $this->url; }
-    public function setUrl(string $url): void { $this->url = trim($url); }
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
 
-    public function getTerms(): array { return explode(',', $this->terms); }
-    public function setTerms(array $terms): void { $this->terms = implode(',', $terms); }
+    public function setUrl(string $url): void
+    {
+        $this->url = trim($url);
+    }
 
-    public array $seoTerms = [];
-    public function getSeoTerms(): array { return $this->seoTerms; }
-    public function setSeoTerms(array $seoTerms): void { $this->seoTerms = $seoTerms; }
+    public function getTerms(): array
+    {
+        return explode(',', $this->terms);
+    }
+
+    public function setTerms(array $terms): void
+    {
+        $this->terms = implode(',', $terms);
+    }
+
+    public function getSeoTerms(): array
+    {
+        return $this->seoTerms;
+    }
+
+    public function setSeoTerms(array $seoTerms): void
+    {
+        $this->seoTerms = $seoTerms;
+    }
 }

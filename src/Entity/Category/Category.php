@@ -2,7 +2,6 @@
 
 namespace App\Entity\Category;
 
-use App\Service\LocaleStorage;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -83,38 +82,80 @@ class Category
     #[Groups(['category:read'])]
     private Collection $translations;
 
-    public function __construct(private LocaleStorage $localeStorage)
+    public function __construct()
     {
         $this->translations = new ArrayCollection();
     }
 
-    public function getId(): string { return $this->id; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
-    public function getParentId(): ?string { return $this->parentId; }
+    public function getParentId(): ?string
+    {
+        return $this->parentId;
+    }
 
-    public function getMainParentId(): ?string { return $this->mainParentId; }
+    public function getMainParentId(): ?string
+    {
+        return $this->mainParentId;
+    }
 
-    public function getActivityParentId(): ?string { return $this->activityParentId; }
+    public function getActivityParentId(): ?string
+    {
+        return $this->activityParentId;
+    }
 
-    public function getActive(): int { return $this->active; }
+    public function getActive(): int
+    {
+        return $this->active;
+    }
 
-    public function getOrder(): int { return $this->order; }
+    public function getOrder(): int
+    {
+        return $this->order;
+    }
 
-    public function getLevel(): int { return $this->level; }
+    public function getLevel(): int
+    {
+        return $this->level;
+    }
 
-    public function getName(): string { return $this->name; }
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
-    public function getUrl(): ?string { return $this->url; }
+    public function getUrl(): ?string
+    {
+        return $this->url;
+    }
 
-    public function getLogo(): ?string { return $this->logo; }
+    public function getLogo(): ?string
+    {
+        return $this->logo;
+    }
 
-    public function getParents(): ?string { return $this->parents; }
+    public function getParents(): ?string
+    {
+        return $this->parents;
+    }
 
-    public function getChildrenInside(): ?string { return $this->childrenInside; }
+    public function getChildrenInside(): ?string
+    {
+        return $this->childrenInside;
+    }
 
-    public function getPath(): ?string { return $this->path; }
+    public function getPath(): ?string
+    {
+        return $this->path;
+    }
 
-    public function getTranslations(): Collection { return $this->translations; }
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
 
     public function getParent(): ?self
     {
@@ -138,7 +179,7 @@ class Category
     {
         $this->currentLocale = $locale;
     }
-    
+
     private function getTranslationByLocale(): ?CategoryLanguages
     {
         foreach ($this->translations as $translation) {

@@ -28,13 +28,19 @@ class PageContentTranslation
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['page-content-translations:read'])]
     private ?string $translation = null;
-    
+
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
     }
 
-    public function getId(): ?string { return $this->id; }
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
 
-    public function getTranslation(): ?string { return $this->translation; }
+    public function getTranslation(): ?string
+    {
+        return $this->translation;
+    }
 }

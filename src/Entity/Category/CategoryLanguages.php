@@ -51,27 +51,83 @@ class CategoryLanguages
         $this->id = Uuid::v4()->toRfc4122();
     }
 
-    public function getId(): string { return $this->id; }
-    public function setId(string $id): void { $this->id = $id; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
-    public function getCategory(): Category { return $this->category; }
-    public function setCategory(Category $category): void { $this->category = $category; }
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
 
-    public function getLanguage(): Language { return $this->language; }
-    public function setLanguage(Language $language): void { $this->language = $language; }
+    public function getCategory(): Category
+    {
+        return $this->category;
+    }
 
-    public function getName(): string { return $this->name; }
-    public function setName(string $name): void { $this->name = trim($name); }
+    public function setCategory(Category $category): void
+    {
+        $this->category = $category;
+    }
 
-    public function getTitle(): string { return $this->title; }
-    public function setTitle(string $title): void { $this->title = trim($title); }
+    public function getLanguage(): Language
+    {
+        return $this->language;
+    }
 
-    public function getLogoAlt(): ?string { return $this->logoAlt; }
-    public function setLogoAlt(?string $logoAlt): void { $this->logoAlt = trim($logoAlt); }
+    public function setLanguage(Language $language): void
+    {
+        $this->language = $language;
+    }
 
-    public function getShortDescription(): string { return $this->shortDescription; }
-    public function setShortDescription(string $shortDescription): void { $this->shortDescription = trim($shortDescription); }
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
-    public function getDescription(): string { return $this->description; }
-    public function setDescription(string $description): void { $this->description = trim($description); }
+    public function setName(string $name): void
+    {
+        $this->name = trim($name);
+    }
+
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): void
+    {
+        $this->title = trim($title);
+    }
+
+    public function getLogoAlt(): ?string
+    {
+        return $this->logoAlt;
+    }
+
+    public function setLogoAlt(?string $logoAlt): void
+    {
+        $this->logoAlt = trim($logoAlt);
+    }
+
+    public function getShortDescription(): string
+    {
+        return $this->shortDescription;
+    }
+
+    public function setShortDescription(string $shortDescription): void
+    {
+        $this->shortDescription = trim($shortDescription);
+    }
+
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): void
+    {
+        $this->description = trim($description);
+    }
 }

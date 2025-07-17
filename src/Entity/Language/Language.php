@@ -40,21 +40,63 @@ class Language
         $this->id = Uuid::v4()->toRfc4122();
     }
 
-    public function getId(): ?string { return $this->id; }
-    public function setId(string $id): void { $this->id = $id; }
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
 
-    public function getCode(): string { return $this->code; }
-    public function setCode(string $code): void { $this->code = trim($code); }
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
 
-    public function getName(): string { return $this->name; }
-    public function setName(string $name): void { $this->name = trim($name); }
+    public function getCode(): string
+    {
+        return $this->code;
+    }
 
-    public function getOrder(): int { return $this->order; }
-    public function setOrder(int $order): void { $this->order = $order; }
-    
-    public function isActive(): bool { return $this->active; }
-    public function setActive(bool $active): void { $this->active = $active; }
+    public function setCode(string $code): void
+    {
+        $this->code = trim($code);
+    }
 
-    public function isMain(): bool { return $this->main; }
-    public function setMain(bool $main): void { $this->main = $main; }
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = trim($name);
+    }
+
+    public function getOrder(): int
+    {
+        return $this->order;
+    }
+
+    public function setOrder(int $order): void
+    {
+        $this->order = $order;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): void
+    {
+        $this->active = $active;
+    }
+
+    public function isMain(): bool
+    {
+        return $this->main;
+    }
+
+    public function setMain(bool $main): void
+    {
+        $this->main = $main;
+    }
 }
