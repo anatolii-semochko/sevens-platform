@@ -17,11 +17,15 @@
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
         "symfony/flex": "^2",
+        "symfony/form": "7.2.*",
         "symfony/framework-bundle": "7.2.*",
+        "symfony/lock": "7.2.*",
         "symfony/monolog-bundle": "*",
         "symfony/property-access": "7.2.*",
         "symfony/property-info": "7.2.*",
+        "symfony/rate-limiter": "7.2.*",
         "symfony/runtime": "7.2.*",
+        "symfony/security-bundle": "7.2.*",
         "symfony/serializer": "7.2.*",
         "symfony/translation": "7.2.*",
         "symfony/twig-bundle": "7.2.*",
@@ -81,6 +85,7 @@
         }
     },
     "require-dev": {
-        "doctrine/doctrine-fixtures-bundle": "*"
+        "doctrine/doctrine-fixtures-bundle": "*",
+        "symfony/maker-bundle": "^1.64"
     }
 }
