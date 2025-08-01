@@ -1,17 +1,38 @@
-{% extends 'base.html.twig' %}
+<div class="container mt-5">
+    <div class="pt-3 mb-4 text-center">
+        <h1 class="display-5">{{ 'Register'|trans }}</h1>
+    </div>
 
-{% block title %}Register{% endblock %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            {{ form_start(registrationForm, {'attr': {'class': 'needs-validation'}, 'novalidate': 'novalidate'}) }}
 
-{% block body %}
-    <h1>Register</h1>
+            <div class="mb-3">
+                {{ form_row(registrationForm.email, {
+                    attr: {'class': 'form-control'},
+                    label_attr: {'class': 'form-label'}
+                }) }}
+            </div>
 
-    {{ form_start(registrationForm) }}
-        {{ form_row(registrationForm.email) }}
-        {{ form_row(registrationForm.plainPassword, {
-            label: 'Password'
-        }) }}
-        {{ form_row(registrationForm.agreeTerms) }}
+            <div class="mb-3">
+                {{ form_row(registrationForm.plainPassword, {
+                    label: 'Password',
+                    attr: {'class': 'form-control'},
+                    label_attr: {'class': 'form-label'}
+                }) }}
+            </div>
 
-        <button type="submit" class="btn">Register</button>
-    {{ form_end(registrationForm) }}
-{% endblock %}
+            <div class="form-check mb-3">
+                {{ form_row(registrationForm.agreeTerms, {
+                    label_attr: {'class': 'form-check-label'},
+                    attr: {'class': 'form-check-input'}
+                }) }}
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Register</button>
+
+            {{ form_end(registrationForm) }}
+        </div>
+    </div>
+</div>
+
