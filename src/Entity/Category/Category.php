@@ -123,7 +123,6 @@ class Category
     public function getParents(): ?string { return $this->parents; }
     public function setParents(?string $parents): void { $this->parents = $parents; }
 
-    public function getChildren(): ?string { return $this->children; }
     public function setChildren(?string $children): void { $this->children = $children; }
 
     public function getChildrenInside(): ?string { return $this->childrenInside; }
@@ -156,7 +155,7 @@ class Category
     {
         $this->currentLocale = $locale;
     }
-    
+
     private function getTranslationByLocale(): ?CategoryLanguages
     {
         foreach ($this->translations as $translation) {
