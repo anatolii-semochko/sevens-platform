@@ -7,6 +7,9 @@ export DEBIAN_FRONTEND=noninteractive
 apt update
 apt install -y php-cli php-mbstring php-xml php-curl php-intl php-mysql unzip mysql-server curl git zip wget
 
+echo "PHP version"
+php -v
+
 echo "⚙️ Starting MySQL..."
 service mysql start
 
