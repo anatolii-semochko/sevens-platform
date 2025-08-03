@@ -9,6 +9,7 @@ import store from '@react/store/index'
 import { Buffer } from 'buffer'
 import { Provider } from 'react-redux'
 import { createRoot } from 'react-dom/client'
+import { openWallet, closeWallet } from '@js/wallet'
 import CreateMaterial from '@react/components/create-material/CreateMaterial'
 import CheckToken from '@react/components/check-token/CheckToken'
 
@@ -26,5 +27,10 @@ if (checkToken) {
     const root = createRoot(checkToken)
     root.render(<Provider store={store}><CheckToken /></Provider>)
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('openWalletBtn')?.addEventListener('click', () => openWallet())
+    document.getElementById('closeWalletBtn')?.addEventListener('click',() => closeWallet())
+})
 
 console.log('Start sevenstime APP')

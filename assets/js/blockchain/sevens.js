@@ -75,4 +75,21 @@ const tokenTransfer = async ({ wallet, tokenPublicKey, targetAddressPublicKey })
     }
 }
 
-export { connection, commitment, getWalletTokens, tokenTransfer }
+const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSync(
+    [Buffer.from(pdaName), publicKey.toBuffer()],
+    programId,
+)[0]
+
+const getAnchorErrorText = (error) => {
+    let message = error?.message || 'Unknown error' // Simple useful error
+    if (error?.error?.errorMessage) { // If it is Anchor-program with structured error
+        message = error.error.errorMessage
+    }
+    if (error?.error?.errorCode?.number) { // If it is Anchor error code
+        message = `Anchor error ${error.error.errorCode.number}: ${message}`
+    }
+
+    return message
+}
+
+export { connection, commitment, getWalletTokens, tokenTransfer, getPda, getAnchorErrorText }

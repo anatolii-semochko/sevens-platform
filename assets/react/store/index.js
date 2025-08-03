@@ -6,7 +6,8 @@ const initialState = {
     translations: {},
     helpLinks: {},
     terms: {},
-};
+    wallet: {},
+}
 
 const reducer = (state = initialState, action) => {
     switch (action.type) {
@@ -14,6 +15,8 @@ const reducer = (state = initialState, action) => {
             return {...state, helpLinks: action.payload}
         case 'SET_TRANSLATIONS':
             return {...state, translations: action.payload}
+        case 'SET_WALLET':
+            return {...state, wallet: action.payload}
         default:
             return state
     }

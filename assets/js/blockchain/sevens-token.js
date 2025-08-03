@@ -1,20 +1,33 @@
 import * as anchor from '@coral-xyz/anchor'
 import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
-import { provider, commitment, getPda, getAnchorErrorText } from './sevens'
-import idlFile from './sevens-token-idl.json'
-import fs from 'fs'
+import { connection, commitment, getPda, getAnchorErrorText } from './sevens'
 import BN from 'bn.js'
 
+const sevensIdlPath = '/storage/files/sevens_token.json'
+
+const dummyWallet = {
+    publicKey: PublicKey.default,
+    signAllTransactions: async (txs) => txs,
+    signTransaction: async (tx) => tx,
+};
+
+const provider = new anchor.AnchorProvider(connection, dummyWallet, {});
+
+let sevensIdl
+fetch(sevensIdlPath)
+    .then(response => response.json())
+    .then(idl => sevensIdl = idl)
+    .catch(error => console.error(error))
+
 const getSevensToken = (publicKey) => {
-  const idl = JSON.parse(fs.readFileSync(idlFile, 'utf-8'))
-  const program = new anchor.Program(idl, idl.metadata.address, provider())
-  return {
-      idl,
-      program,
-      metadataPda: publicKey ? getPda(program.programId, 'metadata', publicKey) : null,
-      salePda: publicKey ? getPda(program.programId, 'sale', publicKey) : null,
-  }
+    const program = new anchor.Program(sevensIdl, sevensIdl.metadata.address, provider)
+    return {
+        sevensIdl,
+        program,
+        metadataPda: publicKey ? getPda(program.programId, 'metadata', publicKey) : null,
+        salePda: publicKey ? getPda(program.programId, 'sale', publicKey) : null,
+    }
 }
 
 const mint = async ({
@@ -75,7 +88,6 @@ const getData = async (tokenPublicKey) => {
             salePda,
         } = getSevensToken(publicKey)
 
-        const owner = await getTokenOwner(publicKey)
         const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
         const sale = await program.account.tokenSaleData.fetch(salePda)
 
@@ -84,7 +96,6 @@ const getData = async (tokenPublicKey) => {
 
         return {
             tokenPublicKey,
-            ownerPublicKey: owner.publicKey.toBase58(),
             mintingTime: new Date(metadata.timestamp.toNumber() * 1000).toISOString(),
             metadata,
             sale,
@@ -190,21 +201,6 @@ const buy = async ({ tokenPublicKey, lamports }) => {
             .rpc()
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
-    }
-}
-
-const getTokenOwner = async (tokenPublicKey) => {
-    const largestAccounts = await provider().connection.getTokenLargestAccounts(tokenPublicKey)
-    const largestAccountInfo = largestAccounts.value[0]
-    if (!largestAccountInfo) {
-        throw new Error('No token accounts found for this mint.')
-    }
-    const parsedAccount = await provider().connection.getParsedAccountInfo(largestAccountInfo.address)
-    const owner = new PublicKey(parsedAccount.value.data.parsed.info.owner)
-
-    return {
-        tokenAccount: largestAccounts?.value[0]?.address,
-        publicKey: owner,
     }
 }
 

@@ -14,7 +14,13 @@ Encore
         to: 'images/[path][name].[ext]',
     })
 
+    // .copyFiles({
+    //     from: '../smartcontracts/target/idl/',
+    //     to: '/idl/',
+    // })
+
     .enableReactPreset()
+    .enableTypeScriptLoader()
 
     .enableSassLoader()
     .enablePostCssLoader()
