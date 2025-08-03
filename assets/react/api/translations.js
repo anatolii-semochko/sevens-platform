@@ -1,4 +1,4 @@
-import store from '@store/index'
+import store from '@react/store/index'
 import yaml from 'js-yaml'
 
 export const fetchTranslations = async (domain) => {

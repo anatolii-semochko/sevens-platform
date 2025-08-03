@@ -1,5 +1,5 @@
 import axios from 'axios'
-import store from '@store/index'
+import store from '@react/store/index'
 import { toast } from 'react-hot-toast'
 
 const api = axios.create({

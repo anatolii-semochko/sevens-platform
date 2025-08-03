@@ -1,4 +1,4 @@
-import store from '@store/index'
+import store from '@react/store/index'
 
 export const fetchHelps = async () => {
     const url = `${store.getState().path.helpTranslations}/help.${store.getState().currentLocale}.json`

@@ -6,7 +6,7 @@ Encore
     .setPublicPath('/build')
 
     // App для звичайних публічних сторінок
-    .addEntry('app', './assets/app/app.js')
+    .addEntry('app', './assets/app.js')
 
     .copyFiles({
         from: './assets/images',
@@ -38,15 +38,13 @@ Encore
     //     options.hot = true; // гарячий перезавантажувач
     // })
 
-module.exports = Encore.getWebpackConfig();
+module.exports = Encore.getWebpackConfig()
 
-const config = Encore.getWebpackConfig();
+const config = Encore.getWebpackConfig()
 config.resolve.alias = {
-    '@': path.resolve(__dirname, 'assets/app'),
-    '@js': path.resolve(__dirname, 'assets/app/js'),
-    '@api': path.resolve(__dirname, 'assets/app/js/api'),
-    '@store': path.resolve(__dirname, 'assets/app/js/store'),
-    '@components': path.resolve(__dirname, 'assets/app/js/components'),
-    '@css': path.resolve(__dirname, 'assets/app/styles'),
+    '@': path.resolve(__dirname, 'assets'),
+    '@js': path.resolve(__dirname, 'assets/js'),
+    '@css': path.resolve(__dirname, 'assets/css'),
+    '@react': path.resolve(__dirname, 'assets/react'),
 };
-module.exports = config;
+module.exports = config

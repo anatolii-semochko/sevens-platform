@@ -1,7 +1,7 @@
 import React from 'react'
 import { Toaster, toast } from 'react-hot-toast'
-import HelpLink from '@components/translation/HelpLink'
-import Translation from "@components/translation/Translation";
+import HelpLink from '@react/components/translation-help/HelpLink'
+import Translation from "@react/components/translation-help/Translation"
 
 export default class CheckToken extends React.Component {
 
