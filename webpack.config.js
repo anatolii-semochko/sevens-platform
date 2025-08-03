@@ -1,5 +1,6 @@
 const Encore = require('@symfony/webpack-encore')
 const path = require('path')
+require('dotenv').config()
 
 Encore
     .setOutputPath('public/build/')
@@ -46,5 +47,18 @@ config.resolve.alias = {
     '@js': path.resolve(__dirname, 'assets/js'),
     '@css': path.resolve(__dirname, 'assets/css'),
     '@react': path.resolve(__dirname, 'assets/react'),
-};
+}
+config.resolve.fallback = {
+    ...(config.resolve.fallback || {}),
+    stream: require.resolve('stream-browserify'),
+    crypto: require.resolve('crypto-browserify'),
+}
+
+const webpack = require('webpack')
+config.plugins.push(
+    new webpack.DefinePlugin({
+        'process.env.ANCHOR_PROVIDER_URL': JSON.stringify(process.env.ANCHOR_PROVIDER_URL),
+    })
+)
+
 module.exports = config
