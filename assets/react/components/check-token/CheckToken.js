@@ -1,7 +1,9 @@
 import React from 'react'
+import { showModal } from '@js/modal'
 import { Toaster, toast } from 'react-hot-toast'
+import { WalletButton } from '@react/components/wallet/Wallet'
 import HelpLink from '@react/components/translation-help/HelpLink'
-import Translation from "@react/components/translation-help/Translation"
+import Translation from '@react/components/translation-help/Translation'
 
 export default class CheckToken extends React.Component {
 
@@ -54,7 +56,26 @@ export default class CheckToken extends React.Component {
                 <button className="btn btn-danger ms-2" onClick={() => toast.error('Toaster Error!')}>
                     Error
                 </button>
+                <button className="btn btn-info ms-2" onClick={() => showModal({
+                    id: 'modal-id',
+                    title: "Modal Popup",
+                    body: "This modal was dynamically created.",
+                    size: 'lg', // sm, lg, xl, ''
+                    footer: (
+                        <>
+                            <button type="button" className="btn btn-success" data-bs-dismiss="modal">
+                                Save
+                            </button>
+                            <button type="button" className="btn btn-danger" onClick={() => alert('Custom action')}>
+                                Delete
+                            </button>
+                        </>
+                    )
+                })}>
+                    <Translation text={'Open Popup'} />
+                </button>
+                <WalletButton />
             </div>
-        );
+        )
     }
 }
