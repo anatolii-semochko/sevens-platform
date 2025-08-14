@@ -32,7 +32,18 @@
             </a>
             {% include 'main-template/header/language-selector.html.twig' %}
             <a href="#" class="text-dark"><i class="bi bi-envelope fs-4 icon-button"></i></a>
-            <a href="#" class="text-dark"><i class="bi bi-person fs-4 icon-button"></i></a>
+            <div id="user-auth">
+                {% if app.user %}
+                    <div data-user="{{ {
+                        'email': app.user.email,
+                        'id': app.user.id,
+                        'createdAt': app.user.createdAt|date('c'),
+                        'profileUrl': path('user_index')
+                    }|json_encode|e('html_attr') }}"></div>
+                {% else %}
+                    <div data-register-url="{{ path('app_register') }}"></div>
+                {% endif %}
+            </div>
         </div>
 
     </div>

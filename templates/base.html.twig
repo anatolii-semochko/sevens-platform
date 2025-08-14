@@ -3,6 +3,7 @@
     <head>
         <title>{{ global.seo.getTitle() }}</title>
         <meta name="description" content="{{ global.seo.getDescription() }}"/>
+        <meta name="csrf-token" content="{{ csrf_token('authenticate') }}"/>
         <link rel="canonical" href="{{ global.canonicalUrl }}"/>
     {% for alternate in global.seoAlternates %}
     <link rel="alternate" href="{{ alternate.href }}" hreflang="{{ alternate.hreflang }}"/>
