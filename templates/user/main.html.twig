@@ -1,35 +1,42 @@
-<div class="">
-    <div class="pt-3 mb-4">
-        <h1>{{ 'User'|trans }}</h1>
+<div class="container mt-5">
+    <div class="pt-3 mb-4 text-center">
+        <h1 class="display-5">{{ 'User Profile'|trans }}</h1>
     </div>
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Welcome, {{ data.user.email }}</h4>
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title mb-4">Your Profile Information</h5>
-
-                        <dl class="row">
-                            <dt class="col-sm-4">Email:</dt>
-                            <dd class="col-sm-8">{{ data.user.email }}</dd>
-
-                            {% if data.user.fullName is defined %}
-                                <dt class="col-sm-4">Full Name:</dt>
-                                <dd class="col-sm-8">{{ data.user.fullName }}</dd>
-                            {% endif %}
-
-                            <dt class="col-sm-4">Member Since:</dt>
-                            <dd class="col-sm-8">{{ data.user.createdAt|date('F j, Y') }}</dd>
-                        </dl>
-
-                        <div class="mt-4 d-flex justify-content-between">
-                            <a href="{{ path('app_logout') }}" class="btn btn-danger">
-                                Logout
-                            </a>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-person-circle fs-1 me-3 text-primary"></i>
+                        <div>
+                            <h4 class="mb-0">{{ 'Welcome'|trans }}, {{ data.user.email }}</h4>
+                            <p class="text-muted mb-0">{{ 'User Profile'|trans }}</p>
                         </div>
+                    </div>
+
+                    <h5 class="card-title mb-4 text-uppercase fw-bold">{{ 'Profile Information'|trans }}</h5>
+
+                    <dl class="row mb-4">
+                        <dt class="col-sm-4 text-muted">{{ 'Email'|trans }}:</dt>
+                        <dd class="col-sm-8">{{ data.user.email }}</dd>
+
+                        {% if data.user.fullName is defined %}
+                            <dt class="col-sm-4 text-muted">{{ 'Full Name'|trans }}:</dt>
+                            <dd class="col-sm-8">{{ data.user.fullName }}</dd>
+                        {% endif %}
+
+                        <dt class="col-sm-4 text-muted">{{ 'Member Since'|trans }}:</dt>
+                        <dd class="col-sm-8">{{ data.user.createdAt|date('F j, Y') }}</dd>
+                    </dl>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ path('home_page', {'_locale': app.request.locale}) }}" class="btn btn-primary">
+                            <i class="bi bi-house me-1"></i>{{ 'Go to Home'|trans }}
+                        </a>
+                        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">
+                            <i class="bi bi-box-arrow-right me-1"></i>{{ 'Logout'|trans }}
+                        </a>
                     </div>
                 </div>
             </div>
