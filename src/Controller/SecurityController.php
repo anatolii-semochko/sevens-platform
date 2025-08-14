@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Service\PageContent\PageService;
@@ -26,7 +28,11 @@ class SecurityController extends AbstractController
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
+        $this->pageService->init('/login');
+        return $this->render('base.html.twig', [
+            'main_template' => 'security/login.html.twig',
+            'data' => ['last_username' => $lastUsername, 'error' => $error],
+        ]);
     }
 
     #[Route(path: '/logout', name: 'app_logout')]
