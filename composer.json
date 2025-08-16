@@ -14,6 +14,8 @@
         "doctrine/inflector": "^2.0",
         "doctrine/orm": "*",
         "doctrine/persistence": "^4.0",
+        "knpuniversity/oauth2-client-bundle": "^2.18",
+        "league/oauth2-facebook": "^2.2",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
         "symfony/flex": "^2",

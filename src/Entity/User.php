@@ -20,14 +20,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 36)]
     private string $id;
 
-    #[ORM\Column(type: 'string', length: 180, unique: true)]
-    private string $email;
+    #[ORM\Column(type: 'string', length: 180, unique: true, nullable: true)]
+    private ?string $email = null;
 
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
-    #[ORM\Column(type: 'string')]
-    private string $password;
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $password = null;
 
     #[ORM\Column(type: 'boolean')]
     private bool $isVerified = false;
@@ -40,6 +40,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeInterface $lastLogin = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $facebookId = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(type: 'string', nullable: true)]
+    private ?string $lastName = null;
 
     public function __construct()
     {
@@ -64,12 +73,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getEmail(): string
+    public function getEmail(): ?string
     {
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(?string $email): self
     {
         $this->email = $email;
         return $this;
@@ -77,7 +86,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getUserIdentifier(): string
     {
-        return $this->email;
+        return $this->email ?: $this->facebookId ?: $this->id;
     }
 
     public function getRoles(): array
@@ -93,12 +102,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getPassword(): string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(?string $password): self
     {
         $this->password = $password;
         return $this;
@@ -139,5 +148,46 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->lastLogin = $lastLogin;
         return $this;
+    }
+
+    public function getFacebookId(): ?string
+    {
+        return $this->facebookId;
+    }
+
+    public function setFacebookId(?string $facebookId): self
+    {
+        $this->facebookId = $facebookId;
+        return $this;
+    }
+
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(?string $firstName): self
+    {
+        $this->firstName = $firstName;
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(?string $lastName): self
+    {
+        $this->lastName = $lastName;
+        return $this;
+    }
+
+    public function getFullName(): ?string
+    {
+        if ($this->firstName && $this->lastName) {
+            return trim($this->firstName . ' ' . $this->lastName);
+        }
+        return $this->firstName ?: $this->lastName;
     }
 }
