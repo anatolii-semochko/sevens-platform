@@ -25,15 +25,17 @@ export default function UserDropdown({ user }) {
 
     const handlePersonalCabinet = (e) => {
         e.preventDefault();
-        // Navigate to user profile page using the URL from Symfony
-        window.location.href = user.profileUrl || '/user';
+        // Navigate to user profile page using locale-aware route
+        const locale = window.AppConfig?.currentLocale || 'en';
+        window.location.href = user.profileUrl || `/${locale}/user`;
         setIsOpen(false);
     };
 
     const handleLogout = (e) => {
         e.preventDefault();
-        // Navigate to logout
-        window.location.href = '/logout';
+        // Navigate to logout using the correct locale-aware route
+        const locale = window.AppConfig?.currentLocale || 'en';
+        window.location.href = `/${locale}/logout`;
     };
 
     return (
