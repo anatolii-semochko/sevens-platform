@@ -7,3 +7,5 @@ knpu_oauth2_client:
             redirect_route: connect_facebook_check
             redirect_params: {}
             graph_api_version: v18.0
+            # Temporarily disable state validation for debugging
+            use_state: false

@@ -25,15 +25,15 @@ export default function UserAuth({ user = null, registerUrl = '/register' }) {
     // User is not logged in - show clickable icon and login popup
     return (
         <>
-            <a 
-                href="#" 
-                className="text-dark" 
+            <a
+                href="#"
+                className="text-dark"
                 onClick={handlePersonIconClick}
             >
                 <i className="bi bi-person fs-4 icon-button"></i>
             </a>
-            <LoginPopup 
-                isOpen={showLoginPopup} 
+            <LoginPopup
+                isOpen={showLoginPopup}
                 onClose={handleCloseLoginPopup}
                 registerUrl={registerUrl}
             />

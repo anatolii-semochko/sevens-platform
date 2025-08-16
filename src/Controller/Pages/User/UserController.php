@@ -18,11 +18,14 @@ class UserController extends BaseController
     #[Route('', name: 'index', methods: ['GET'])]
     public function index(): Response
     {
+        $user = $this->getUser();
+        error_log('UserController: User is ' . ($user ? 'logged in: ' . $user->getUserIdentifier() : 'null'));
+        
         $this->pageService->init('/user');
 
         return $this->render('base.html.twig', [
             'main_template' => 'user/main.html.twig',
-            'data' => ['user' => $this->getUser()],
+            'data' => ['user' => $user],
         ]);
     }
 }
