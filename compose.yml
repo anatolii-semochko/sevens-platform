@@ -41,7 +41,7 @@ services:
       - default
 
   web-node:
-    image: node:18
+    image: node:20.18.0
     working_dir: /app
     volumes:
       - .:/app

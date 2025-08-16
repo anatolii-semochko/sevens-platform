@@ -1,19 +1,26 @@
 const Encore = require('@symfony/webpack-encore')
 const path = require('path')
+require('dotenv').config()
 
 Encore
     .setOutputPath('public/build/')
     .setPublicPath('/build')
 
     // App для звичайних публічних сторінок
-    .addEntry('app', './assets/app/app.js')
+    .addEntry('app', './assets/app.js')
 
     .copyFiles({
         from: './assets/images',
         to: 'images/[path][name].[ext]',
     })
 
+    // .copyFiles({
+    //     from: '../smartcontracts/target/idl/',
+    //     to: '/idl/',
+    // })
+
     .enableReactPreset()
+    .enableTypeScriptLoader()
 
     .enableSassLoader()
     .enablePostCssLoader()
@@ -38,15 +45,26 @@ Encore
     //     options.hot = true; // гарячий перезавантажувач
     // })
 
-module.exports = Encore.getWebpackConfig();
+module.exports = Encore.getWebpackConfig()
 
-const config = Encore.getWebpackConfig();
+const config = Encore.getWebpackConfig()
 config.resolve.alias = {
-    '@': path.resolve(__dirname, 'assets/app'),
-    '@js': path.resolve(__dirname, 'assets/app/js'),
-    '@api': path.resolve(__dirname, 'assets/app/js/api'),
-    '@store': path.resolve(__dirname, 'assets/app/js/store'),
-    '@components': path.resolve(__dirname, 'assets/app/js/components'),
-    '@css': path.resolve(__dirname, 'assets/app/styles'),
-};
-module.exports = config;
+    '@': path.resolve(__dirname, 'assets'),
+    '@js': path.resolve(__dirname, 'assets/js'),
+    '@css': path.resolve(__dirname, 'assets/css'),
+    '@react': path.resolve(__dirname, 'assets/react'),
+}
+config.resolve.fallback = {
+    ...(config.resolve.fallback || {}),
+    stream: require.resolve('stream-browserify'),
+    crypto: require.resolve('crypto-browserify'),
+}
+
+const webpack = require('webpack')
+config.plugins.push(
+    new webpack.DefinePlugin({
+        'process.env.ANCHOR_PROVIDER_URL': JSON.stringify(process.env.ANCHOR_PROVIDER_URL),
+    })
+)
+
+module.exports = config
