@@ -1,0 +1,11 @@
+{
+  "ENDPOINTS": {
+    "mainNet": "https://sevenscoin.net",
+    "devNet": "https://dev.sevenscoin.net",
+    "local": "http://localhost:8899",
+    "custom": ""
+  },
+  "LANGUAGES": {},
+  "PASSWORD_MIN_LENGTH": 6,
+  "PASSWORD_REPEAT_DELAY_SECONDS": 5
+}
