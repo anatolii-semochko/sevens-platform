@@ -104,15 +104,28 @@ class FacebookController extends AbstractController
             }
 
             // Use the proper authenticator to log in the user
-            $response = $userAuthenticator->authenticateUser(
+            $userAuthenticator->authenticateUser(
                 $existingUser,
                 $authenticator,
                 $request
             );
 
-            // Add success message and return the response
+            // Add success message and return HTML redirect for demo
             $this->addFlash('success', 'Successfully logged in with Facebook!');
-            return $response;
+            
+            $locale = $request->getLocale();
+            $userUrl = "/{$locale}/user";
+            
+            return new Response(
+                '<html><head><meta http-equiv="refresh" content="1;url=' . $userUrl . '"></head>' .
+                '<body><div style="text-align:center;margin-top:50px;font-family:Arial;">' .
+                '<h3>Facebook Login Successful!</h3>' .
+                '<p>Redirecting to your profile...</p>' .
+                '<div style="margin:20px;"><div style="display:inline-block;width:20px;height:20px;border:3px solid #f3f3f3;border-top:3px solid #3498db;border-radius:50%;animation:spin 1s linear infinite;"></div></div>' .
+                '<style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>' .
+                '<script>setTimeout(function(){window.location.href="' . $userUrl . '";}, 1000);</script>' .
+                '</body></html>'
+            );
 
         } catch (InvalidStateException $e) {
             error_log('InvalidStateException: ' . $e->getMessage());
