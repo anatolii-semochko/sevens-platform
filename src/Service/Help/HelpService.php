@@ -17,7 +17,7 @@ class HelpService
     private array $helpFileData = [];
 
     public function __construct(
-        private readonly string $helpTranslationsFolder,
+        private readonly array $path,
         private readonly LocaleStorage $localeStorage,
         private readonly Environment $twig,
         private readonly HelpRepository $helpRepository,
@@ -148,10 +148,11 @@ class HelpService
 
     private function getHelpFromFile(string $helpName): ?array
     {
-        $file = $this->helpTranslationsFolder . "/help.{$this->localeStorage->getLocale()}.json";
+        $path = $this->path['publicFolder'] . $this->path['helpTranslations'];
+        $file = "/help.{$this->localeStorage->getLocale()}.json";
         try {
             if (!$this->helpFileData) {
-                $this->helpFileData = json_decode(file_get_contents($file), true);
+                $this->helpFileData = json_decode(file_get_contents($path . $file), true);
             }
         } catch (Exception $e) {
             return null;

@@ -171,7 +171,10 @@ node:
 yarn-install:
 	docker compose run --rm -w /app web-node yarn install
 
-yarn-build:
+yarn-build-development:
+	docker compose run --rm -w /app web-node yarn encore dev
+
+yarn-build-production:
 	docker compose run --rm -w /app web-node yarn build
 
 yarn-watch:

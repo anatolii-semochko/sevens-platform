@@ -27,7 +27,7 @@ class PageContent
     #[Groups(['page-content:read'])]
     private string $term;
 
-    #[ORM\OneToMany(mappedBy: 'pageContent', targetEntity: PageContentTranslation::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: PageContentTranslation::class, mappedBy: 'pageContent', cascade: ['persist', 'remove'])]
     #[Groups(['page-content:read'])]
     private Collection $translations;
 
@@ -37,13 +37,28 @@ class PageContent
         $this->translations = new ArrayCollection();
     }
 
-    public function getId(): ?string { return $this->id; }
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
 
-    public function setId(string $id): void { $this->id = $id; }
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
 
-    public function setPage(?Page $page): void { $this->page = $page; }
+    public function setPage(?Page $page): void
+    {
+        $this->page = $page;
+    }
 
-    public function setTerm(string $term): void { $this->term = $term; }
+    public function setTerm(string $term): void
+    {
+        $this->term = $term;
+    }
 
-    public function getTranslations(): Collection { return $this->translations; }
+    public function getTranslations(): Collection
+    {
+        return $this->translations;
+    }
 }

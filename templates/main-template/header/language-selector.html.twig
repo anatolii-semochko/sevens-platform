@@ -1,7 +1,7 @@
 <div class="d-flex align-items-center">
     <div class="dropdown">
         <a href="#" role="button" id="languageDropdown" data-bs-toggle="dropdown">
-            <img src="{{ asset('build/images/language-flags/' ~ current_locale ~ '.png') }}"
+            <img src="{{ global.path.languageFlags }}/{{ current_locale }}.png"
                  title="{{ current_locale|upper }}"
                  alt="{{ current_locale|upper }}"
                  height="20"
@@ -18,8 +18,9 @@
                         : '/' ~ lang.code ~ current_path
                     %}
                     <a class="dropdown-item d-flex align-items-center gap-2{% if current_locale == lang.code %} active{% endif %}"
-                       href="{{ new_path }}">
-                        <img src="/build/images/language-flags/{{ lang.code }}.png"
+                       href="{{ new_path }}"
+                    >
+                        <img src="{{ global.path.languageFlags }}/{{ lang.code }}.png"
                              alt="{{ lang.name }}"
                              height="20"
                              style="border-radius: 3px;"

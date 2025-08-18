@@ -52,27 +52,83 @@ class HelpContent
         $this->id = Uuid::v4()->toRfc4122();
     }
 
-    public function getId(): string { return $this->id; }
-    public function setId(string $id): void { $this->id = $id; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
-    public function getHelp(): Help { return $this->help; }
-    public function setHelp(Help $help): void { $this->help = $help; }
+    public function setId(string $id): void
+    {
+        $this->id = $id;
+    }
 
-    public function getLanguage(): Language { return $this->language; }
-    public function setLanguage(Language $language): void { $this->language = $language; }
+    public function getHelp(): Help
+    {
+        return $this->help;
+    }
 
-    public function getTitle(): ?string { return $this->title; }
-    public function setTitle(?string $title): void { $this->title = $title; }
+    public function setHelp(Help $help): void
+    {
+        $this->help = $help;
+    }
 
-    public function getSeoKeywords(): ?string { return $this->seoKeywords; }
-    public function setSeoKeywords(?string $seoKeywords): void { $this->seoKeywords = $seoKeywords; }
+    public function getLanguage(): Language
+    {
+        return $this->language;
+    }
 
-    public function getSeoDescription(): ?string { return $this->seoDescription; }
-    public function setSeoDescription(?string $seoDescription): void { $this->seoDescription = $seoDescription; }
+    public function setLanguage(Language $language): void
+    {
+        $this->language = $language;
+    }
 
-    public function getShortDescription(): ?string { return $this->shortDescription; }
-    public function setShortDescription(?string $shortDescription): void { $this->shortDescription = $shortDescription; }
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
 
-    public function getDescription(): ?string { return $this->description; }
-    public function setDescription(?string $description): void { $this->description = $description; }
+    public function setTitle(?string $title): void
+    {
+        $this->title = $title;
+    }
+
+    public function getSeoKeywords(): ?string
+    {
+        return $this->seoKeywords;
+    }
+
+    public function setSeoKeywords(?string $seoKeywords): void
+    {
+        $this->seoKeywords = $seoKeywords;
+    }
+
+    public function getSeoDescription(): ?string
+    {
+        return $this->seoDescription;
+    }
+
+    public function setSeoDescription(?string $seoDescription): void
+    {
+        $this->seoDescription = $seoDescription;
+    }
+
+    public function getShortDescription(): ?string
+    {
+        return $this->shortDescription;
+    }
+
+    public function setShortDescription(?string $shortDescription): void
+    {
+        $this->shortDescription = $shortDescription;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): void
+    {
+        $this->description = $description;
+    }
 }

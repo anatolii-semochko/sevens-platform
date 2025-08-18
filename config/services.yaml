@@ -4,10 +4,12 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    uploads_directory: '%kernel.project_dir%/public/uploads'
     public_folder: '%env(PUBLIC_FOLDER)%'
-    translations_folder: '%env(TRANSLATIONS_FOLDER)%'
-    help_translations_folder: '%env(HELP_TRANSLATIONS_FOLDER)%'
+    path_translations: '%env(PATH_TRANSLATIONS)%'
+    path_help_translations: '%env(PATH_HELP_TRANSLATIONS)%'
+    path_language_flags: '%env(PATH_LANGUAGE_FLAGS)%'
+    path_category_logos: '%env(PATH_CATEGORY_LOGOS)%'
+    path_materials: '%env(PATH_MATERIALS)%'
 
 services:
     # default configuration for services in *this* file
@@ -37,13 +39,19 @@ services:
 
     App\Service\Help\HelpService:
       arguments:
-        $helpTranslationsFolder: '%help_translations_folder%'
+        $path:
+          publicFolder: '%public_folder%'
+          helpTranslations: '%path_help_translations%'
 
     App\Twig\AppGlobalVariables:
       arguments:
-        $publicFolder: '%public_folder%'
-        $translationsFolder: '%translations_folder%'
-        $helpTranslationsFolder: '%help_translations_folder%'
+        $path:
+          publicFolder: '%public_folder%'
+          translations: '%path_translations%'
+          helpTranslations: '%path_help_translations%'
+          languageFlags: '%path_language_flags%'
+          categoryLogos: '%path_category_logos%'
+          materials: '%path_materials%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
