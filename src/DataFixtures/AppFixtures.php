@@ -40,6 +40,9 @@ class AppFixtures extends Fixture
             ['6b79a1c0-7ca2-458f-8e7c-d09a0034c346', '/404', []],
             ['c018c788-a059-488c-8a1c-6bc91aed4e03', '/material', ['token', 'title', 'description']],
             ['e7a17864-626b-4ca6-9e18-142da4d66340', '/help', []],
+            ['a6e26b6d-092e-4677-b822-82ea07e3163c', '/register', []],
+            ['d5e81a1a-49cc-4d8e-9f6f-69d0f9725b35', '/login', []],
+            ['176c4e5f-04c6-47c8-92b1-667e9abf99e3', '/user', []],
         ];
 
         foreach ($pagesData as $pageData) {
