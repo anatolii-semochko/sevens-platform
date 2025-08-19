@@ -1,9 +1,11 @@
+import config from '@react/components/wallet/config.json'
 import React, { useEffect, useRef, useState } from 'react'
-import languages from '@react/components/wallet/translations/languages.json'
+import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import clsx from 'clsx'
 
 const CurrentLanguage = ({className}) => {
-    const [value, onChange] = useState('en') // TODO - MOVE TO Context
+    const {language, setLanguage} = useWalletContext()
+    const languages = config.LANGUAGES
 
     const [isOpen, setIsOpen] = useState(false)
     const dropdownRef = useRef(null)
@@ -20,11 +22,11 @@ const CurrentLanguage = ({className}) => {
     }, [])
 
     const handleSelect = (code) => {
-        onChange(code)
+        setLanguage(code)
         setIsOpen(false)
     }
 
-    const selectedLanguage = value ? languages[value] : 'Select Language'
+    const selectedLanguage = language ? languages[language] : 'Select Language'
 
     return (
 
@@ -39,9 +41,9 @@ const CurrentLanguage = ({className}) => {
                     style={{ gap: '8px' }}
                 >
                     <div className="d-flex align-items-center" style={{ gap: '8px' }}>
-                        {value && (
+                        {language && (
                             <img
-                                src={require(`@react/components/wallet/translations/flags/${value}.png`)}
+                                src={require(`@react/components/wallet/translations/flags/${language}.png`)}
                                 alt={`${selectedLanguage} flag`}
                                 style={{
                                     width: '20px',
@@ -69,20 +71,20 @@ const CurrentLanguage = ({className}) => {
                                 type="button"
                                 className={clsx(
                                     'w-100 px-3 py-2 border-0 text-start d-flex align-items-center',
-                                    { 'bg-primary text-white': value === code }
+                                    { 'bg-primary text-white': language === code }
                                 )}
                                 onClick={() => handleSelect(code)}
                                 style={{
-                                    backgroundColor: value === code ? '' : 'transparent',
+                                    backgroundColor: language === code ? '' : 'transparent',
                                     gap: '8px'
                                 }}
                                 onMouseEnter={(e) => {
-                                    if (value !== code) {
+                                    if (language !== code) {
                                         e.target.style.backgroundColor = '#f8f9fa'
                                     }
                                 }}
                                 onMouseLeave={(e) => {
-                                    if (value !== code) {
+                                    if (language !== code) {
                                         e.target.style.backgroundColor = 'transparent'
                                     }
                                 }}

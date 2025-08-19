@@ -45,8 +45,8 @@ const WalletsList = () => {
                         <tr>
                             <th>Wallet</th>
                             <th className="text-end"><span className="fst-italic mx-1">$SEV</span></th>
-                            <th className="text-end"><span className="fst-italic mx-1">Tokens</span></th>
-                            <th> </th>
+                            <th className="text-end"><span className="mx-1">Tokens</span></th>
+                            <th style={{width: 1}}> </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -58,7 +58,7 @@ const WalletsList = () => {
                                 className={clsx(isActive ? 'table-primary' : '', 'cursor-pointer')}
                                 style={{ cursor: 'pointer' }}
                             >
-                                <td onClick={() => handleSetWallet(walletData)}>
+                                <td className={'ps-4'} onClick={() => handleSetWallet(walletData)}>
                                     {walletData.name}
                                 </td>
                                 <td onClick={() => handleSetWallet(walletData)} className="text-end">
@@ -68,10 +68,7 @@ const WalletsList = () => {
                                     {tokensText(walletData)}
                                 </td>
                                 <td className="text-end">
-                                    <ButtonListActions
-                                        onClick={() => setShowWalletActions(walletData)}
-                                        className={'text-primary'}
-                                    />
+                                    <ButtonListActions onClick={() => setShowWalletActions(walletData)} />
                                 </td>
                             </tr>
                         );

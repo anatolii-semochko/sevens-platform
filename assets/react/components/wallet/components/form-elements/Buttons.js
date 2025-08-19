@@ -4,10 +4,10 @@ import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import { reloadAllWallets } from '@react/components/wallet/scripts/apiActions'
 import { closeWallet } from '@js/wallet'
 import {
-    Menu, AlignJustify, Plus, Clipboard, ArrowLeft, Unlock, Lock,
+    AlignJustify, Plus, Clipboard, ArrowLeft, Lock,
     Sparkles, RotateCcw, KeyRound, CircleDollarSign, Send, FlameKindling,
     NotebookPen, Save, Repeat, Handshake, Trash2, CornerRightDown,
-    FolderPen, Eye, Settings, EyeOff, RefreshCw, Wallet,
+    FolderPen, Eye, Settings, EyeOff, RefreshCw, Wallet, GlobeLock,
 } from 'lucide-react'
 
 const iconSize = 16
@@ -16,11 +16,12 @@ const ButtonWalletClose = () => (
     <button className="btn-close ms-auto" aria-label="Close" onClick={() => closeWallet()} />
 )
 
-const ButtonWalletUnLock = ({className}) => (
+const ButtonWalletUnLock = ({label, icon, disabled, className}) => (
     <WalletButton
-        label={'Unlock wallet'}
+        label={label}
         className={clsx('btn-primary w-100', className)}
-        icon={<Unlock size={iconSize} />}
+        disabled={disabled}
+        icon={icon}
     />
 )
 
@@ -62,7 +63,7 @@ const ButtonListActions = ({onClick, className}) => (
     <WalletButton
         onClick={onClick}
         className={clsx('btn-white', className)}
-        icon={<Menu />}
+        icon={<Settings size={20}/>}
     />
 )
 
@@ -285,6 +286,18 @@ const ButtonBalancesVisibility = ({className}) => {
     )
 }
 
+const ButtonChangeConnection = ({className}) => {
+    const {setShowComponent} = useWalletContext()
+    return (
+        <WalletButton
+            label={'Connection to blockchain net'}
+            onClick={() => setShowComponent({component: 'SettingsConnection'})}
+            className={clsx('btn-primary w-100', className)}
+            icon={<GlobeLock size={iconSize}/>}
+        />
+    )
+}
+
 const ButtonChangePassword = ({onClick, className}) => (
     <WalletButton
         label={'Change password'}
@@ -303,9 +316,10 @@ const ButtonClearWallet = ({onClick, className}) => (
     />
 )
 
-const WalletButton = ({label, onClick, className, icon }) => (
+const WalletButton = ({label, disabled, onClick, className, icon }) => (
     <button
         className={clsx(className, 'btn cursor-pointer d-flex align-items-center justify-content-center gap-2')}
+        disabled={disabled}
         onClick={onClick}
     >
         {icon} {label}
@@ -313,6 +327,7 @@ const WalletButton = ({label, onClick, className, icon }) => (
 )
 
 export {
+    iconSize,
     ButtonWalletUnLock, ButtonWalletLock, ButtonWalletClose, ButtonBack, ButtonListActions,
     ButtonWalletSelect, ButtonGenerateNewWallet, ButtonRestoreWalletFromSeed,
     ButtonWalletAdd, ButtonShowPrivateKey, ButtonWalletRename, ButtonWalletRemove,
@@ -320,4 +335,5 @@ export {
     ButtonSendCoins, ButtonBuyCoins, ButtonSellCoins,  ButtonReceiveCrypto,
     ButtonReloadWallet, ButtonTokenTransfer, ButtonTokenBurn,
     ButtonSettings, ButtonBalancesVisibility, ButtonChangePassword, ButtonClearWallet,
+    ButtonChangeConnection,
 }

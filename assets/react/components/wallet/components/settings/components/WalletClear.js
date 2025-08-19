@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
-import { reloadAllWallets } from '@react/components/wallet/scripts/apiActions'
 import { clearWallet } from '@react/components/wallet/scripts/storageActions'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonBack, ButtonClearWallet } from '@react/components/wallet/components/form-elements/Buttons'

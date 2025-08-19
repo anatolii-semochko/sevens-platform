@@ -1,4 +1,5 @@
 import React from 'react'
+import config from '@react/components/wallet/config.json'
 import { SUPPORTED_BITS, BIP_LENGTHS } from '@react/components/wallet/scripts/crypto'
 import clsx from 'clsx'
 
@@ -68,4 +69,43 @@ const SelectPhraseLength = ({value, onChange, className}) => (
     </div>
 )
 
-export { InputPassword, InputNewWalletName, SelectRecoveryType, SelectPhraseLength }
+const SelectConnection = ({value, onChange, className}) => {
+    // TODO - Add to translations
+    const netLabels = {
+        "main": "Main NET (original)",
+        "dev": "Dev NET (testing and development)",
+        "local": "Local NET (local environment)",
+        "custom": "Custom NET (advanced option)",
+    }
+
+    return (
+        <select
+            id="select-connection"
+            className={clsx('form-select', className)}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+        >
+            {Object.keys(config.CONNECTION_ENDPOINTS).map(key => (
+                <option key={key} value={key}>
+                    {netLabels[key]}
+                </option>
+            ))}
+        </select>
+    )
+}
+
+const InputConnection = ({value, onChange, disabled, className}) => (
+    <input
+        id="input-connection"
+        className={clsx('form-control', className)}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+    />
+)
+
+export {
+    InputPassword,
+    InputNewWalletName, SelectRecoveryType, SelectPhraseLength, 
+    SelectConnection, InputConnection, 
+}

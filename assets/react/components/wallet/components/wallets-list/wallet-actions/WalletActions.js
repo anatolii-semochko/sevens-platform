@@ -30,8 +30,8 @@ const WalletActions = ({walletData, setShowWalletActions}) => {
     return (
         <div>
             <BlockTitle title={'Single wallet actions'} />
+            <WalletDetails walletData={walletData} className={'mb-0'}/>
             <div className="d-grid gap-3 mb-4">
-                <WalletDetails walletData={walletData} className={'mb-0'}/>
                 <ButtonShowPrivateKey onClick={() => setShowWalletPrivateKey(true)} />
                 <ButtonWalletRename onClick={() => setShowWalletRename(true)} />
                 <ButtonWalletRemove onClick={() => setShowWalletRemove(true)} />
