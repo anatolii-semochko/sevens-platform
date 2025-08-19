@@ -1,66 +1,53 @@
 import React, { createContext, useEffect, useState } from 'react'
-import store from '@react/store'
+import { getLocalStorageProperty, setLocalStorageProperty } from '@react/components/wallet/scripts/storageActions'
 
 const WalletContext = createContext(null)
-
-const LOCAL_STORAGE_WALLET_STATE = 'wallet_state'
-
-const setStoreWallet = (wallet) => store.dispatch({
-    type: 'SET_WALLET',
-    payload: wallet,
-})
-
-const getLocalStorageProperty = (propertyName) =>  JSON.parse(
-    localStorage.getItem(LOCAL_STORAGE_WALLET_STATE)
-)?.[propertyName]
-
-const setLocalStorageProperty = (propertyName, value) => {
-    const walletState = JSON.parse(localStorage.getItem(LOCAL_STORAGE_WALLET_STATE)) || {}
-    walletState[propertyName] = value
-    localStorage.setItem(LOCAL_STORAGE_WALLET_STATE, JSON.stringify(walletState))
-}
 
 const WalletContextProvider = ({ children }) => {
     const [showComponent, setShowComponent] = useState(null)
     const [password, setPassword] = useState('')
-
-    // ==== Wallet======================================================================================================
     const [walletsList, setWalletsList] = useState(null)
     const [walletData, setWalletData] = useState({})
-    const [walletIndex, setWalletIndexState] = useState(getLocalStorageProperty('walletIndex') || 0)
-    const setWalletIndex = (index) => {
-        setLocalStorageProperty('walletIndex', index)
-        setWalletIndexState(index)
+    const [walletPublicKey, setWalletPublicKey] = useState(getLocalStorageProperty('walletPublicKey') || null)
+    
+    const setWalletByPublicKey = (publicKey) => {
+        setLocalStorageProperty('walletPublicKey', publicKey)
+        setWalletPublicKey(publicKey)
     }
     useEffect(() => {
-        const wallet = walletsList ? walletsList[walletIndex] : {}
-        setWalletData(wallet)
-        setStoreWallet(wallet)
-    }, [walletsList, walletIndex])
+        if (!walletsList || walletsList.length === 0) {
+            setWalletData({})
+            return
+        }
 
-    // ==== Settings ===================================================================================================
+        let wallet = null
+        if (walletPublicKey) {
+            wallet = walletsList.find(w => w.publicKey === walletPublicKey)
+        }
+        
+        if (!wallet) {
+            const sortedWallets = [...walletsList].sort((a, b) => a.name.localeCompare(b.name))
+            wallet = sortedWallets[0]
+            setWalletByPublicKey(wallet.publicKey)
+        }
+
+        setWalletData(wallet || {})
+    }, [walletsList, walletPublicKey])
+
     const [hideBalances, setHideBalancesState] = useState(getLocalStorageProperty('hideBalances'))
     const setHideBalances = (value) => {
         setLocalStorageProperty('hideBalances', value)
         setHideBalancesState(value)
-    }
-    const [showWalletsList, setShowWalletsListState] = useState(getLocalStorageProperty('showWalletsList'))
-    const setShowWalletsList = (value) => {
-        setLocalStorageProperty('showWalletsList', value)
-        setShowWalletsListState(value)
     }
 
     return (
         <WalletContext.Provider
             value={{
                 showComponent, setShowComponent,
-                // Wallet
-                walletsList, setWalletsList,
-                walletData, walletIndex, setWalletIndex,
-                password, setPassword,
-                // Settings
                 hideBalances, setHideBalances,
-                showWalletsList, setShowWalletsList,
+                walletsList, setWalletsList,
+                walletData, walletPublicKey, setWalletByPublicKey,
+                password, setPassword,
             }}
         >
             {children}

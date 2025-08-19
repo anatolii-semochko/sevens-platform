@@ -10,6 +10,9 @@ const UnlockWallet = ({ unlock }) => {
         unlock()
     }
 
+    
+    
+    
     return (
         <form onSubmit={handleSubmit} className="p-3">
             <input

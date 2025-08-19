@@ -4,7 +4,7 @@ import CryptoJS from 'crypto-js'
 import { Keypair} from '@solana/web3.js'
 import { derivePath } from 'ed25519-hd-key'
 import { EncryptedAddress, Password, SecretsExport } from '@react/components/wallet/scripts/Types'
-import { getKeypair } from '@react/components/wallet/scripts/apiAction'
+import { getKeypair } from '@react/components/wallet/scripts/apiActions'
 
 // TODO - REGISTER IN SLIP-0044 !!! Дериваційний шлях згідно зі стандартом BIP44
 export const CHAIN_COIN_TYPE: number = 777
