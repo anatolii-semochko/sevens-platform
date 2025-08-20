@@ -4,8 +4,9 @@ import WalletsList from '@react/components/wallet/components/wallets-list/Wallet
 import AddWallet from '@react/components/wallet/components/wallet-add/AddWallet'
 import AddressCopy from '@react/components/wallet/components/wallet-block/components/AddressCopy'
 import SendCoins from '@react/components/wallet/components/wallet-block/components/SendCoins'
-import Settings from '@react/components/wallet/components/settings/Settings'
 import Token from '@react/components/wallet/components/tokens-list/Token'
+import Settings from '@react/components/wallet/components/settings/Settings'
+import SettingsConnection from '@react/components/wallet/components/settings/components/SettingsConnection'
 
 const componentsMap = {
     WalletsList,
@@ -14,6 +15,7 @@ const componentsMap = {
     SendCoins,
     Token,
     Settings,
+    SettingsConnection,
 }
 
 const ShowComponent = () => {

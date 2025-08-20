@@ -1,11 +1,16 @@
 {
-  "ENDPOINTS": {
-    "mainNet": "https://sevenscoin.net",
-    "devNet": "https://dev.sevenscoin.net",
+  "CONNECTION_ENDPOINTS": {
+    "main": "https://sevenscoin.net.x",
+    "dev": "https://dev.sevenscoin.net.x",
     "local": "http://localhost:8899",
     "custom": ""
   },
-  "LANGUAGES": {},
+  "LANGUAGES": {
+    "en": "English",
+    "uk": "Українська",
+    "es": "Español",
+    "de": "Deutsch"
+  },
   "PASSWORD_MIN_LENGTH": 6,
   "PASSWORD_REPEAT_DELAY_SECONDS": 5
 }

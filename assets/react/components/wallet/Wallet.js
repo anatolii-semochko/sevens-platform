@@ -12,14 +12,14 @@ import useWalletContext from './hooks/useWalletContext'
 import Content from '@react/components/wallet/components/Content'
 import WalletCreate from '@react/components/wallet/components/authorization/WalletCreate'
 import WalletUnlock from '@react/components/wallet/components/authorization/WalletUnlock'
-import { WalletLoading, WalletTitle } from '@react/components/wallet/components/form-elements/Blocks'
-import { ButtonWalletClose, ButtonWalletLock } from '@react/components/wallet/components/form-elements/Buttons'
+import { ButtonWalletLock } from '@react/components/wallet/components/form-elements/Buttons'
+import { WalletLoading,WalletTitleContent } from '@react/components/wallet/components/form-elements/Blocks'
 
 const endpoint = process.env.ANCHOR_PROVIDER_URL
 
 const WalletInner = () => {
-    const {walletsList, setPassword} = useWalletContext()
     const walletAdapters = useMemo(() => [new PhantomWalletAdapter()], [])
+    const {walletsList, setPassword} = useWalletContext()
     const [unlocked, setUnlocked] = useState(false)
     const [hasWallets, setHasWallets] = useState(null) // null = loading, true/false = result
 
@@ -52,14 +52,13 @@ const WalletInner = () => {
     }
 
     if (hasWallets === null) return <WalletLoading />
-    if (!unlocked && hasWallets) return <WalletUnlock unlock={unlock} />
-    if (!unlocked) return <WalletCreate onWalletCreated={onWalletCreated} />
+    if (!hasWallets) return <WalletCreate onWalletCreated={onWalletCreated} />
+    if (!unlocked) return <WalletUnlock unlock={unlock} />
 
     return (
         <Provider store={store}>
             <div className="panel-header p-3">
-                <WalletTitle />
-                <ButtonWalletClose />
+                <WalletTitleContent />
             </div>
             <div className="panel-scroll p-3">
                 <div className="panel-content">

@@ -1,18 +1,36 @@
 import React from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import {
+    copyToClipboard,
+    currentConnectionKey,
+    getBlurredAddress,
+    limitNumberString,
+} from '@react/components/wallet/scripts/utils'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
-import { copyToClipboard, getBlurredAddress } from '@react/components/wallet/scripts/utils'
 import { ButtonCopy, ButtonWalletClose } from '@react/components/wallet/components/form-elements/Buttons'
 import clsx from 'clsx'
 
-const WalletTitle = () => (
-    <h5 className="text-center mb-0 w-100">Sevens Wallet</h5>
+const WalletTitle = () => {
+    const {walletConnection, password} = useWalletContext()
+    const connectionKey = currentConnectionKey(walletConnection)
+    const connection = !password || !connectionKey || connectionKey === 'main' ? null : (
+        <><br/><span className="badge bg-danger">Wallet uses {connectionKey} connection</span></>
+    )
+    return (
+        <h5 className="text-center mb-0 ms-4 w-100">Sevens Wallet{connection}</h5>
+    )
+}
+
+const WalletTitleContent = () => (
+    <>
+        <WalletTitle />
+        <ButtonWalletClose />
+    </>
 )
 
 const WalletHeader = () => (
     <div className="panel-header p-3">
-        <WalletTitle />
-        <ButtonWalletClose />
+        <WalletTitleContent />
     </div>
 )
 
@@ -38,36 +56,28 @@ const BlockTitle = ({title, className}) => {
     )
 }
 
-const WalletDetails = ({walletData, className}) => {
-    const { hideBalances } = useWalletContext()
-    const balance = hideBalances ? '...' : <>
-        {walletData?.balance ? walletData?.balance / LAMPORTS_PER_SOL : 0}
-        <span className="fst-italic mx-2">$SEV</span>
-    </>
-    const tokens = hideBalances ? '...' : (walletData?.tokens?.length || 0)
+const WalletDetails = ({walletData}) => {
+    const {rateUsd, hideBalances} = useWalletContext()
+    const balance = walletData?.balance ? walletData?.balance / LAMPORTS_PER_SOL : 0
+    const balanceUsd = balance ? walletData?.balance / LAMPORTS_PER_SOL * rateUsd : 0
 
     return (
-        <div className={clsx('card', className)}>
-            <h5 className="card-header">Wallet: {walletData.name}</h5>
-            <div className="card-body">
-                <table className="table table-borderless mb-0 w-75 mx-auto">
-                    <tbody>
-                    <tr>
-                        <td>Address:</td>
-                        <td><b>{getBlurredAddress(walletData.publicKey)}</b></td>
-                    </tr>
-                    <tr>
-                        <td>Balance:</td>
-                        <td><b>{balance}</b></td>
-                    </tr>
-                    <tr>
-                        <td>Tokens:</td>
-                        <td><b>{tokens}</b></td>
-                    </tr>
-                    </tbody>
-                </table>
+        <>
+            <label className={'text-center fw-bold w-100 fs-3 mb-2'}>{walletData.name}</label>
+            <div className="card fs-2">
+                <h5 className="card-header text-center fs-6">{getBlurredAddress(walletData.publicKey)}</h5>
+                <div className="d-grid my-1 p-2" style={{ gridTemplateColumns: "1fr auto" }}>
+                    <div className="text-end text-success fw-bold">
+                        {hideBalances ? '...' : limitNumberString(balance)}
+                    </div>
+                    <div className="text-start"><span className="fst-italic mx-2 fs-5">$SEV</span></div>
+                    <div className="text-end text-success fw-bold">
+                        {hideBalances ? '...' : balanceUsd.toFixed(2)}
+                    </div>
+                    <div className="text-start"><span className="fst-italic mx-2 fs-5">$USD</span></div>
+                </div>
             </div>
-        </div>
+        </>
     )
 }
 
@@ -143,4 +153,8 @@ const SecretsView = ({secrets}) => (
     </div>
 )
 
-export { WalletTitle, WalletHeader, WalletLoading, BlockTitle, WalletDetails, WalletInfo, SecretsView }
+export {
+    WalletTitle, WalletTitleContent, WalletHeader,
+    WalletLoading, BlockTitle,
+    WalletDetails, WalletInfo, SecretsView, 
+}

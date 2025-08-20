@@ -4,15 +4,13 @@ import WalletClear from '@react/components/wallet/components/settings/components
 import CurrentLanguage from '@react/components/wallet/components/settings/components/CurrentLanguage'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import {
-    ButtonBack,
-    ButtonBalancesVisibility,
-    ButtonChangePassword,
-    ButtonClearWallet
+    ButtonBack, ButtonBalancesVisibility, ButtonChangeConnection,
+    ButtonChangePassword, ButtonClearWallet,
 } from '@react/components/wallet/components/form-elements/Buttons'
 
 const Settings = () => {
-    const [showWalletClear, setShowWalletClear] = useState(false)
     // const {} = useWalletContext()
+    const [showWalletClear, setShowWalletClear] = useState(false)
 
     if (showWalletClear) return <WalletClear setShowWalletClear={setShowWalletClear}/>
     
@@ -21,6 +19,7 @@ const Settings = () => {
             <BlockTitle title={'Wallet Settings'} className={'mb-4'}/>
             <div className={'d-grid gap-3'}>
                 <CurrentLanguage />
+                <ButtonChangeConnection />
                 <ButtonBalancesVisibility />
                 <ButtonChangePassword />
                 <ButtonClearWallet onClick={() => setShowWalletClear(true)}/>

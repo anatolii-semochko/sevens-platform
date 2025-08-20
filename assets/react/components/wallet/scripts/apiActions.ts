@@ -15,8 +15,9 @@ import { getData } from '@js/blockchain/sevens-token'
 import { EncryptedAddress, Password, Wallet, WalletToken } from '@react/components/wallet/scripts/Types'
 import { readStored, writeStored, readEncryptedWallets, writeEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 
-export const connection = new Connection(process.env.ANCHOR_PROVIDER_URL ?? '', 'confirmed')
-
+let providerUrl = ''
+export const setProviderUrl = (url: string) => providerUrl = url
+export const connection = () => new Connection(providerUrl, 'confirmed')
 
 export const reloadAllWallets = async (password: string): Promise<EncryptedAddress[]> => {
     const base = await readEncryptedWallets(password)
@@ -41,7 +42,7 @@ export const reloadAllWallets = async (password: string): Promise<EncryptedAddre
 
 export const getBalance = async (pubKeyString: string | PublicKey): Promise<number> => {
     const pubkey = typeof pubKeyString === 'string' ? new PublicKey(pubKeyString) : pubKeyString
-    return connection.getBalance(pubkey)
+    return connection().getBalance(pubkey)
 }
 
 export const fetchWalletTokensWithData = async (pubKeyStr: string): Promise<WalletToken[]> => {
@@ -87,8 +88,8 @@ export const checkWalletByKey = async (
             : (typeof key === 'string' ? new PublicKey(key) : key)
 
         const [info, balance, tokens] = await Promise.all([
-            connection.getAccountInfo(pubkey),
-            connection.getBalance(pubkey),
+            connection().getAccountInfo(pubkey),
+            connection().getBalance(pubkey),
             getWalletTokens(pubkey),
         ])
 
@@ -199,7 +200,7 @@ export const getProvider = (
     if (!wallet) return null
 
     return new anchor.AnchorProvider(
-        connection,
+        connection(),
         wallet as unknown as anchor.Wallet,
         { commitment: 'confirmed' },
     )
@@ -220,11 +221,11 @@ export const sendCoins = async (
         )
 
         tx.feePayer = wallet.publicKey
-        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+        tx.recentBlockhash = (await connection().getLatestBlockhash()).blockhash
 
         await wallet.signTransaction(tx)
-        const sig = await connection.sendRawTransaction(tx.serialize())
-        await connection.confirmTransaction(sig)
+        const sig = await connection().sendRawTransaction(tx.serialize())
+        await connection().confirmTransaction(sig)
 
         return sig
     } catch (error) {
@@ -247,10 +248,10 @@ export const getEstimateCoinsTransferFee = async (
         )
 
         tx.feePayer = wallet.publicKey
-        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+        tx.recentBlockhash = (await connection().getLatestBlockhash()).blockhash
 
         const message = tx.compileMessage()
-        const {value: feeLamports} = await connection.getFeeForMessage(message)
+        const {value: feeLamports} = await connection().getFeeForMessage(message)
 
         if (!feeLamports) {
             new Error('Error occurred')
@@ -277,7 +278,7 @@ export const transferToken = async (
         const toTokenAccount = await getAssociatedTokenAddress(mint, toOwner)
 
         const ixs: any[] = []
-        const toAccInfo = await connection.getAccountInfo(toTokenAccount)
+        const toAccInfo = await connection().getAccountInfo(toTokenAccount)
         if (!toAccInfo) {
             ixs.push(createAssociatedTokenAccountInstruction(fromOwner, toTokenAccount, toOwner, mint))
         }
@@ -293,11 +294,11 @@ export const transferToken = async (
 
         const tx = new Transaction().add(...ixs)
         tx.feePayer = fromOwner
-        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+        tx.recentBlockhash = (await connection().getLatestBlockhash()).blockhash
 
         await wallet.signTransaction(tx)
-        const sig = await connection.sendRawTransaction(tx.serialize())
-        await connection.confirmTransaction(sig)
+        const sig = await connection().sendRawTransaction(tx.serialize())
+        await connection().confirmTransaction(sig)
 
         return sig
     } catch (error) {
@@ -324,11 +325,11 @@ export const burnToken = async (
 
         const tx = new Transaction().add(burnIx)
         tx.feePayer = owner
-        tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+        tx.recentBlockhash = (await connection().getLatestBlockhash()).blockhash
 
         await wallet.signTransaction(tx)
-        const sig = await connection.sendRawTransaction(tx.serialize())
-        await connection.confirmTransaction(sig)
+        const sig = await connection().sendRawTransaction(tx.serialize())
+        await connection().confirmTransaction(sig)
 
         return sig
     } catch (error) {

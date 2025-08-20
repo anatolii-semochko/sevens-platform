@@ -14,7 +14,7 @@ const TokensList = ({ tokens }) => {
             <table className="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
-                        <th colSpan={3}>My Tokens</th>
+                        <th colSpan={3} className={'text-center'}>My Tokens</th>
                     </tr>
                 </thead>
                 <tbody>

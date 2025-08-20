@@ -46,7 +46,7 @@ const Content = () => {
 
     return (
         <div>
-            <ButtonWalletSelect className={'mb-3'}/>
+            <ButtonWalletSelect />
             <Main walletData={walletData}/>
             <TokensList tokens={walletData?.tokens} />
         </div>

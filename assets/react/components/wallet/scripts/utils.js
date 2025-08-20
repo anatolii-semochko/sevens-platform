@@ -1,3 +1,4 @@
+import config from '@react/components/wallet/config.json'
 import { PublicKey } from '@solana/web3.js'
 
 /** Any Sevens Address (including PDA) */
@@ -53,6 +54,10 @@ export const copyToClipboard = (text) => {
     }
 }
 
+export const capitalizeFirstLetter = s => s && s[0].toUpperCase() + s.slice(1)
+
+export const limitNumberString = (num, maxLen = 12) => String(num).slice(0, maxLen)
+
 export const getBlurredAddress = (addressString) =>
     addressString ? addressString.slice(0, 4) + '...' + addressString.slice(-4) : ''
 
@@ -88,4 +93,5 @@ export const checkWalletName = (walletsList, newWalletName, publicKey) => {
     })
 }
 
-export const capitalizeFirstLetter = s => s && s[0].toUpperCase() + s.slice(1)
+export const currentConnectionKey = (walletConnection) => Object.keys(config.CONNECTION_ENDPOINTS)
+    .find(k => config.CONNECTION_ENDPOINTS[k] === walletConnection) || 'custom'
