@@ -55,7 +55,7 @@ services:
     image: mysql:9.3
     environment:
       MYSQL_USER: app
-      MYSQL_DATABASE: sevens
+      MYSQL_DATABASE: sevens-time
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
     ports:

@@ -1,0 +1,208 @@
+import React, { useState, useEffect } from 'react'
+
+export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' }) {
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    })
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState('')
+
+    // Close popup on Escape key
+    useEffect(() => {
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                onClose()
+            }
+        }
+
+        if (isOpen) {
+            document.addEventListener('keydown', handleEscape)
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden'
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape)
+            document.body.style.overflow = 'unset'
+        }
+    }, [isOpen, onClose])
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }))
+        // Clear error when user starts typing
+        if (error) setError('')
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setIsLoading(true)
+        setError('')
+
+        try {
+            // Get current locale from AppConfig
+            const locale = window.AppConfig?.currentLocale || 'en'
+            
+            // Create a form element to submit to Symfony's login endpoint
+            const form = document.createElement('form')
+            form.method = 'POST'
+            form.action = `/${locale}/login`
+            form.style.display = 'none'
+
+            // Add email field
+            const emailInput = document.createElement('input')
+            emailInput.type = 'email'
+            emailInput.name = 'email'
+            emailInput.value = formData.email
+            form.appendChild(emailInput)
+
+            // Add password field
+            const passwordInput = document.createElement('input')
+            passwordInput.type = 'password'
+            passwordInput.name = 'password'
+            passwordInput.value = formData.password
+            form.appendChild(passwordInput)
+
+            // Add CSRF token
+            const csrfInput = document.createElement('input')
+            csrfInput.type = 'hidden'
+            csrfInput.name = '_csrf_token'
+            csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            form.appendChild(csrfInput)
+
+            // Add form to document and submit
+            document.body.appendChild(form)
+            form.submit()
+            
+            // The form submission will either redirect on success or reload with errors
+            
+        } catch (err) {
+            setError('Network error. Please try again.')
+            setIsLoading(false)
+        }
+    }
+
+    const handleRegisterRedirect = () => {
+        window.location.href = registerUrl
+    }
+
+    const handleFacebookLogin = () => {
+        // Get current locale from AppConfig
+        const locale = window.AppConfig?.currentLocale || 'en'
+        // Redirect to Facebook OAuth start endpoint
+        window.location.href = `/${locale}/connect/facebook`
+    }
+
+    if (!isOpen) return null
+
+    return (
+        <>
+            <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                <div className="modal-dialog modal-dialog-centered">
+                    <div className="modal-content">
+                        <div className="modal-header border-0 pb-0">
+                            <h5 className="modal-title w-100 text-center display-6">Sign In</h5>
+                            <button 
+                                type="button" 
+                                className="btn-close" 
+                                onClick={onClose}
+                                disabled={isLoading}
+                            ></button>
+                        </div>
+                        <div className="modal-body p-4">
+                            {error && (
+                                <div className="alert alert-danger mb-4">
+                                    {error}
+                                </div>
+                            )}
+
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-3">
+                                    <label htmlFor="email" className="form-label">Email</label>
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        name="email"
+                                        className="form-control"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        required
+                                        autoComplete="email"
+                                        autoFocus
+                                        disabled={isLoading}
+                                    />
+                                </div>
+
+                                <div className="mb-4">
+                                    <label htmlFor="password" className="form-label">Password</label>
+                                    <input
+                                        type="password"
+                                        id="password"
+                                        name="password"
+                                        className="form-control"
+                                        value={formData.password}
+                                        onChange={handleInputChange}
+                                        required
+                                        autoComplete="current-password"
+                                        disabled={isLoading}
+                                    />
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    className="btn btn-primary w-100 mb-3"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                                            Signing In...
+                                        </>
+                                    ) : (
+                                        'Sign In'
+                                    )}
+                                </button>
+
+                                <div className="text-center mb-3">
+                                    <div className="d-flex align-items-center">
+                                        <hr className="flex-grow-1" />
+                                        <span className="px-3 text-muted small">Or continue with</span>
+                                        <hr className="flex-grow-1" />
+                                    </div>
+                                </div>
+
+                                <button 
+                                    type="button"
+                                    className="btn btn-outline-primary w-100 mb-3 d-flex align-items-center justify-content-center"
+                                    onClick={handleFacebookLogin}
+                                    disabled={isLoading}
+                                >
+                                    <svg className="me-2" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                    Continue with Facebook
+                                </button>
+
+                                <div className="text-center">
+                                    <p className="mb-0 text-muted">Don't have an account?</p>
+                                    <button 
+                                        type="button"
+                                        className="btn btn-link p-0 text-decoration-none"
+                                        onClick={handleRegisterRedirect}
+                                        disabled={isLoading}
+                                    >
+                                        Register here
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    )
+}

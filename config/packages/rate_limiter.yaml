@@ -1,0 +1,11 @@
+framework:
+    rate_limiter:
+        limiters:
+            app.limiter:
+                policy: 'fixed_window'
+                limit: 5
+                interval: '1 minute'
+            app.secure_limiter:
+                policy: 'fixed_window'
+                limit: 10
+                interval: '1 minute'

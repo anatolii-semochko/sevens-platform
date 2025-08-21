@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\MaxDepth;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: "categories")]
@@ -84,7 +85,9 @@ class Category
 
     public function __construct()
     {
+        $this->id = Uuid::v4()->toRfc4122();
         $this->translations = new ArrayCollection();
+        $this->childrenCategories = new ArrayCollection();
     }
 
     public function getId(): string
@@ -92,9 +95,19 @@ class Category
         return $this->id;
     }
 
-    public function getParentId(): ?string
+    public function setId(string $id): void
     {
-        return $this->parentId;
+        $this->id = $id;
+    }
+
+    public function getParentCategory(): ?self
+    {
+        return $this->parentCategory;
+    }
+
+    public function setParentCategory(?self $parentCategory): void
+    {
+        $this->parentCategory = $parentCategory;
     }
 
     public function getMainParentId(): ?string
@@ -102,9 +115,19 @@ class Category
         return $this->mainParentId;
     }
 
+    public function setMainParentId(?string $mainParentId): void
+    {
+        $this->mainParentId = $mainParentId;
+    }
+
     public function getActivityParentId(): ?string
     {
         return $this->activityParentId;
+    }
+
+    public function setActivityParentId(?string $activityParentId): void
+    {
+        $this->activityParentId = $activityParentId;
     }
 
     public function getActive(): int
@@ -112,9 +135,19 @@ class Category
         return $this->active;
     }
 
+    public function setActive(int $active): void
+    {
+        $this->active = $active;
+    }
+
     public function getOrder(): int
     {
         return $this->order;
+    }
+
+    public function setOrder(int $order): void
+    {
+        $this->order = $order;
     }
 
     public function getLevel(): int
@@ -122,9 +155,19 @@ class Category
         return $this->level;
     }
 
+    public function setLevel(int $level): void
+    {
+        $this->level = $level;
+    }
+
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function setName(string $name): void
+    {
+        $this->name = $name;
     }
 
     public function getUrl(): ?string
@@ -132,9 +175,19 @@ class Category
         return $this->url;
     }
 
+    public function setUrl(?string $url): void
+    {
+        $this->url = $url;
+    }
+
     public function getLogo(): ?string
     {
         return $this->logo;
+    }
+
+    public function setLogo(?string $logo): void
+    {
+        $this->logo = $logo;
     }
 
     public function getParents(): ?string
@@ -142,14 +195,39 @@ class Category
         return $this->parents;
     }
 
+    public function setParents(?string $parents): void
+    {
+        $this->parents = $parents;
+    }
+
+    public function getChildrenString(): ?string
+    {
+        return $this->children;
+    }
+
+    public function setChildren(?string $children): void
+    {
+        $this->children = $children;
+    }
+
     public function getChildrenInside(): ?string
     {
         return $this->childrenInside;
     }
 
+    public function setChildrenInside(?string $childrenInside): void
+    {
+        $this->childrenInside = $childrenInside;
+    }
+
     public function getPath(): ?string
     {
         return $this->path;
+    }
+
+    public function setPath(?string $path): void
+    {
+        $this->path = $path;
     }
 
     public function getTranslations(): Collection

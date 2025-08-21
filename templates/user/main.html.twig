@@ -1,0 +1,119 @@
+<div class="container mt-5">
+    <div class="pt-3 mb-4 text-center">
+        <h1 class="display-5">{{ 'User Profile'|trans }}</h1>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-person-circle fs-1 me-3 text-primary"></i>
+                        <div>
+                            <h4 class="mb-0">{{ 'Welcome'|trans }}, 
+                                {% if data.user and data.user.fullName %}
+                                    {{ data.user.fullName }}
+                                {% elseif data.user and data.user.email %}
+                                    {{ data.user.email }}
+                                {% else %}
+                                    {{ 'User'|trans }}
+                                {% endif %}
+                            </h4>
+                            <p class="text-muted mb-0">{{ 'User Profile'|trans }}</p>
+                        </div>
+                    </div>
+
+                    {% if data.user %}
+                        <h5 class="card-title mb-4 text-uppercase fw-bold">{{ 'Profile Information'|trans }}</h5>
+
+                        <dl class="row mb-4">
+                            {% if data.user.email %}
+                                <dt class="col-sm-4 text-muted">{{ 'Email'|trans }}:</dt>
+                                <dd class="col-sm-8">{{ data.user.email }}</dd>
+                            {% endif %}
+
+                            {% if data.user.firstName %}
+                                <dt class="col-sm-4 text-muted">{{ 'First Name'|trans }}:</dt>
+                                <dd class="col-sm-8">{{ data.user.firstName }}</dd>
+                            {% endif %}
+
+                            {% if data.user.lastName %}
+                                <dt class="col-sm-4 text-muted">{{ 'Last Name'|trans }}:</dt>
+                                <dd class="col-sm-8">{{ data.user.lastName }}</dd>
+                            {% endif %}
+
+                            {% if data.user.fullName %}
+                                <dt class="col-sm-4 text-muted">{{ 'Full Name'|trans }}:</dt>
+                                <dd class="col-sm-8">{{ data.user.fullName }}</dd>
+                            {% endif %}
+
+                            {% if data.user.facebookId %}
+                                <dt class="col-sm-4 text-muted">{{ 'Facebook ID'|trans }}:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-primary">{{ data.user.facebookId }}</span>
+                                    <small class="text-muted ms-2">{{ 'Connected via Facebook'|trans }}</small>
+                                </dd>
+                            {% endif %}
+
+                            <dt class="col-sm-4 text-muted">{{ 'Account Type'|trans }}:</dt>
+                            <dd class="col-sm-8">
+                                {% if data.user.facebookId and not data.user.password %}
+                                    <span class="badge bg-info">{{ 'Facebook Account'|trans }}</span>
+                                {% elseif data.user.facebookId and data.user.password %}
+                                    <span class="badge bg-success">{{ 'Linked Account'|trans }}</span>
+                                    <small class="text-muted ms-2">{{ 'Email + Facebook'|trans }}</small>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ 'Email Account'|trans }}</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-4 text-muted">{{ 'Member Since'|trans }}:</dt>
+                            <dd class="col-sm-8">{{ data.user.createdAt|date('F j, Y') }}</dd>
+
+                            {% if data.user.lastLogin %}
+                                <dt class="col-sm-4 text-muted">{{ 'Last Login'|trans }}:</dt>
+                                <dd class="col-sm-8">{{ data.user.lastLogin|date('F j, Y \\a\\t g:i A') }}</dd>
+                            {% endif %}
+
+                            <dt class="col-sm-4 text-muted">{{ 'Account Status'|trans }}:</dt>
+                            <dd class="col-sm-8">
+                                {% if data.user.isVerified %}
+                                    <span class="badge bg-success">{{ 'Verified'|trans }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ 'Unverified'|trans }}</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            {{ 'User information not available.'|trans }}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ path('home_page', {'_locale': app.request.locale}) }}" class="btn btn-primary">
+                            <i class="bi bi-house me-1"></i>{{ 'Go to Home'|trans }}
+                        </a>
+                        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">
+                            <i class="bi bi-box-arrow-right me-1"></i>{{ 'Logout'|trans }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Clean up Facebook's #_=_ fragment from URL
+if (window.location.hash === '#_=_') {
+    if (window.history?.replaceState) {
+        window.history.replaceState(null, null, window.location.pathname + window.location.search)
+    } else {
+        window.location.hash = ''
+    }
+}
+</script>
+
+
