@@ -36,6 +36,10 @@ class RegistrationController extends AbstractController
                 )
             );
 
+            // Set user role and verification status to match Facebook registration
+            $user->setRoles(['ROLE_USER']);
+            $user->setIsVerified(true);
+
             $entityManager->persist($user);
             $entityManager->flush();
             // do anything else you need here, like send an email
