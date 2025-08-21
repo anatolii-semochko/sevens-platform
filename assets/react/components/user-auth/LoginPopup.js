@@ -1,107 +1,107 @@
-import React, { useState, useEffect } from 'react';
-import { Toaster, toast } from 'react-hot-toast';
+import React, { useState, useEffect } from 'react'
+import { Toaster, toast } from 'react-hot-toast'
 
 export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' }) {
     const [formData, setFormData] = useState({
         email: '',
         password: ''
-    });
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+    })
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState('')
 
     // Close popup on Escape key
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
-                onClose();
+                onClose()
             }
-        };
+        }
 
         if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
+            document.addEventListener('keydown', handleEscape)
             // Prevent body scroll when modal is open
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'
         }
 
         return () => {
-            document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'unset';
-        };
-    }, [isOpen, onClose]);
+            document.removeEventListener('keydown', handleEscape)
+            document.body.style.overflow = 'unset'
+        }
+    }, [isOpen, onClose])
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value } = e.target
         setFormData(prev => ({
             ...prev,
             [name]: value
-        }));
+        }))
         // Clear error when user starts typing
-        if (error) setError('');
-    };
+        if (error) setError('')
+    }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError('');
+        e.preventDefault()
+        setIsLoading(true)
+        setError('')
 
         try {
             // Get current locale from AppConfig
-            const locale = window.AppConfig?.currentLocale || 'en';
+            const locale = window.AppConfig?.currentLocale || 'en'
             
             // Create a form element to submit to Symfony's login endpoint
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/${locale}/login`;
-            form.style.display = 'none';
+            const form = document.createElement('form')
+            form.method = 'POST'
+            form.action = `/${locale}/login`
+            form.style.display = 'none'
 
             // Add email field
-            const emailInput = document.createElement('input');
-            emailInput.type = 'email';
-            emailInput.name = 'email';
-            emailInput.value = formData.email;
-            form.appendChild(emailInput);
+            const emailInput = document.createElement('input')
+            emailInput.type = 'email'
+            emailInput.name = 'email'
+            emailInput.value = formData.email
+            form.appendChild(emailInput)
 
             // Add password field
-            const passwordInput = document.createElement('input');
-            passwordInput.type = 'password';
-            passwordInput.name = 'password';
-            passwordInput.value = formData.password;
-            form.appendChild(passwordInput);
+            const passwordInput = document.createElement('input')
+            passwordInput.type = 'password'
+            passwordInput.name = 'password'
+            passwordInput.value = formData.password
+            form.appendChild(passwordInput)
 
             // Add CSRF token
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_csrf_token';
-            csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            form.appendChild(csrfInput);
+            const csrfInput = document.createElement('input')
+            csrfInput.type = 'hidden'
+            csrfInput.name = '_csrf_token'
+            csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            form.appendChild(csrfInput)
 
             // Add form to document and submit
-            document.body.appendChild(form);
-            form.submit();
+            document.body.appendChild(form)
+            form.submit()
             
             // The form submission will either redirect on success or reload with errors
             // If we reach here, show a success message
-            toast.success('Logging in...');
+            toast.success('Logging in...')
             
         } catch (err) {
-            setError('Network error. Please try again.');
-            toast.error('Network error');
-            setIsLoading(false);
+            setError('Network error. Please try again.')
+            toast.error('Network error')
+            setIsLoading(false)
         }
-    };
+    }
 
     const handleRegisterRedirect = () => {
-        window.location.href = registerUrl;
-    };
+        window.location.href = registerUrl
+    }
 
     const handleFacebookLogin = () => {
         // Get current locale from AppConfig
-        const locale = window.AppConfig?.currentLocale || 'en';
+        const locale = window.AppConfig?.currentLocale || 'en'
         // Redirect to Facebook OAuth start endpoint
-        window.location.href = `/${locale}/connect/facebook`;
-    };
+        window.location.href = `/${locale}/connect/facebook`
+    }
 
-    if (!isOpen) return null;
+    if (!isOpen) return null
 
     return (
         <>
@@ -209,5 +209,5 @@ export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' 
                 </div>
             </div>
         </>
-    );
+    )
 }

@@ -1,42 +1,42 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'
 
 export default function UserDropdown({ user }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef(null);
+    const [isOpen, setIsOpen] = useState(false)
+    const dropdownRef = useRef(null)
 
     // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsOpen(false);
+                setIsOpen(false)
             }
         }
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside)
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [])
 
     const toggleDropdown = (e) => {
-        e.preventDefault();
-        setIsOpen(!isOpen);
-    };
+        e.preventDefault()
+        setIsOpen(!isOpen)
+    }
 
     const handlePersonalCabinet = (e) => {
-        e.preventDefault();
+        e.preventDefault()
         // Navigate to user profile page using locale-aware route
-        const locale = window.AppConfig?.currentLocale || 'en';
-        window.location.href = user.profileUrl || `/${locale}/user`;
-        setIsOpen(false);
-    };
+        const locale = window.AppConfig?.currentLocale || 'en'
+        window.location.href = user.profileUrl || `/${locale}/user`
+        setIsOpen(false)
+    }
 
     const handleLogout = (e) => {
-        e.preventDefault();
+        e.preventDefault()
         // Navigate to logout using the correct locale-aware route
-        const locale = window.AppConfig?.currentLocale || 'en';
-        window.location.href = `/${locale}/logout`;
-    };
+        const locale = window.AppConfig?.currentLocale || 'en'
+        window.location.href = `/${locale}/logout`
+    }
 
     return (
         <div className="position-relative" ref={dropdownRef}>
@@ -78,5 +78,5 @@ export default function UserDropdown({ user }) {
                 </div>
             )}
         </div>
-    );
+    )
 }
