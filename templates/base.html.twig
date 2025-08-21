@@ -20,37 +20,6 @@
                 {% include 'main-template/sidebar.html.twig' %}
                 <main class="main-content d-flex flex-column">
                     <div class="flex-grow-1 pictures-container">
-                        {# Flash Messages #}
-                        <div class="container mt-3">
-                            {% for message in app.flashes('success') %}
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% endfor %}
-                            
-                            {% for message in app.flashes('error') %}
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% endfor %}
-                            
-                            {% for message in app.flashes('warning') %}
-                                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% endfor %}
-                            
-                            {% for message in app.flashes('info') %}
-                                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        
                         {% include main_template with data %}
                     </div>
                     {% include 'main-template/footer.html.twig' %}
