@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { Toaster, toast } from 'react-hot-toast'
 
 export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' }) {
     const [formData, setFormData] = useState({
@@ -80,12 +79,9 @@ export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' 
             form.submit()
             
             // The form submission will either redirect on success or reload with errors
-            // If we reach here, show a success message
-            toast.success('Logging in...')
             
         } catch (err) {
             setError('Network error. Please try again.')
-            toast.error('Network error')
             setIsLoading(false)
         }
     }
@@ -105,7 +101,6 @@ export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' 
 
     return (
         <>
-            <Toaster position="top-right" reverseOrder={false} />
             <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
                 <div className="modal-dialog modal-dialog-centered">
                     <div className="modal-content">
