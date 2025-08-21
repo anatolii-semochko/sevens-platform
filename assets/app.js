@@ -29,15 +29,14 @@ if (checkToken) {
     root.render(<Provider store={store}><CheckToken /></Provider>)
 }
 
-const userAuth = document.getElementById('user-auth');
+const userAuth = document.getElementById('user-auth')
 if (userAuth) {
-    const userDataElement = userAuth.querySelector('[data-user]');
-    const registerUrlElement = userAuth.querySelector('[data-register-url]');
-    const userData = userDataElement ? JSON.parse(userDataElement.dataset.user) : null;
-    const registerUrl = registerUrlElement ? registerUrlElement.dataset.registerUrl : '/register';
+    const userDataElement = userAuth.querySelector('[data-user]')
+    const userData = userDataElement?.dataset?.user ? JSON.parse(userDataElement.dataset.user) : null
+    const registerUrl = userAuth.querySelector('[data-register-url]')?.dataset?.registerUrl || '/register'
 
-    const root = createRoot(userAuth);
-    root.render(<Provider store={store}><UserAuth user={userData} registerUrl={registerUrl} /></Provider>);
+    const root = createRoot(userAuth)
+    root.render(<Provider store={store}><UserAuth user={userData} registerUrl={registerUrl} /></Provider>)
 }
 
 document.addEventListener('DOMContentLoaded', function () {
