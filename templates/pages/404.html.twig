@@ -1,9 +1,41 @@
-<div class="page-404">
-    <h1>404</h1>
-    <p>{{ 'Page not found.'|trans }}</p>
-</div>
-<style>
-    .page-404 { font-family: sans-serif; text-align: center; margin-top: 100px; }
-    .page-404 h1 { font-size: 48px; color: #e00; }
-    .page-404 p { font-size: 18px; }
-</style>
+<section class="main-content not-found-wrapper">
+    <h1 class="not-found-title">404</h1>
+    <p class="not-found-message">
+        {{ "Sorry, we can’t find that page"|trans({}, '404') }} :(
+    </p>
+    <form action="{{ path('home_page', {'_locale': app.request.locale}) }}">
+        <div class="search-wrapper-404">
+            <i class="bi bi-search"></i>
+            <input type="text" id="search-404" name="search" class="form-control search-input" placeholder="{{ 'Search'|trans({}, '404') }}...">
+        </div>
+        <div class="home-button-wrapper">
+            <button type="submit" class="create-btn" id="go-home-404">
+                {{ 'Go to Home Page'|trans({}, '404') }}
+            </button>
+            <button type="submit" class="create-btn" id="go-search-404" style="display: none">
+                {{ 'Search'|trans({}, '404') }}
+            </button>
+        </div>
+    </form>
+</section>
+
+{% include 'gallery/single-row-gallery.html.twig' with {
+    title: 'Highest-Rated Tokens'|trans({}, '404'),
+    materials: data.materials,
+} %}
+
+<script>
+    const input = document.getElementById('search-404')
+    const btnHome = document.getElementById('go-home-404')
+    const btnSearch = document.getElementById('go-search-404')
+    function toggleButtons() {
+        if (input.value.trim() === '') {
+            btnHome.style.display = 'inline-block'
+            btnSearch.style.display = 'none'
+        } else {
+            btnHome.style.display = 'none'
+            btnSearch.style.display = 'inline-block'
+        }
+    }
+    input.addEventListener('input', toggleButtons)
+</script>

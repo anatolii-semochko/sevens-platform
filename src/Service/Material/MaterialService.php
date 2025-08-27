@@ -30,4 +30,9 @@ readonly class MaterialService
         $this->em->persist($material);
         $this->em->flush();
     }
+
+    public function getHighestRated(int $limit = 10): array
+    {
+        return $this->repository->findBy([], null, $limit);
+    }
 }

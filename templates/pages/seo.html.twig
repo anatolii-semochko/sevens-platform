@@ -1,0 +1,10 @@
+<meta name="description" content="{{ global.seo.getDescription() }}"/>
+    <meta name="csrf-token" content="{{ csrf_token('authenticate') }}"/>
+    <link rel="canonical" href="{{ global.canonicalUrl }}"/>
+{% for alternate in global.seoAlternates %}
+    <link rel="alternate" href="{{ alternate.href }}" hreflang="{{ alternate.hreflang }}"/>
+{% endfor %}
+    <link rel="alternate" href="{{ global.host }}" hreflang="x-default"/>
+{% block stylesheets %}
+    {{ encore_entry_link_tags('app') }}
+{% endblock %}
