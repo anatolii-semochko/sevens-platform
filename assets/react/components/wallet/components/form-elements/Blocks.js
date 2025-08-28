@@ -46,7 +46,7 @@ const WalletLoading = () => (
 )
 
 const BlockTitle = ({title, className}) => {
-    if (!title) return 
+    if (!title) return
     return (
         <div className={clsx('mt-2 mb-3', className)}>
             {title?.split('\n').map((line, idx) => (
@@ -63,10 +63,10 @@ const WalletDetails = ({walletData}) => {
 
     return (
         <>
-            <label className={'text-center fw-bold w-100 fs-3 mb-2'}>{walletData.name}</label>
-            <div className="card fs-2">
+            <label className={'text-center fw-bold w-100 fs-3'}>{walletData.name}</label>
+            <div className="card fs-2 mb-1">
                 <h5 className="card-header text-center fs-6">{getBlurredAddress(walletData.publicKey)}</h5>
-                <div className="d-grid my-1 p-2" style={{ gridTemplateColumns: "1fr auto" }}>
+                <div className="d-grid my-1 px-2" style={{ gridTemplateColumns: "1fr auto" }}>
                     <div className="text-end text-success fw-bold">
                         {hideBalances ? '...' : limitNumberString(balance)}
                     </div>
@@ -108,9 +108,9 @@ const WalletInfo = ({accountInfo}) => (
 const SecretsView = ({secrets}) => (
     <div>
         {!!secrets.mnemonic && (
-            <div className="card mb-2">
+            <div className="card mb-3">
                 <h6 className="card-header">Recovery Phrase</h6>
-                <div className="card-body text-center">
+                <div className="card-body text-center p-2">
                     <div className="d-grid gap-2">
                         <div className="row g-2 mb-2">
                             {secrets.mnemonic?.split(' ').map((word, i) => (
@@ -126,11 +126,11 @@ const SecretsView = ({secrets}) => (
                         className={'d-inline-flex w-auto mt-2 mb-3'}
                     />
                 </div>
-            </div>  
+            </div>
         )}
-        <div className="card mb-2">
+        <div className="card mb-3">
             <h6 className="card-header">64-byte Private Key (base58)</h6>
-            <div className="card-body text-center">
+            <div className="card-body text-center p-2">
                 <div className="text-break p-2">{secrets.secretKey.base58}</div>
                 <ButtonCopy
                     label={'Copy Private Key'}
@@ -141,7 +141,7 @@ const SecretsView = ({secrets}) => (
         </div>
         <div className="card mb-0">
             <h6 className="card-header">32-byte Seed (base58)</h6>
-            <div className="card-body text-center">
+            <div className="card-body text-center p-2">
                 <div className="text-break p-2">{secrets.seed.base58}</div>
                 <ButtonCopy
                     label={'Copy Private Key'}
@@ -156,5 +156,5 @@ const SecretsView = ({secrets}) => (
 export {
     WalletTitle, WalletTitleContent, WalletHeader,
     WalletLoading, BlockTitle,
-    WalletDetails, WalletInfo, SecretsView, 
+    WalletDetails, WalletInfo, SecretsView,
 }

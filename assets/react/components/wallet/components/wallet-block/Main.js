@@ -13,21 +13,19 @@ const Main = ({walletData}) => {
     const { setShowComponent } = useWalletContext()
 
     return (
-        <>
+        <div className="d-grid gap-3 mb-4">
             <WalletDetails walletData={walletData}/>
-            <div className="d-grid gap-3 mb-4">
-                <ButtonReceiveCrypto />
-                {!!walletData?.balance && <ButtonSendCoins onClick={() => setShowComponent({component: 'SendCoins'})}/>}
-                <div className="d-grid gap-2 d-md-flex">
-                    <ButtonBuyCoins />
-                    <ButtonSellCoins />
-                </div>
-                <div className="d-grid gap-2 d-md-flex">
-                    <ButtonReloadWallet />
-                    <ButtonSettings onClick={() => setShowComponent({component: 'Settings'})} className={'w-50'}/>
-                </div>
+            <ButtonReceiveCrypto />
+            {!!walletData?.balance && <ButtonSendCoins onClick={() => setShowComponent({component: 'SendCoins'})}/>}
+            <div className="d-grid gap-2 d-md-flex">
+                <ButtonBuyCoins />
+                <ButtonSellCoins />
             </div>
-        </>
+            <div className="d-grid gap-2 d-md-flex">
+                <ButtonReloadWallet />
+                <ButtonSettings onClick={() => setShowComponent({component: 'Settings'})} className={'w-50'}/>
+            </div>
+        </div>
     )
 }
 

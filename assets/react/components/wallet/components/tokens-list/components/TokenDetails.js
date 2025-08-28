@@ -12,27 +12,27 @@ const TokenDetails = ({token}) => {
                     Token: <span className="mx-1">{token.data?.metadata?.tokenName}</span>
                 </div>
             </h5>
-            <div className="card-body">
-                <table className="table table-borderless mb-1 mx-auto">
+            <div className="card-body p-2">
+                <table className="table table-borderless mb-0 mx-auto">
                     <tbody>
                         <tr>
                             <td>Address:</td>
-                            <td className="px-2 fw-bold text-break">
+                            <td className="px-2 text-break">
                                 {hideBalances ? getBlurredAddress(token.mint) : token.mint}
                             </td>
                         </tr>
                         <tr>
                             <td>Author:</td>
-                            <td className="px-2 fw-bold">{token.data?.metadata?.author || '-'}</td>
+                            <td className="px-2">{token.data?.metadata?.author || '-'}</td>
                         </tr>
                         <tr>
                             <td>Minted:</td>
-                            <td className="px-2 fw-bold">{getDateTimeFromDate(token.data?.mintingTime)}</td>
+                            <td className="px-2">{getDateTimeFromDate(token.data?.mintingTime)}</td>
                         </tr>
                         {token.data?.metadata?.description && <>
                             <tr>
                                 <td>Description:</td>
-                                <td className="px-2 fw-bold">{token.data.metadata.description}</td>
+                                <td className="px-2">{token.data.metadata.description}</td>
                             </tr>
                         </>}
                     </tbody>

@@ -37,7 +37,7 @@ const Token = ({token}) => {
                     <ButtonTokenBurn token={token} onClick={() => setBlockBurn(true)} />
                 }
             </>}
-            <SuccessMessageBlock message={successMessage} />
+            <SuccessMessageBlock message={successMessage} className={'mb-0'}/>
             {!blockTransfer && !blockBurn && (
                 <ButtonBack label={'Back to wallet'} onClick={() => setShowComponent(null)} />
             )}
