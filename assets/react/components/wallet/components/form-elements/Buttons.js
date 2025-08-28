@@ -256,9 +256,9 @@ const ButtonTokenTransfer = ({onClick, className}) => (
     />
 )
 
-const ButtonTokenBurn = ({onClick,className}) => (
+const ButtonTokenBurn = ({label, onClick, className}) => (
     <WalletButton
-        label={'Burn Token'}
+        label={label || 'Burn Token'}
         onClick={onClick}
         className={clsx('btn-danger w-100', className)}
         icon={<FlameKindling size={iconSize} />}

@@ -54,7 +54,7 @@ const TokenTransfer = ({ token, setBlockTransfer, setTokenAvailable, setSuccessM
                 }}
             />
             <ErrorMessageBlock message={errorMessage} className={'mb-0'}/>
-            <InfoMessageBlock message={confirmMessage} />
+            <InfoMessageBlock message={confirmMessage} className={'mb-0'}/>
             <ButtonTokenTransfer onClick={handlerTransferToken} />
             <ButtonBack label={'Cancel Token Transfer'} onClick={() => setBlockTransfer(false)} />
         </>

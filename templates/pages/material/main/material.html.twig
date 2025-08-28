@@ -1,0 +1,42 @@
+<main class="mp-page">
+    <div class="mp-container">
+
+        <section class="top-content">
+            <!-- LEFT div -->
+            <div class="mp-left">
+                {% include 'pages/material/main/image/main-image.html.twig' %}
+                {% include 'pages/material/main/likes-rates/main-likes-rates.html.twig' %}
+            </div>
+            <!-- RIGHT (60%) -->
+            <div class="mp-right">
+                {% include 'pages/material/main/info/main-info.html.twig' %}
+            </div>
+        </section>
+
+        <!-- Description block -->
+        <section class="mp-below">
+            {% include 'pages/material/main/info/description.html.twig' %}
+        </section>
+
+        <!-- Comments block -->
+        <section class="mp-below">
+            {% include 'pages/material/main/comments/main-comments.html.twig' %}
+        </section>
+
+    </div>
+
+    <!-- MORE FROM THIS AUTHOR (HORIZONTAL STRIP)-->
+    <section class="mp-more-section mb-5">
+        <h2 class="mp-more-title">@allexy.len</h2>
+        {% include 'gallery/single-row-gallery.html.twig' with {
+            title: 'More from this author'|trans,
+            materials: data.materialsHighestRated,
+        } %}
+    </section>
+
+    {% include 'gallery/single-row-gallery.html.twig' with {
+        title: 'You also might like'|trans,
+        materials: data.materialsHighestRated,
+    } %}
+
+</main>

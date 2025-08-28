@@ -23,7 +23,7 @@ class HomeController extends AbstractController
         $this->pageService->init('/');
 
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/gallery/index.html.twig',
+            'main_template' => 'pages/main/index.html.twig',
             'data' => [
                 'materials' => $this->materialService->fetch(),
             ],

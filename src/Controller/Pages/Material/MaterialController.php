@@ -5,6 +5,7 @@ namespace App\Controller\Pages\Material;
 use App\Controller\BaseController;
 use App\Exception\NotFoundException;
 use App\Repository\Material\MaterialRepository;
+use App\Service\Material\MaterialService;
 use App\Service\PageContent\PageService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,6 +15,7 @@ class MaterialController extends BaseController
 {
     public function __construct(
         private readonly PageService $pageService,
+        private readonly MaterialService $materialService,
         private readonly MaterialRepository $materialRepository,
     ) {}
 
@@ -28,13 +30,14 @@ class MaterialController extends BaseController
                 'description' => $material->getDescription(),
             ]);
         } catch (NotFoundException $e) {
-            return $this->page404($this->pageService);
+            return $this->page404($this->pageService, $this->materialService);
         }
 
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/material/material.html.twig',
+            'main_template' => 'pages/material/main/material.html.twig',
             'data' => [
                 'material' => $material,
+                'materialsHighestRated' => $this->materialService->getHighestRated(50),
             ],
         ]);
     }

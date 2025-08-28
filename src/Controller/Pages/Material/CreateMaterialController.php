@@ -20,7 +20,7 @@ class CreateMaterialController extends AbstractController
         $this->pageService->init('/create-material');
 
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/material/create.html.twig',
+            'main_template' => 'pages/material/create/create.html.twig',
             'data' => [],
         ]);
     }

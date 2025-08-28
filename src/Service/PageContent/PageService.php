@@ -18,6 +18,7 @@ readonly class PageService
         if (!$page = $this->pageRepository->findByUrl($url)) {
             $page = $this->pageRepository->create();
             $page->setUrl($url);
+            $page->setTerms([]);
             $this->pageRepository->save($page, true);
         }
 

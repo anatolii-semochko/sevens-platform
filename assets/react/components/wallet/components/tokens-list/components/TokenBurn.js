@@ -5,15 +5,25 @@ import { ErrorMessageBlock } from '@react/components/wallet/components/form-elem
 import { reloadAllWallets, getWallet, burnToken } from '@react/components/wallet/scripts/apiActions'
 
 const TokenBurn = ({ token, setBlockBurn, setTokenAvailable, setSuccessMessage }) => {
+    const {setWalletsList, walletData, password} = useWalletContext()
     const [errorMessage, setErrorMessage] = useState(null)
     const [confirmMessage, setConfirmMessage] = useState(null)
-    const { setWalletsList, walletData, password } = useWalletContext()
+    const [confirm, setConfirm] = useState(null)
+
+    const firstConfirmMessage = 'Burning this token is irreversible.\nAre you sure you want to burn it?'
+    const secondConfirmMessage = 'Burning this token is irreversible.\nConfirm burning token.'
+
     useEffect(() => {
-        setConfirmMessage('Burning this token is irreversible.\nAre you sure you want to burn it?')
+        setConfirmMessage(firstConfirmMessage)
     }, [])
 
     const handlerBurnToken = async () => {
         setErrorMessage(null)
+        if (!confirm) {
+            setConfirm(true)
+            setConfirmMessage(secondConfirmMessage)
+            return
+        }
         setConfirmMessage(false)
         try {
             const wallet = getWallet(walletData, password)
@@ -32,7 +42,7 @@ const TokenBurn = ({ token, setBlockBurn, setTokenAvailable, setSuccessMessage }
         <>
             <ErrorMessageBlock message={errorMessage} className={'mb-0'} />
             <ErrorMessageBlock message={confirmMessage} className={'mb-0'} />
-            <ButtonTokenBurn onClick={handlerBurnToken} />
+            <ButtonTokenBurn label={!confirm && 'Yes, i am sure'} onClick={handlerBurnToken} />
             <ButtonBack label={'Cancel Token Transfer'} onClick={() => setBlockBurn(false)} />
         </>
     )
