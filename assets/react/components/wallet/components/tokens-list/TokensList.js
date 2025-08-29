@@ -1,5 +1,6 @@
 import React from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import { getBlurredAddress } from '@react/components/wallet/scripts/utils'
 
 const TokensList = ({ tokens }) => {
@@ -14,7 +15,7 @@ const TokensList = ({ tokens }) => {
             <table className="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
-                        <th colSpan={3} className={'text-center'}>My Tokens</th>
+                        <th colSpan={3} className={'text-center'}>{t('myTokens')}</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { t } from '@react/components/wallet/translations/translations'
 import { getKeyFromSeed } from '@react/components/wallet/scripts/crypto'
 import { capitalizeFirstLetter } from '@react/components/wallet/scripts/utils'
 import { ButtonContinue } from '@react/components/wallet/components/form-elements/Buttons'
@@ -20,12 +21,12 @@ const RestoreBySeed = ({setKp}) => {
             setErrorMessage(capitalizeFirstLetter(error.message))
         }
     }
-    
+
     return (
         <>
             <textarea
                 className="form-control mb-1"
-                placeholder="Base58 seed (32 bytes)"
+                placeholder={t('seed32')}
                 rows={2}
                 value={seed}
                 onChange={(e) => {

@@ -1,4 +1,5 @@
 import React, {useState} from 'react'
+import { t } from '@react/components/wallet/translations/translations'
 import { getGeneratedMnemonic, getKeyFromMnemonic, BIP_DEFAULT } from '@react/components/wallet/scripts/crypto'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonBack, ButtonGenerateNewWallet } from '@react/components/wallet/components/form-elements/Buttons'
@@ -18,7 +19,7 @@ const GenerateWallet = ({ setKp, setMnemonic, setShowBlockGenerateWallet }) => {
         try {
             setErrorMessage(null)
             if (!informGenerateMessage) {
-                return setInformGenerateMessage('Private Information !!! XXXXX !!!') // TODO
+                return setInformGenerateMessage(t('privateInfoWarning'))
             }
             setInformGenerateMessage(false)
             setInputMnemonic(getGeneratedMnemonic(seedLength))
@@ -52,16 +53,16 @@ const GenerateWallet = ({ setKp, setMnemonic, setShowBlockGenerateWallet }) => {
 
     return (
         <div>
-            <BlockTitle title={'Generate New Wallet'} className={'mb-4'}/>
+            <BlockTitle title={t('generateNewWallet')} className={'mb-4'}/>
             <div className="d-grid gap-3">
                 <SelectPhraseLength value={seedLength} onChange={(value) => setSeedLength(value)} />
                 <SuccessMessageBlock message={informGenerateMessage} className={'text-danger mb-0'} />
                 <MessagesBlock error={errorMessage} className={'mb-0'}/>
                 <ButtonGenerateNewWallet
-                    label={informGenerateMessage ? 'Continue' : 'Generate'}
+                    label={informGenerateMessage ? t('continue') : t('generate')}
                     onClick={() => handlerGenerateWallet()}
                 />
-                <ButtonBack label={'Cancel'} onClick={() => setShowBlockGenerateWallet(false)} />
+                <ButtonBack label={t('cancel')} onClick={() => setShowBlockGenerateWallet(false)} />
             </div>
         </div>
     )

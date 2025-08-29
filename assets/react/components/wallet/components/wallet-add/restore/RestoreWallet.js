@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
+import { t } from '@react/components/wallet/translations/translations'
 import { checkWalletByKey } from '@react/components/wallet/scripts/apiActions'
-import RestoreBySeed from '@react/components/wallet/components/wallet-add/restore/RestoreBySeed'
-import RestoreByPrivateKey from '@react/components/wallet/components/wallet-add/restore/RestoreByPrivateKey'
-import RestoreByMnemonic from '@react/components/wallet/components/wallet-add/restore/RestoreByMnemonic'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ErrorMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
 import { SelectRecoveryType } from '@react/components/wallet/components/form-elements/Inputs'
 import { ButtonBack } from '@react/components/wallet/components/form-elements/Buttons'
+import RestoreBySeed from '@react/components/wallet/components/wallet-add/restore/RestoreBySeed'
+import RestoreByPrivateKey from '@react/components/wallet/components/wallet-add/restore/RestoreByPrivateKey'
+import RestoreByMnemonic from '@react/components/wallet/components/wallet-add/restore/RestoreByMnemonic'
 
 const TYPE_PHRASE = 'phrase'
 const TYPE_PRIVATE_KEY = 'privateKey'
@@ -19,7 +20,7 @@ const RestoreWallet = ({ kp, setKp, setMnemonic, setAccountInfo, setShowBlockRes
     useEffect(() => {
         setKp(null)
     }, [type])
-    
+
     useEffect(() => {
         getAccountInfo().catch(error => setErrorMessage(error.message))
     }, [kp])
@@ -42,7 +43,7 @@ const RestoreWallet = ({ kp, setKp, setMnemonic, setAccountInfo, setShowBlockRes
 
     return (
         <div>
-            <BlockTitle title={'Restore Wallet'} className={'mb-4'}/>
+            <BlockTitle title={t('restoreWallet')} className={'mb-4'}/>
             <div className="d-grid gap-3">
                 <SelectRecoveryType
                     type={type}
@@ -54,7 +55,7 @@ const RestoreWallet = ({ kp, setKp, setMnemonic, setAccountInfo, setShowBlockRes
                 />
                 {restoreBlock}
                 <ErrorMessageBlock message={errorMessage} className={'mt-2'} />
-                <ButtonBack label="Back" onClick={() => setShowBlockRestoreWallet(false)} />
+                <ButtonBack onClick={() => setShowBlockRestoreWallet(false)} />
             </div>
         </div>
     )

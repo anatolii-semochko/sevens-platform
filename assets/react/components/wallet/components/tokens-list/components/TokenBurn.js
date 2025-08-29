@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import { ButtonBack, ButtonTokenBurn } from '@react/components/wallet/components/form-elements/Buttons'
 import { ErrorMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
-import { reloadAllWallets, getWallet, burnToken } from '@react/components/wallet/scripts/apiActions'
+import { getWallet, burnToken } from '@react/components/wallet/scripts/apiActions'
 
 const TokenBurn = ({ token, setBlockBurn, setTokenAvailable, setSuccessMessage }) => {
-    const {setWalletsList, walletData, password} = useWalletContext()
+    const {walletData, walletReload, password} = useWalletContext()
     const [errorMessage, setErrorMessage] = useState(null)
     const [confirmMessage, setConfirmMessage] = useState(null)
     const [confirm, setConfirm] = useState(null)
 
-    const firstConfirmMessage = 'Burning this token is irreversible.\nAre you sure you want to burn it?'
-    const secondConfirmMessage = 'Burning this token is irreversible.\nConfirm burning token.'
+    const firstConfirmMessage = t('burnTokenWarning1')
+    const secondConfirmMessage = t('burnTokenWarning2')
 
     useEffect(() => {
         setConfirmMessage(firstConfirmMessage)
@@ -28,11 +29,10 @@ const TokenBurn = ({ token, setBlockBurn, setTokenAvailable, setSuccessMessage }
         try {
             const wallet = getWallet(walletData, password)
             const transaction = await burnToken(token.mint, wallet)
-            const updated = await reloadAllWallets(password)
             setTokenAvailable(false)
             setBlockBurn(false)
-            setWalletsList(updated)
-            setSuccessMessage(`Token has been successfully burned.\n Transaction ${transaction}.`)
+            await walletReload()
+            setSuccessMessage(t('tokenBurnSuccess').replace('{tx}', transaction))
         } catch (error) {
             setErrorMessage(error.message)
         }
@@ -42,8 +42,8 @@ const TokenBurn = ({ token, setBlockBurn, setTokenAvailable, setSuccessMessage }
         <>
             <ErrorMessageBlock message={errorMessage} className={'mb-0'} />
             <ErrorMessageBlock message={confirmMessage} className={'mb-0'} />
-            <ButtonTokenBurn label={!confirm && 'Yes, i am sure'} onClick={handlerBurnToken} />
-            <ButtonBack label={'Cancel Token Transfer'} onClick={() => setBlockBurn(false)} />
+            <ButtonTokenBurn label={!confirm && t('confirmBurnYes')} onClick={handlerBurnToken} />
+            <ButtonBack label={t('cancelTokenBurn')} onClick={() => setBlockBurn(false)} />
         </>
     )
 }

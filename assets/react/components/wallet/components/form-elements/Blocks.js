@@ -1,5 +1,6 @@
 import React from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import {
     copyToClipboard,
     currentConnectionKey,
@@ -14,10 +15,10 @@ const WalletTitle = () => {
     const {walletConnection, password} = useWalletContext()
     const connectionKey = currentConnectionKey(walletConnection)
     const connection = !password || !connectionKey || connectionKey === 'main' ? null : (
-        <><br/><span className="badge bg-danger">Wallet uses {connectionKey} connection</span></>
+        <><br/><span className="badge bg-danger">{t('walletUsesConnection').replace('{net}', connectionKey)}</span></>
     )
     return (
-        <h5 className="text-center mb-0 ms-4 w-100">Sevens Wallet{connection}</h5>
+        <h5 className="text-center mb-0 ms-4 w-100">{t('sevensWallet')}{connection}</h5>
     )
 }
 
@@ -39,7 +40,7 @@ const WalletLoading = () => (
         <WalletHeader />
         <div className="p-3 text-center">
             <div className="spinner-border" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">{t('loading')}</span>
             </div>
         </div>
     </div>
@@ -83,20 +84,20 @@ const WalletDetails = ({walletData}) => {
 
 const WalletInfo = ({accountInfo}) => (
     <div className="card mb-2">
-        <h5 className="card-header">Blockchain Account Info</h5>
+        <h5 className="card-header">{t('blockchainAccountInfo')}</h5>
         <div className="card-body">
             <table className="table table-borderless mb-0 w-75 mx-auto">
                 <tbody>
                 <tr>
-                    <td>Account:</td>
-                    <td><b>{accountInfo.found ? 'Found' : 'Not found'}</b></td>
+                    <td>{t('account')}:</td>
+                    <td><b>{accountInfo.found ? t('found') : t('notFound')}</b></td>
                 </tr>
                 <tr>
-                    <td>Balance:</td>
+                    <td>{t('balance')}:</td>
                     <td><b>{accountInfo.balance ? accountInfo.balance / LAMPORTS_PER_SOL : 0}</b></td>
                 </tr>
                 <tr>
-                    <td>Tokens:</td>
+                    <td>{t('tokens')}:</td>
                     <td><b>{accountInfo.tokens}</b></td>
                 </tr>
                 </tbody>
@@ -109,7 +110,7 @@ const SecretsView = ({secrets}) => (
     <div>
         {!!secrets.mnemonic && (
             <div className="card mb-3">
-                <h6 className="card-header">Recovery Phrase</h6>
+                <h6 className="card-header">{t('recoveryPhrase')}</h6>
                 <div className="card-body text-center p-2">
                     <div className="d-grid gap-2">
                         <div className="row g-2 mb-2">
@@ -121,7 +122,7 @@ const SecretsView = ({secrets}) => (
                         </div>
                     </div>
                     <ButtonCopy
-                        label={'Copy Recovery Phrase'}
+                        label={t('copyRecoveryPhrase')}
                         onClick={() => copyToClipboard(secrets.mnemonic)}
                         className={'d-inline-flex w-auto mt-2 mb-3'}
                     />
@@ -129,22 +130,22 @@ const SecretsView = ({secrets}) => (
             </div>
         )}
         <div className="card mb-3">
-            <h6 className="card-header">64-byte Private Key (base58)</h6>
+            <h6 className="card-header">{t('privateKey64')}</h6>
             <div className="card-body text-center p-2">
                 <div className="text-break p-2">{secrets.secretKey.base58}</div>
                 <ButtonCopy
-                    label={'Copy Private Key'}
+                    label={t('copyPrivateKey')}
                     onClick={() => copyToClipboard(secrets.secretKey.base58)}
                     className={'d-inline-flex w-auto mt-2 mb-3'}
                 />
             </div>
         </div>
         <div className="card mb-0">
-            <h6 className="card-header">32-byte Seed (base58)</h6>
+            <h6 className="card-header">{t('seed32')}</h6>
             <div className="card-body text-center p-2">
                 <div className="text-break p-2">{secrets.seed.base58}</div>
                 <ButtonCopy
-                    label={'Copy Private Key'}
+                    label={t('copyPrivateKey')}
                     onClick={() => copyToClipboard(secrets.seed.base58)}
                     className={'d-inline-flex w-auto mt-2 mb-3'}
                 />

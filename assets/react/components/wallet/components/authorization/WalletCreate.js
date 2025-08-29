@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import config from '@react/components/wallet/config.json'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import { createEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 import { ButtonSave } from '@react/components/wallet/components/form-elements/Buttons'
 import { InputPassword } from '@react/components/wallet/components/form-elements/Inputs'
 import { ErrorMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
-import {WalletHeader} from "@react/components/wallet/components/form-elements/Blocks";
+import { WalletHeader } from '@react/components/wallet/components/form-elements/Blocks'
 
 const WalletCreate = ({ onWalletCreated }) => {
     const {setPassword} = useWalletContext()
@@ -15,10 +16,10 @@ const WalletCreate = ({ onWalletCreated }) => {
 
     const checkPassword = () => {
         if (!passwordMain || passwordMain.length < config.PASSWORD_MIN_LENGTH) {
-            throw new Error(`Password must be at least ${config.PASSWORD_MIN_LENGTH} characters long`)
+            throw new Error(t('passwordTooShort').replace('{n}', config.PASSWORD_MIN_LENGTH))
         }
         if (passwordMain !== passwordRepeat) {
-            throw new Error(`Passwords don't match`)
+            throw new Error(t('passwordsDontMatch'))
         }
     }
 
@@ -41,21 +42,21 @@ const WalletCreate = ({ onWalletCreated }) => {
         <div>
             <WalletHeader />
             <form onSubmit={handleCreatePassword} className="p-3 d-grid gap-3">
-                <label className="text-center">Enter wallet password</label>
+                <label className="text-center">{t('enterWalletPassword')}</label>
                 <InputPassword
-                    placeholder={'Enter password'}
+                    placeholder={t('enterPassword')}
                     password={passwordMain}
                     setPassword={setPasswordMain}
                     setErrorMessage={setErrorMessage}
                 />
                 <InputPassword
-                    placeholder={'Repeat password'}
+                    placeholder={t('repeatPassword')}
                     password={passwordRepeat}
                     setPassword={setPasswordRepeat}
                     setErrorMessage={setErrorMessage}
                 />
                 <ErrorMessageBlock message={errorMessage} className={'mb-0'} />
-                <ButtonSave label={'Create Wallet'} onClick={handleCreatePassword} />
+                <ButtonSave label={t('createWallet')} onClick={handleCreatePassword} />
             </form>
         </div>
     )

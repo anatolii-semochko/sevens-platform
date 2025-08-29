@@ -1,4 +1,5 @@
 import config from '@react/components/wallet/config.json'
+import { t } from '@react/components/wallet/translations/translations'
 import { PublicKey } from '@solana/web3.js'
 
 /** Any Sevens Address (including PDA) */
@@ -81,14 +82,14 @@ export const getNextWalletName = (walletsList) => {
 
 export const checkWalletName = (walletsList, newWalletName, publicKey) => {
     if (!newWalletName) {
-        throw new Error('Wallet name is missing')
+        throw new Error(t('walletNameMissing'))
     }
     walletsList.map((walletData) => {
         if (walletData.name === newWalletName) {
-            throw new Error('This wallet name is already present in the list')
+            throw new Error(t('walletNameExists'))
         }
         if (walletData.publicKey === publicKey) {
-            throw new Error(`Wallet\n${publicKey}\nis already present in the list`)
+            throw new Error(t('walletAlreadyPresent').replace('{key}', publicKey))
         }
     })
 }

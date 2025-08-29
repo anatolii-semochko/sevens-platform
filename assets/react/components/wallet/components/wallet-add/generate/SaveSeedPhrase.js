@@ -1,4 +1,5 @@
 import React from 'react'
+import { t } from '@react/components/wallet/translations/translations'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonBack, ButtonCopy, ButtonSaved } from '@react/components/wallet/components/form-elements/Buttons'
 import { SuccessMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
@@ -7,9 +8,9 @@ import { copyToClipboard } from '@react/components/wallet/scripts/utils'
 const SaveSeedPhrase = ({ mnemonic, setShowBlockGenerateWallet, setMnemonicSaved }) => {
     return (
         <div>
-            <BlockTitle title={'Save Your New Wallet Seed Phrase'} />
+            <BlockTitle title={t('saveSeedPhrase')} />
             <div className="d-grid gap-3 pt-1">
-                <SuccessMessageBlock message={'Private Information !!! XXXXX !!!'} className={'text-danger mb-0'} />
+                <SuccessMessageBlock message={t('privateInfoWarning')} className={'text-danger mb-0'} />
                 <div className="d-grid gap-2">
                     <div className="row g-2">
                         {mnemonic.split(' ').map((word, i) => (
@@ -19,9 +20,9 @@ const SaveSeedPhrase = ({ mnemonic, setShowBlockGenerateWallet, setMnemonicSaved
                         ))}
                     </div>
                 </div>
-                <ButtonCopy label={'Copy'} onClick={() => copyToClipboard(mnemonic)} />
-                <ButtonSaved label={'I saved seed phrase words'} onClick={() => setMnemonicSaved(true)} />
-                <ButtonBack label={'Cancel'} onClick={() => setShowBlockGenerateWallet(false)} />
+                <ButtonCopy label={t('copy')} onClick={() => copyToClipboard(mnemonic)} />
+                <ButtonSaved label={t('iSavedSeedPhraseWords')} onClick={() => setMnemonicSaved(true)} />
+                <ButtonBack label={t('cancel')} onClick={() => setShowBlockGenerateWallet(false)} />
             </div>
         </div>
     )

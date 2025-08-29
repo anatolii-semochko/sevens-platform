@@ -1,16 +1,15 @@
 import * as bip39 from 'bip39'
 import bs58 from 'bs58'
 import CryptoJS from 'crypto-js'
-import { Keypair} from '@solana/web3.js'
+import { Keypair } from '@solana/web3.js'
 import { derivePath } from 'ed25519-hd-key'
-import { EncryptedAddress, Password, SecretsExport } from '@react/components/wallet/scripts/Types'
 import { getKeypair } from '@react/components/wallet/scripts/apiActions'
 
 // TODO - REGISTER IN SLIP-0044 !!! Дериваційний шлях згідно зі стандартом BIP44
-export const CHAIN_COIN_TYPE: number = 777
-export const CHAIN_DERIVATION_PATH: string = `m/44'/${CHAIN_COIN_TYPE}'/0'/0'`
+export const CHAIN_COIN_TYPE = 777
+export const CHAIN_DERIVATION_PATH = `m/44'/${CHAIN_COIN_TYPE}'/0'/0'`
 
-export const BIP_LENGTHS: Record<number, number> = {
+export const BIP_LENGTHS = {
     128: 12,
     160: 15,
     192: 18,
@@ -19,22 +18,20 @@ export const BIP_LENGTHS: Record<number, number> = {
 }
 export const BIP_DEFAULT = 128
 
-export const WORDS_TO_BITS: Record<number, number> = Object.fromEntries(Object.entries(BIP_LENGTHS)
+export const WORDS_TO_BITS = Object.fromEntries(Object.entries(BIP_LENGTHS)
     .map(([b, w]) => [Number(w), Number(b)]))
-export const SUPPORTED_BITS: number[] = Object.keys(BIP_LENGTHS).map(Number)
-export const ENGLISH_WORD_LIST: string[] = (bip39 as any).wordlists?.english ?? []
+export const SUPPORTED_BITS = Object.keys(BIP_LENGTHS).map(Number)
+export const ENGLISH_WORD_LIST = (bip39).wordlists?.english ?? []
 
 export const getGeneratedMnemonic = (length = 128) => bip39.generateMnemonic(length)
 
-export const getKeyFromMnemonic = async (
-    mnemonic: string,
-): Promise<Keypair> => {
+export const getKeyFromMnemonic = async (mnemonic) => {
     const seed = await bip39.mnemonicToSeed(mnemonic)
     const { key } = derivePath(CHAIN_DERIVATION_PATH, seed.toString('hex'))
     return Keypair.fromSeed(key)
 }
 
-export const getKeyFromPrivateKey = (privateKeyBase58: string): Keypair => {
+export const getKeyFromPrivateKey = (privateKeyBase58) => {
     const bytes = bs58.decode(privateKeyBase58)
     if (bytes.length !== 64) {
         throw new Error(`Invalid private key length: expected 64 bytes, got ${bytes.length}`)
@@ -42,21 +39,16 @@ export const getKeyFromPrivateKey = (privateKeyBase58: string): Keypair => {
     return Keypair.fromSecretKey(bytes)
 }
 
-export const getKeyFromSeed = (seedBase58: string): Keypair => {
+export const getKeyFromSeed = (seedBase58) => {
     const seed = bs58.decode(seedBase58)
     return Keypair.fromSeed(seed)
 }
 
-const toHex = (u8: Uint8Array): string => Array.from(u8).map(b => b.toString(16).padStart(2, '0')).join('')
+const toHex = (u8) => Array.from(u8).map(b => b.toString(16).padStart(2, '0')).join('')
 
-export const getAllSecrets = (
-    walletData: EncryptedAddress,
-    password: Password,
-): SecretsExport | null => {
+export const getAllSecrets = (walletData, password) => {
     try {
         const kp = getKeypair(walletData, password)
-        if (!kp) return null
-        
         const full = kp.secretKey
         const seed32 = full.slice(0, 32)
 
@@ -74,7 +66,7 @@ export const getAllSecrets = (
             array: Array.from(seed32),
         }
 
-        let mnemonic: string | null = null
+        let mnemonic = null
         if (walletData.mnemonicEnc) {
             const bytes = CryptoJS.AES.decrypt(walletData.mnemonicEnc, password)
             const plain = bytes.toString(CryptoJS.enc.Utf8)

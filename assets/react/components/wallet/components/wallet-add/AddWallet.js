@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
-import { addWalletByKey, reloadAllWallets } from '@react/components/wallet/scripts/apiActions'
+import { t } from '@react/components/wallet/translations/translations'
+import { addWalletByKey } from '@react/components/wallet/scripts/apiActions'
 import {
     ButtonGenerateNewWallet,
     ButtonRestoreWalletFromSeed,
@@ -14,6 +15,7 @@ import { MessagesBlock } from '@react/components/wallet/components/form-elements
 import { InputNewWalletName } from '@react/components/wallet/components/form-elements/Inputs'
 
 const AddWallet = ({backClick}) => {
+    const {walletsList, password, setWalletByPublicKey, setShowComponent, walletReload} = useWalletContext()
     const [showBlockGenerateWallet, setShowBlockGenerateWallet] = useState(false)
     const [showBlockRestoreWallet, setShowBlockRestoreWallet] = useState(false)
     const [errorMessage, setErrorMessage] = useState(null)
@@ -21,7 +23,6 @@ const AddWallet = ({backClick}) => {
     const [kp, setKp] = useState(null)
     const [mnemonic, setMnemonic] = useState(null)
     const [accountInfo, setAccountInfo] = useState(null)
-    const { walletsList, setWalletsList, password, setWalletByPublicKey, setShowComponent } = useWalletContext()
 
     useEffect(() => {
         setWalletName(getNextWalletName(walletsList))
@@ -31,13 +32,10 @@ const AddWallet = ({backClick}) => {
         try {
             checkWalletName(walletsList, walletName, kp.publicKey.toString())
             addWalletByKey(walletName, kp, password, mnemonic)
-                .then(() => reloadAllWallets(password)
-                    .then(setWalletsList)
-                    .then(() => setWalletByPublicKey(kp.publicKey.toString()))
-                        .catch(error => setErrorMessage(error.message)
-                    )
-                    .catch(error => setErrorMessage(error.message))
-                )
+                .then(async () => {
+                    await walletReload()
+                    setWalletByPublicKey(kp.publicKey.toString())
+                })
                 .catch(error => setErrorMessage(error.message))
             setShowComponent(null)
         } catch (error) {
@@ -60,7 +58,7 @@ const AddWallet = ({backClick}) => {
 
     return (
         <div>
-            <BlockTitle title={'Add New Wallet'} />
+            <BlockTitle title={t('addNewWallet')} />
             <div className="d-grid gap-3 pt-1">
                 <MessagesBlock error={errorMessage} className={'mb-0'}/>
                 {kp ? <>

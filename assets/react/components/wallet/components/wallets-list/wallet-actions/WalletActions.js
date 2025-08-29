@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
-import ShowPrivateKey from '@react/components/wallet/components/wallets-list/wallet-actions/ShowPrivateKey'
-import WalletRename from '@react/components/wallet/components/wallets-list/wallet-actions/WalletRename'
-import WalletRemove from '@react/components/wallet/components/wallets-list/wallet-actions/WalletRemove'
+import { t } from '@react/components/wallet/translations/translations'
 import { BlockTitle, WalletDetails } from '@react/components/wallet/components/form-elements/Blocks'
 import {
     ButtonBack, ButtonShowPrivateKey, ButtonWalletRemove, ButtonWalletRename,
 } from '@react/components/wallet/components/form-elements/Buttons'
+import ShowPrivateKey from '@react/components/wallet/components/wallets-list/wallet-actions/ShowPrivateKey'
+import WalletRename from '@react/components/wallet/components/wallets-list/wallet-actions/WalletRename'
+import WalletRemove from '@react/components/wallet/components/wallets-list/wallet-actions/WalletRemove'
 
 const WalletActions = ({walletData, setShowWalletActions}) => {
     const [showWalletPrivateKey, setShowWalletPrivateKey] = useState(false)
@@ -29,7 +30,7 @@ const WalletActions = ({walletData, setShowWalletActions}) => {
 
     return (
         <div>
-            <BlockTitle title={'Single wallet actions'} />
+            <BlockTitle title={t('singleWalletActions')} />
             <div className="d-grid gap-3 mb-4">
                 <WalletDetails walletData={walletData} className={'mb-0'}/>
                 <ButtonShowPrivateKey onClick={() => setShowWalletPrivateKey(true)} />

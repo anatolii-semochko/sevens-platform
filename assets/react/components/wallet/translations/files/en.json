@@ -1,0 +1,127 @@
+{
+  "receiveCrypto": "Receive crypto to this wallet",
+  "receiveCryptoAction": "Receive crypto",
+  "lockWallet": "Lock wallet",
+  "back": "Back",
+  "selectWallet": "Select wallet",
+  "available": "available",
+  "save": "Save",
+  "confirm": "Confirm",
+  "remove": "Remove",
+  "repeat": "Retry",
+  "copyAddress": "Copy address",
+  "reloadAll": "Reload all",
+  "send": "Send",
+  "buySevens": "Buy Sevens",
+  "sellSevens": "Sell Sevens",
+  "addWallet": "Add wallet",
+  "showPrivateKey": "Show private key",
+  "renameWallet": "Rename wallet",
+  "removeWallet": "Remove wallet",
+  "continue": "Continue",
+  "generateNewWallet": "Generate new wallet",
+  "restoreWalletFromSeedPhrase": "Restore wallet from seed phrase",
+  "transferTokenToAnotherWallet": "Transfer token to another wallet",
+  "burnToken": "Burn token",
+  "settings": "Settings",
+  "hideBalances": "Hide balances",
+  "showBalances": "Show balances",
+  "changeNetwork": "Change network",
+  "changePassword": "Change password",
+  "clearWallet": "Clear wallet"
+  ,"privateInfoWarning": "This information is confidential. Ensure no one else can view it."
+  ,"generate": "Generate"
+  ,"cancel": "Cancel"
+  ,"saveSeedPhrase": "Save your new wallet seed phrase"
+  ,"copy": "Copy"
+  ,"iSavedSeedPhraseWords": "I saved seed phrase words"
+  ,"burnTokenWarning1": "Burning this token is irreversible.\nAre you sure you want to burn it?"
+  ,"burnTokenWarning2": "Burning this token is irreversible.\nConfirm burning token."
+  ,"tokenBurnSuccess": "Token has been successfully burned.\n Transaction {tx}."
+  ,"confirmBurnYes": "Yes, I am sure"
+  ,"cancelTokenBurn": "Cancel token burn"
+  ,"noDestinationAddress": "No destination address"
+  ,"invalidDestinationAddress": "Invalid destination address"
+  ,"tokenTransferWarning": "The token will be transferred to wallet {address} and will no longer be available in your current wallet.\nContinue?"
+  ,"tokenTransferSuccess": "Token successfully transferred to {address}.\n Transaction {tx}."
+  ,"newWalletAddress": "New wallet address"
+  ,"cancelTokenTransfer": "Cancel token transfer"
+  ,"myTokens": "My tokens"
+  ,"token": "Token"
+  ,"address": "Address"
+  ,"author": "Author"
+  ,"minted": "Minted"
+  ,"description": "Description"
+  ,"walletUsesConnection": "Wallet uses {net} connection"
+  ,"sevensWallet": "Sevens Wallet"
+  ,"loading": "Loading..."
+  ,"blockchainAccountInfo": "Blockchain Account Info"
+  ,"account": "Account"
+  ,"found": "Found"
+  ,"notFound": "Not found"
+  ,"balance": "Balance"
+  ,"tokens": "Tokens"
+  ,"recoveryPhrase": "Recovery Phrase"
+  ,"copyRecoveryPhrase": "Copy Recovery Phrase"
+  ,"privateKey64": "64-byte Private Key (base58)"
+  ,"copyPrivateKey": "Copy Private Key"
+  ,"seed32": "32-byte Seed (base58)"
+  ,"availableWalletsList": "Available wallets list"
+  ,"wallet": "Wallet"
+  ,"backToWallet": "Back to wallet"
+  ,"showWalletPrivateKey": "Show wallet private key"
+  ,"walletPassword": "Wallet password"
+  ,"invalidPassword": "Invalid password"
+  ,"privateKeyAttention": "Your private key and recovery phrase are highly sensitive information. Anyone who has them can access and spend your funds. Keep them offline and never share with anyone."
+  ,"clearWalletData": "Clear wallet all data"
+  ,"clearWalletWarning": "This will delete all wallet data. Make sure you have saved your wallet secrets."
+  ,"confirmClearWallet": "Are you sure you want to clear the wallet?"
+  ,"pleaseEnterPassword": "Please enter your password"
+  ,"unlockWallet": "Unlock wallet"
+  ,"retryIn": "Retry in {s}s"
+  ,"password": "Password"
+  ,"passwordTooShort": "Password must be at least {n} characters long"
+  ,"passwordsDontMatch": "Passwords don't match"
+  ,"enterWalletPassword": "Enter wallet password"
+  ,"enterPassword": "Enter password"
+  ,"repeatPassword": "Repeat password"
+  ,"createWallet": "Create wallet"
+  ,"coinsTransferWarning": "The {amount} coins will be sent to wallet {address}.\nContinue?"
+  ,"coinsTransferSuccess": "{amount} coins successfully sent to {address}.\n Transaction {tx}."
+  ,"noSumFilled": "No sum filled"
+  ,"insufficientBalance": "Insufficient balance"
+  ,"sendCoinsToAnotherWallet": "Send coins to another wallet"
+  ,"coinsToSend": "Coins to send"
+  ,"noEncryptedData": "No encrypted wallet data found"
+  ,"invalidPasswordOrData": "Invalid password or corrupted data"
+  ,"walletNameMissing": "Wallet name is missing"
+  ,"walletNameExists": "This wallet name is already present in the list"
+  ,"walletAlreadyPresent": "Wallet {key} is already present in the list"
+  ,"walletSettings": "Wallet settings"
+  ,"walletBlockchainConnection": "Wallet blockchain connection"
+  ,"addNewWallet": "Add new wallet"
+  ,"phraseLength": "Phrase length"
+  ,"words": "words"
+  ,"restoreWallet": "Restore wallet"
+  ,"from": "From"
+  ,"privateKey": "Private Key"
+  ,"seed": "Seed"
+  ,"mnemonicPhraseIncorrect": "Mnemonic phrase is incorrect"
+  ,"walletRemoveConfirm": "Are you sure you want to delete this wallet?"
+  ,"renameWalletTitle": "Rename wallet {name}"
+  ,"removeWalletTitle": "Remove wallet {name}"
+  ,"walletName": "Wallet name"
+  ,"newWalletName": "New wallet name"
+  ,"netMain": "Main NET (original)"
+  ,"netDev": "Dev NET (testing and development)"
+  ,"netLocal": "Local NET (local environment)"
+  ,"netCustom": "Custom NET (advanced option)"
+  ,"language": "Language"
+  ,"selectLanguage": "Select language"
+  ,"noWallets": "No wallets"
+  ,"singleWalletActions": "Single wallet actions"
+  ,"confirmSeedPhrase": "Confirm seed phrase"
+  ,"confirmSeedInstruction": "Tap the words below in the correct order"
+  ,"walletSeedConfirmError": "Seed phrase confirmation failed"
+  ,"unknownError": "Unknown error"
+}

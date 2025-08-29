@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { t } from '@react/components/wallet/translations/translations'
 import { getKeyFromPrivateKey } from '@react/components/wallet/scripts/crypto'
 import { capitalizeFirstLetter } from '@react/components/wallet/scripts/utils'
 import { ButtonContinue } from '@react/components/wallet/components/form-elements/Buttons'
@@ -25,7 +26,7 @@ const RestoreByPrivateKey = ({setKp}) => {
         <>
             <textarea
                 className="form-control mb-1"
-                placeholder="Base58 private key (64 bytes)"
+                placeholder={t('privateKey64')}
                 rows={3}
                 value={privateKey}
                 onChange={(e) => {

@@ -1,19 +1,20 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import store from '@react/store'
+import useWalletContext from './hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import { Provider } from 'react-redux'
-import '@solana/wallet-adapter-react-ui/styles.css'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import '@solana/wallet-adapter-react-ui/styles.css'
 import { WalletContextProvider } from '@react/components/wallet/context/WalletContext'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { hasEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 import { showModal } from '@js/modal'
-import useWalletContext from './hooks/useWalletContext'
+import { ButtonWalletLock } from '@react/components/wallet/components/form-elements/Buttons'
+import { WalletLoading, WalletTitleContent } from '@react/components/wallet/components/form-elements/Blocks'
 import Content from '@react/components/wallet/components/Content'
 import WalletCreate from '@react/components/wallet/components/authorization/WalletCreate'
 import WalletUnlock from '@react/components/wallet/components/authorization/WalletUnlock'
-import { ButtonWalletLock } from '@react/components/wallet/components/form-elements/Buttons'
-import { WalletLoading,WalletTitleContent } from '@react/components/wallet/components/form-elements/Blocks'
 
 const endpoint = process.env.ANCHOR_PROVIDER_URL
 
@@ -91,12 +92,12 @@ const WalletButton = () => (
         onClick={() =>
             showModal({
                 id: 'wallet',
-                title: 'Sevens Wallet',
+                title: t('sevensWallet'),
                 body: <Wallet />,
             })
         }
     >
-        Wallet
+        {t('wallet')}
     </button>
 )
 

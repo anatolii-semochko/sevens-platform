@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import config from '@react/components/wallet/config.json'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import { readEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 import { InputPassword } from '@react/components/wallet/components/form-elements/Inputs'
 import { ErrorMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
@@ -45,7 +46,7 @@ const WalletUnlock = ({ unlock }) => {
 
     const checkPassword = () => {
         if (!password) {
-            throw new Error('Please enter your password')
+            throw new Error(t('pleaseEnterPassword'))
         }
     }
 
@@ -60,14 +61,14 @@ const WalletUnlock = ({ unlock }) => {
             setWalletsList(wallets)
             unlock()
         } catch (error) {
-            setErrorMessage(error.message || 'Invalid password')
+            setErrorMessage(error.message || t('invalidPassword'))
             if (!isBlocked) startClock(config.PASSWORD_REPEAT_DELAY_SECONDS)
         }
     }
 
     useEffect(() => clearTimer(), [])
 
-    const buttonLabel = !isBlocked ? 'Unlock wallet' : `Retry in ${countdown}s`
+    const buttonLabel = !isBlocked ? t('unlockWallet') : t('retryIn').replace('{s}', countdown)
     const ClockIcon = [Clock12, Clock3, Clock6, Clock9][clockStep % 4]
     const ButtonIcon = isBlocked ?
         <ClockIcon size={iconSize} aria-hidden="true" /> :
@@ -78,9 +79,9 @@ const WalletUnlock = ({ unlock }) => {
             <WalletHeader />
             <form onSubmit={handleAuthorize} className="p-3 d-grid gap-3">
                 <div className="d-flex align-items-center">
-                    <label className="me-2 px-1">Password: </label>
+                    <label className="me-2 px-1">{t('password')}:</label>
                     <InputPassword
-                        placeholder="password"
+                        placeholder={t('password')}
                         password={password}
                         setPassword={setUnlockPassword}
                         setErrorMessage={setErrorMessage}

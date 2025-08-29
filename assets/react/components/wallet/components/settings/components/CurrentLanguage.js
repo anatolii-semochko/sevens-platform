@@ -1,5 +1,6 @@
 import config from '@react/components/wallet/config.json'
 import React, { useEffect, useRef, useState } from 'react'
+import { t } from '@react/components/wallet/translations/translations'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import clsx from 'clsx'
 
@@ -26,12 +27,12 @@ const CurrentLanguage = ({className}) => {
         setIsOpen(false)
     }
 
-    const selectedLanguage = language ? languages[language] : 'Select Language'
+    const selectedLanguage = language ? languages[language] : t('selectLanguage')
 
     return (
 
         <div className={clsx('d-flex align-items-center', className)}>
-            <label className="text-nowrap me-2 mb-0 px-1">Language: </label>
+            <label className="text-nowrap me-2 mb-0 px-1">{t('language')}: </label>
             <div className={clsx('position-relative w-100', className)} ref={dropdownRef}>
                 <button
                     type="button"
