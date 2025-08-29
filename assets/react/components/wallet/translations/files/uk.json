@@ -1,0 +1,127 @@
+{
+  "receiveCrypto": "Отримайте криптовалюту на цей гаманець",
+  "receiveCryptoAction": "Отримати криптовалюту",
+  "lockWallet": "Заблокувати гаманець",
+  "back": "Назад",
+  "selectWallet": "Вибрати гаманець",
+  "available": "доступно",
+  "save": "Зберегти",
+  "confirm": "Підтвердити",
+  "remove": "Видалити",
+  "repeat": "Спробувати ще раз",
+  "copyAddress": "Копіювати адресу",
+  "reloadAll": "Перезавантажити все",
+  "send": "Надіслати",
+  "buySevens": "Купити Sevens",
+  "sellSevens": "Продати Sevens",
+  "addWallet": "Додати гаманець",
+  "showPrivateKey": "Показати приватний ключ",
+  "renameWallet": "Перейменувати гаманець",
+  "removeWallet": "Видалити гаманець",
+  "continue": "Продовжити",
+  "generateNewWallet": "Створити новий гаманець",
+  "restoreWalletFromSeedPhrase": "Відновити гаманець з сід-фрази",
+  "transferTokenToAnotherWallet": "Передати токен на інший гаманець",
+  "burnToken": "Спалити токен",
+  "settings": "Налаштування",
+  "hideBalances": "Приховати баланси",
+  "showBalances": "Показати баланси",
+  "changeNetwork": "Змінити мережу",
+  "changePassword": "Змінити пароль",
+  "clearWallet": "Очистити гаманець"
+  ,"privateInfoWarning": "Це конфіденційна інформація. Переконайтеся, що її не побачить ніхто сторонній."
+  ,"generate": "Згенерувати"
+  ,"cancel": "Скасувати"
+  ,"saveSeedPhrase": "Збережіть сід-фразу вашого нового гаманця"
+  ,"copy": "Копіювати"
+  ,"iSavedSeedPhraseWords": "Я зберіг слова сід-фрази"
+  ,"burnTokenWarning1": "Спалення цього токена незворотне.\nВи впевнені, що хочете його спалити?"
+  ,"burnTokenWarning2": "Спалення цього токена незворотне.\nПідтвердіть спалення токена."
+  ,"tokenBurnSuccess": "Токен успішно спалено.\n Транзакція {tx}."
+  ,"confirmBurnYes": "Так, я впевнений"
+  ,"cancelTokenBurn": "Скасувати спалення токена"
+  ,"noDestinationAddress": "Немає адреси призначення"
+  ,"invalidDestinationAddress": "Неправильна адреса призначення"
+  ,"tokenTransferWarning": "Токен буде передано на гаманець {address} і більше не буде доступний у вашому поточному гаманці.\nПродовжити?"
+  ,"tokenTransferSuccess": "Токен успішно передано на {address}.\n Транзакція {tx}."
+  ,"newWalletAddress": "Нова адреса гаманця"
+  ,"cancelTokenTransfer": "Скасувати передачу токена"
+  ,"myTokens": "Мої токени"
+  ,"token": "Токен"
+  ,"address": "Адреса"
+  ,"author": "Автор"
+  ,"minted": "Створено"
+  ,"description": "Опис"
+  ,"walletUsesConnection": "Використовується підключення {net}"
+  ,"sevensWallet": "Sevens Гаманець"
+  ,"loading": "Завантаження..."
+  ,"blockchainAccountInfo": "Інформація про акаунт блокчейну"
+  ,"account": "Акаунт"
+  ,"found": "Знайдено"
+  ,"notFound": "Не знайдено"
+  ,"balance": "Баланс"
+  ,"tokens": "Токени"
+  ,"recoveryPhrase": "Фраза відновлення"
+  ,"copyRecoveryPhrase": "Копіювати фразу відновлення"
+  ,"privateKey64": "64-байтовий приватний ключ (base58)"
+  ,"copyPrivateKey": "Копіювати приватний ключ"
+  ,"seed32": "32-байтовий сід (base58)"
+  ,"availableWalletsList": "Список доступних гаманців"
+  ,"wallet": "Гаманець"
+  ,"backToWallet": "Назад до гаманця"
+  ,"showWalletPrivateKey": "Показати приватний ключ гаманця"
+  ,"walletPassword": "Пароль гаманця"
+  ,"invalidPassword": "Невірний пароль"
+  ,"privateKeyAttention": "Ваш приватний ключ і фраза відновлення є дуже важливою інформацією. Той, хто їх має, може отримати доступ і витратити ваші кошти. Зберігайте їх офлайн і нікому не передавайте."
+  ,"clearWalletData": "Видалити всі дані гаманця"
+  ,"clearWalletWarning": "Це видалить всі дані гаманця. Переконайтесь, що ви зберегли свої секрети."
+  ,"confirmClearWallet": "Ви впевнені, що хочете очистити гаманець?"
+  ,"pleaseEnterPassword": "Будь ласка, введіть свій пароль"
+  ,"unlockWallet": "Розблокувати гаманець"
+  ,"retryIn": "Повторити через {s}с"
+  ,"password": "Пароль"
+  ,"passwordTooShort": "Пароль має містити щонайменше {n} символів"
+  ,"passwordsDontMatch": "Паролі не співпадають"
+  ,"enterWalletPassword": "Введіть пароль гаманця"
+  ,"enterPassword": "Введіть пароль"
+  ,"repeatPassword": "Повторіть пароль"
+  ,"createWallet": "Створити гаманець"
+  ,"coinsTransferWarning": "{amount} монет буде надіслано на гаманець {address}.\nПродовжити?"
+  ,"coinsTransferSuccess": "{amount} монет успішно надіслано на {address}.\n Транзакція {tx}."
+  ,"noSumFilled": "Не вказано суму"
+  ,"insufficientBalance": "Недостатній баланс"
+  ,"sendCoinsToAnotherWallet": "Надіслати монети на інший гаманець"
+  ,"coinsToSend": "Кількість монет"
+  ,"noEncryptedData": "Не знайдено зашифрованих даних гаманця"
+  ,"invalidPasswordOrData": "Невірний пароль або пошкоджені дані"
+  ,"walletNameMissing": "Відсутня назва гаманця"
+  ,"walletNameExists": "Ця назва гаманця вже є у списку"
+  ,"walletAlreadyPresent": "Гаманець {key} вже присутній у списку"
+  ,"walletSettings": "Налаштування гаманця"
+  ,"walletBlockchainConnection": "Блокчейн-з’єднання гаманця"
+  ,"addNewWallet": "Додати новий гаманець"
+  ,"phraseLength": "Довжина фрази"
+  ,"words": "слів"
+  ,"restoreWallet": "Відновити гаманець"
+  ,"from": "З"
+  ,"privateKey": "Приватний ключ"
+  ,"seed": "Seed"
+  ,"mnemonicPhraseIncorrect": "Мнемонічна фраза неправильна"
+  ,"walletRemoveConfirm": "Ви впевнені, що хочете видалити цей гаманець?"
+  ,"renameWalletTitle": "Перейменувати гаманець {name}"
+  ,"removeWalletTitle": "Видалити гаманець {name}"
+  ,"walletName": "Назва гаманця"
+  ,"newWalletName": "Нова назва гаманця"
+  ,"netMain": "Main NET (оригінальна)"
+  ,"netDev": "Dev NET (тестування та розробка)"
+  ,"netLocal": "Local NET (локальне середовище)"
+  ,"netCustom": "Custom NET (додаткова опція)"
+  ,"language": "Мова"
+  ,"selectLanguage": "Обрати мову"
+  ,"noWallets": "Немає гаманців"
+  ,"singleWalletActions": "Дії з одним гаманцем"
+  ,"confirmSeedPhrase": "Підтвердіть seed-фразу"
+  ,"confirmSeedInstruction": "Натисніть слова нижче у правильному порядку"
+  ,"walletSeedConfirmError": "Не вдалося підтвердити seed-фразу"
+  ,"unknownError": "Невідома помилка"
+}

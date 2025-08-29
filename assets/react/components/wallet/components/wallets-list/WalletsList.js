@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
-import AddWallet from '@react/components/wallet/components/wallet-add/AddWallet'
-import WalletActions from '@react/components/wallet/components/wallets-list/wallet-actions/WalletActions'
+import { t } from '@react/components/wallet/translations/translations'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonWalletAdd, ButtonListActions, ButtonBack } from '@react/components/wallet/components/form-elements/Buttons'
+import AddWallet from '@react/components/wallet/components/wallet-add/AddWallet'
+import WalletActions from '@react/components/wallet/components/wallets-list/wallet-actions/WalletActions'
 
 const WalletsList = () => {
     const {walletsList, walletPublicKey, setWalletByPublicKey, hideBalances, setShowComponent} = useWalletContext()
@@ -23,14 +24,14 @@ const WalletsList = () => {
 
     const tokensText = (walletData) => !hideBalances && walletData.tokens !== undefined ?
         walletData.tokens.length : '...'
-    
+
     if (showWalletAdd) {
         return <AddWallet backClick={() => setShowWalletAdd(false)} />
     }
     if (!!showWalletActions) {
         return <WalletActions walletData={showWalletActions} setShowWalletActions={setShowWalletActions} />
     }
-    
+
     const handleSetWallet = (walletData) => {
         setWalletByPublicKey(walletData.publicKey)
         setShowComponent(null)
@@ -38,14 +39,14 @@ const WalletsList = () => {
 
     return (
         <div>
-            <BlockTitle title={'Available wallets list'}/>
+            <BlockTitle title={t('availableWalletsList')}/>
             <div className="table-responsive mb-3">
                 <table className="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>Wallet</th>
+                            <th>{t('wallet')}</th>
                             <th className="text-end"><span className="fst-italic mx-1">$SEV</span></th>
-                            <th className="text-end"><span className="mx-1">Tokens</span></th>
+                            <th className="text-end"><span className="mx-1">{t('tokens')}</span></th>
                             <th style={{width: 1}}> </th>
                         </tr>
                     </thead>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import config from '@react/components/wallet/config.json'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import { currentConnectionKey } from '@react/components/wallet/scripts/utils'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonBack, ButtonSave } from '@react/components/wallet/components/form-elements/Buttons'
@@ -15,7 +16,7 @@ const SettingsConnection = () => {
         setConnectionName(value)
         setConnectionValue(value !== 'custom' ? config.CONNECTION_ENDPOINTS[value] : '')
     }
-    
+
     const handlerSaveConnection = () => {
         setConnection(connectionValue)
         setShowComponent({component: 'Settings'})
@@ -23,10 +24,10 @@ const SettingsConnection = () => {
 
     return (
         <div>
-            <BlockTitle title={'Wallet blockchain connection'} className={'mb-4'}/>
+            <BlockTitle title={t('walletBlockchainConnection')} className={'mb-4'}/>
             <div className={'d-grid gap-3'}>
                 <SelectConnection value={connectionName} onChange={value => handlerChangeConnectionType(value)}/>
-                <InputConnection 
+                <InputConnection
                     value={connectionValue}
                     disabled={connectionName !== 'custom'}
                     onChange={value => setConnectionValue(value)}

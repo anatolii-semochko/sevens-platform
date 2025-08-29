@@ -1,7 +1,10 @@
 {
+  "STORAGE_WALLET_KEY": "sevens_wallet",
+  "STORAGE_WALLET_STATE_KEY": "sevens_wallet_state",
+  "SEVENS_TOKEN_IDL_PATH": "/storage/files/sevens_token.json",
   "CONNECTION_ENDPOINTS": {
-    "main": "https://sevenscoin.net.x",
-    "dev": "https://dev.sevenscoin.net.x",
+    "main": "https://sevenscoin.net.test",
+    "dev": "https://dev.sevenscoin.net.test",
     "local": "http://localhost:8899",
     "custom": ""
   },

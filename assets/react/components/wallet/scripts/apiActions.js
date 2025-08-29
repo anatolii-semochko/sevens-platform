@@ -1,87 +1,81 @@
+import config from '@react/components/wallet/config.json'
 import CryptoJS from 'crypto-js'
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
+import { readEncryptedWallets, writeEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
+import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
 import * as anchor from '@coral-xyz/anchor'
 import nacl from 'tweetnacl'
+import { t } from '@react/components/wallet/translations/translations'
 import {
     getAssociatedTokenAddress,
     createAssociatedTokenAccountInstruction,
     createTransferInstruction,
     createBurnInstruction,
+    TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
-/// TODO - MOVE HERE
-import { getWalletTokens, getAnchorErrorText } from '@js/blockchain/sevens'
-import { getData } from '@js/blockchain/sevens-token'
-/// TODO - MOVE HERE
-import { EncryptedAddress, Password, Wallet, WalletToken } from '@react/components/wallet/scripts/Types'
-import { readStored, writeStored, readEncryptedWallets, writeEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 
 let providerUrl = ''
-export const setProviderUrl = (url: string) => providerUrl = url
+export const setProviderUrl = (url) => providerUrl = url
+
 export const connection = () => new Connection(providerUrl, 'confirmed')
 
-export const reloadAllWallets = async (password: string): Promise<EncryptedAddress[]> => {
+let sevensIdl = {}
+fetch(config.SEVENS_TOKEN_IDL_PATH)
+    .then(response => response.json())
+    .then(idl => sevensIdl = idl)
+    .catch(error => console.error(error))
+
+export const reloadAllWallets = async (password) => {
     const base = await readEncryptedWallets(password)
 
     const updated = await Promise.all(
-        base.map(async (w: EncryptedAddress) => {
+        base.map(async (w) => {
             try {
                 const publicKey = new PublicKey(w.publicKey).toBase58()
                 const balance = await getBalance(publicKey)
                 const tokens = await fetchWalletTokensWithData(publicKey)
                 return { ...w, balance, tokens }
-            } catch (err) {
-                console.error('Failed to reload wallet', w.publicKey, err)
-                return { ...w, balance: 0, tokens: [] }
+            } catch (error) {
+                throw new Error(getAnchorErrorText(error))
             }
         })
     )
 
     await writeEncryptedWallets(updated, password)
+
     return updated
 }
 
-export const getBalance = async (pubKeyString: string | PublicKey): Promise<number> => {
+export const getBalance = async (pubKeyString) => {
     const pubkey = typeof pubKeyString === 'string' ? new PublicKey(pubKeyString) : pubKeyString
     return connection().getBalance(pubkey)
 }
 
-export const fetchWalletTokensWithData = async (pubKeyStr: string): Promise<WalletToken[]> => {
+export const fetchWalletTokensWithData = async (pubKeyStr) => {
     const tokens = await getWalletTokens(pubKeyStr)
     for (const t of tokens) {
-        t.data = (await getData(t.mint)) ?? {}
+        t.data = (await getSevensTokenData(t.mint)) ?? {}
     }
+
     return tokens
 }
 
-
-export const addWalletByKey = async (
-    walletName: string,
-    kp: Keypair,
-    password: Password,
-    mnemonic?: string
-): Promise<EncryptedAddress> => {
-    const newAddr: EncryptedAddress = {
+export const addWalletByKey = async (walletName, kp, password, mnemonic) => {
+    const newAddr = {
         name: walletName,
         publicKey: kp.publicKey.toBase58(),
-        secret: CryptoJS.AES.encrypt(
-            JSON.stringify(Array.from(kp.secretKey)),
-            password
-        ).toString(),
-        mnemonicEnc: mnemonic
-            ? CryptoJS.AES.encrypt(mnemonic, password).toString()
-            : '',
+        secret: CryptoJS.AES.encrypt(JSON.stringify(Array.from(kp.secretKey)), password).toString(),
+        mnemonicEnc: mnemonic ? CryptoJS.AES.encrypt(mnemonic, password).toString() : '',
     }
 
     const passwordString = typeof password === 'string' ? password : password.toString()
     const existing = await readEncryptedWallets(passwordString)
     const arr = [...existing, newAddr]
     await writeEncryptedWallets(arr, passwordString)
+
     return newAddr
 }
 
-export const checkWalletByKey = async (
-    key: Keypair | PublicKey | string
-): Promise<{ found: boolean; balance: | null | number; tokens: number; }> => {
+export const checkWalletByKey = async (key) => {
     try {
         const pubkey = key instanceof Keypair
             ? key.publicKey
@@ -103,21 +97,15 @@ export const checkWalletByKey = async (
     }
 }
 
-export const removeWallet = async (publicKey: string, password: string): Promise<void> => {
+export const removeWallet = async (publicKey, password) => {
     const currentWalletsList = await readEncryptedWallets(password)
-    const newWalletsList = currentWalletsList.filter(
-        (wallet: EncryptedAddress) => wallet.publicKey !== publicKey
-    )
+    const newWalletsList = currentWalletsList.filter((wallet) => wallet.publicKey !== publicKey)
     await writeEncryptedWallets(newWalletsList, password)
 }
 
-export const renameWallet = async (
-    publicKey: string,
-    walletName: string,
-    password: string
-): Promise<void> => {
+export const renameWallet = async (publicKey, walletName, password) => {
     const walletsList = await readEncryptedWallets(password)
-    walletsList.map((wallet: EncryptedAddress) => {
+    walletsList.map((wallet) => {
         if (wallet.publicKey === publicKey) {
             wallet.name = walletName
         }
@@ -125,32 +113,23 @@ export const renameWallet = async (
     await writeEncryptedWallets(walletsList, password)
 }
 
-export const getKeypair = (
-    walletData: EncryptedAddress,
-    password: Password,
-): Keypair | null => {
-    if (!walletData?.secret || !password) {
-        console.warn('Missing address or password')
-        return null
-    }
-
+export const getKeypair = (walletData, password) => {
     try {
         const decryptedBytes = CryptoJS.AES.decrypt(walletData.secret, password)
         const decryptedUtf8 = decryptedBytes.toString(CryptoJS.enc.Utf8)
         if (!decryptedUtf8) {
-            console.warn('Empty or invalid decrypted data')
-            return null
+            new Error('Empty or invalid decrypted data')
         }
 
         const secretArray = JSON.parse(decryptedUtf8)
+
         return Keypair.fromSecretKey(Uint8Array.from(secretArray))
-    } catch (err) {
-        console.error('Decryption failed', err)
-        return null
+    } catch (error) {
+        throw new Error(getAnchorErrorText(error))
     }
 }
 
-export const getWalletFromKeypair = (kp: Keypair): Wallet => {
+export const getWalletFromKeypair = (kp) => {
     let connected = true
     let connecting = false
 
@@ -162,28 +141,22 @@ export const getWalletFromKeypair = (kp: Keypair): Wallet => {
         disconnect: async () => {
             connected = false
         },
-        signTransaction: async (tx: Transaction) => {
+        signTransaction: async (tx) => {
             tx.sign(kp)
             return tx
         },
-        signAllTransactions: async (txs: Transaction[]) => {
+        signAllTransactions: async (txs) => {
             txs.forEach((tx) => tx.sign(kp))
             return txs
         },
-        signMessage: async (message: Uint8Array | string) => {
-            const msg =
-                typeof message === 'string'
-                    ? new TextEncoder().encode(message)
-                    : message
+        signMessage: async (message) => {
+            const msg = typeof message === 'string' ? new TextEncoder().encode(message) : message
             return nacl.sign.detached(msg, kp.secretKey)
         },
     }
 }
 
-export const getWallet = (
-    walletData: EncryptedAddress,
-    password: Password,
-): Wallet | null => {
+export const getWallet = (walletData, password) => {
     const kp = getKeypair(walletData, password)
     if (!kp) {
         throw new Error('Invalid wallet')
@@ -192,25 +165,7 @@ export const getWallet = (
     return getWalletFromKeypair(kp)
 }
 
-export const getProvider = (
-    walletData: EncryptedAddress,
-    password: Password,
-): anchor.AnchorProvider | null => {
-    const wallet = getWallet(walletData, password)
-    if (!wallet) return null
-
-    return new anchor.AnchorProvider(
-        connection(),
-        wallet as unknown as anchor.Wallet,
-        { commitment: 'confirmed' },
-    )
-}
-
-export const sendCoins = async (
-    toPublicKey: string,
-    amount: number,
-    wallet: Wallet,
-): Promise<string | void> => {
+export const sendCoins = async (toPublicKey, amount, wallet) => {
     try {
         const tx = new Transaction().add(
             SystemProgram.transfer({
@@ -233,11 +188,7 @@ export const sendCoins = async (
     }
 }
 
-export const getEstimateCoinsTransferFee = async (
-    toPublicKey: string,
-    amount: number,
-    wallet: Wallet,
-): Promise<number> => {
+export const getEstimateCoinsTransferFee = async (toPublicKey, amount, wallet) => {
     try {
         const tx = new Transaction().add(
             SystemProgram.transfer({
@@ -263,12 +214,70 @@ export const getEstimateCoinsTransferFee = async (
     }
 }
 
-export const transferToken = async (
-    tokenPublicKey: string,
-    toPublicKey: string,
-    wallet: Wallet,
-    amount: number | bigint = 1,
-): Promise<string | void> => {
+const getWalletTokens = async (walletPublicKey) => {
+    try {
+        const tokenAccounts = await connection().getParsedTokenAccountsByOwner(
+            new PublicKey(walletPublicKey),
+            {programId: TOKEN_PROGRAM_ID},
+        )
+
+        const tokens = []
+        for (const accountInfo of tokenAccounts.value) {
+            const accountData = accountInfo.account.data.parsed.info
+            const amount = parseInt(accountData.tokenAmount.amount, 10)
+            const decimals = parseInt(accountData.tokenAmount.decimals, 10)
+            if (amount === 1 && decimals === 0) {
+                tokens.push({ mint: accountData.mint })
+            }
+        }
+
+        return tokens
+    } catch (error) {
+        throw new Error(getAnchorErrorText(error))
+    }
+}
+
+const getSevensToken = (publicKey) => {
+    const program = new anchor.Program(
+        sevensIdl,
+        sevensIdl.metadata.address,
+        new anchor.AnchorProvider(connection(), dummyWallet, { commitment: 'confirmed' })
+    )
+    return {
+        sevensIdl,
+        program,
+        metadataPda: publicKey ? getPda(program.programId, 'metadata', publicKey) : null,
+        salePda: publicKey ? getPda(program.programId, 'sale', publicKey) : null,
+    }
+}
+
+const getSevensTokenData = async (tokenPublicKey) => {
+    try {
+        const publicKey = new PublicKey(tokenPublicKey)
+        const {
+            program,
+            metadataPda,
+            salePda,
+        } = getSevensToken(publicKey)
+
+        const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
+        const sale = await program.account.tokenSaleData.fetch(salePda)
+
+        sale.priceLamports = sale.price.toNumber()
+        sale.priceSevens = sale.price.toNumber() / LAMPORTS_PER_SOL
+
+        return {
+            tokenPublicKey,
+            mintingTime: new Date(metadata.timestamp.toNumber() * 1000).toISOString(),
+            metadata,
+            sale,
+        }
+    } catch (error) {
+        throw new Error(getAnchorErrorText(error))
+    }
+}
+
+export const transferToken = async (tokenPublicKey, toPublicKey, wallet, amount = 1) => {
     try {
         const mint = new PublicKey(tokenPublicKey)
         const fromOwner = wallet.publicKey
@@ -277,7 +286,7 @@ export const transferToken = async (
         const fromTokenAccount = await getAssociatedTokenAddress(mint, fromOwner)
         const toTokenAccount = await getAssociatedTokenAddress(mint, toOwner)
 
-        const ixs: any[] = []
+        const ixs = []
         const toAccInfo = await connection().getAccountInfo(toTokenAccount)
         if (!toAccInfo) {
             ixs.push(createAssociatedTokenAccountInstruction(fromOwner, toTokenAccount, toOwner, mint))
@@ -306,11 +315,7 @@ export const transferToken = async (
     }
 }
 
-export const burnToken = async (
-    tokenPublicKey: string,
-    wallet: Wallet,
-    amount: number | bigint = 1,
-): Promise<string | void> => {
+export const burnToken = async (tokenPublicKey, wallet, amount = 1) => {
     try {
         const mint = new PublicKey(tokenPublicKey)
         const owner = wallet.publicKey
@@ -335,4 +340,27 @@ export const burnToken = async (
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
     }
+}
+
+const dummyWallet = {
+    publicKey: PublicKey.default,
+    signAllTransactions: async (txs) => txs,
+    signTransaction: async (tx) => tx,
+}
+
+const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSync(
+    [Buffer.from(pdaName), publicKey.toBuffer()],
+    programId,
+)[0]
+
+const getAnchorErrorText = (error) => {
+    let message = error?.message || t('unknownError')
+    if (error?.error?.errorMessage) {
+        message = error.error.errorMessage
+    }
+    if (error?.error?.errorCode?.number) {
+        message = `Anchor error ${error.error.errorCode.number}: ${message}`
+    }
+
+    return message
 }

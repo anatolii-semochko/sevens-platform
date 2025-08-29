@@ -15,16 +15,14 @@ const Main = ({walletData}) => {
     return (
         <div className="d-grid gap-3 mb-4">
             <WalletDetails walletData={walletData}/>
+            <ButtonReloadWallet />
             <ButtonReceiveCrypto />
-            {!!walletData?.balance && <ButtonSendCoins onClick={() => setShowComponent({component: 'SendCoins'})}/>}
-            <div className="d-grid gap-2 d-md-flex">
-                <ButtonBuyCoins />
+            <ButtonBuyCoins />
+            {!!walletData?.balance && <>
+                <ButtonSendCoins onClick={() => setShowComponent({component: 'SendCoins'})}/>
                 <ButtonSellCoins />
-            </div>
-            <div className="d-grid gap-2 d-md-flex">
-                <ButtonReloadWallet />
-                <ButtonSettings onClick={() => setShowComponent({component: 'Settings'})} className={'w-50'}/>
-            </div>
+            </>}
+            <ButtonSettings onClick={() => setShowComponent({component: 'Settings'})}/>
         </div>
     )
 }

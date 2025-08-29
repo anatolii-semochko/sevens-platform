@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { getAllSecrets } from '@react/components/wallet/scripts/crypto'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
+import { getAllSecrets } from '@react/components/wallet/scripts/crypto'
 import { BlockTitle, SecretsView } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonBack, ButtonConfirm } from '@react/components/wallet/components/form-elements/Buttons'
 import { InputPassword } from '@react/components/wallet/components/form-elements/Inputs'
@@ -12,13 +13,12 @@ const ShowPrivateKey = ({walletData, setShowWalletPrivateKey}) => {
     const [errorMessage, setErrorMessage] = useState(null)
     const { password } = useWalletContext()
 
-    const attention = 'Your private key and recovery phrase are highly sensitive information. ' +
-        'Anyone who has them can access and spend your funds. Keep them offline and never share with anyone.'
+    const attention = t('privateKeyAttention')
 
     const handleShowSecrets = async () => {
         try {
             if (secretsPassword !== password) {
-                return setErrorMessage('Invalid password')
+                return setErrorMessage(t('invalidPassword'))
             }
             const secrets = await getAllSecrets(walletData, secretsPassword)
             setSecrets(secrets)
@@ -29,7 +29,7 @@ const ShowPrivateKey = ({walletData, setShowWalletPrivateKey}) => {
 
     return (
         <div>
-            <BlockTitle title={`Show wallet private key`} className={'mb-4'}/>
+            <BlockTitle title={t('showWalletPrivateKey')} className={'mb-4'}/>
             <div className={'d-grid gap-3'}>
                 <ErrorMessageBlock message={attention} className="text-danger mb-0"/>
                 {secrets ? (
@@ -37,7 +37,7 @@ const ShowPrivateKey = ({walletData, setShowWalletPrivateKey}) => {
                 ) : (
                     <>
                         <InputPassword
-                            placeholder={'Wallet password'}
+                            placeholder={t('walletPassword')}
                             password={secretsPassword}
                             setPassword={setSecretsPassword}
                             setErrorMessage={setErrorMessage}

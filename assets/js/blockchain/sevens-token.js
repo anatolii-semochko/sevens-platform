@@ -10,7 +10,7 @@ const dummyWallet = {
     publicKey: PublicKey.default,
     signAllTransactions: async (txs) => txs,
     signTransaction: async (tx) => tx,
-};
+}
 
 const provider = new anchor.AnchorProvider(connection, dummyWallet, {});
 

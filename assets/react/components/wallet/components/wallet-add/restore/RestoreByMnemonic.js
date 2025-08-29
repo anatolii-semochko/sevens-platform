@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as bip39 from 'bip39'
+import { t } from '@react/components/wallet/translations/translations'
 import {
     getKeyFromMnemonic, ENGLISH_WORD_LIST, WORDS_TO_BITS, BIP_LENGTHS, BIP_DEFAULT,
 } from '@react/components/wallet/scripts/crypto'
@@ -132,7 +133,7 @@ const RestoreByMnemonic = ({setKp, setMnemonic}) => {
             return next
         })
     }
-    
+
     const handlePhraseLengthChange = (bits) => {
         setMnemonicBits(bits)
         setWords([])
@@ -174,7 +175,7 @@ const RestoreByMnemonic = ({setKp, setMnemonic}) => {
                     </div>
                 ))}
             </div>
-            {isIncorrect && <ErrorMessageBlock message={'Mnemonic phrase is incorrect'} className={'mb-0'}/>}
+            {isIncorrect && <ErrorMessageBlock message={t('mnemonicPhraseIncorrect')} className={'mb-0'}/>}
             <ErrorMessageBlock message={errorMessage} className={'mb-0'} />
             {isComplete && <ButtonContinue onClick={() => handleCheckWallet()} />}
         </>

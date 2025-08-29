@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { t } from '@react/components/wallet/translations/translations'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonBack, ButtonRepeat } from '@react/components/wallet/components/form-elements/Buttons'
 import { ErrorMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
@@ -46,19 +47,19 @@ const ConfirmWallet = ({ mnemonic, setMnemonicSaved, handleMnemonicConfirmed }) 
             if (isCorrect) {
                 handleMnemonicConfirmed(true)
             } else {
-                setError('Wallet seed confirm error')
+                setError(t('walletSeedConfirmError'))
             }
         }
     }, [picked, words, handleMnemonicConfirmed])
 
     return (
         <div>
-            <BlockTitle title={'Confirm seed phrase'} />
+            <BlockTitle title={t('confirmSeedPhrase')} />
             <div className="d-grid gap-2">
                 <div className="d-grid gap-2">
                     {picked.length === 0 ? (
                         <div className="text-center small d-md-block h6 my-2 mb-0">
-                            Tap the words below in the correct order
+                            {t('confirmSeedInstruction')}
                             <hr className="my-2"/>
                         </div>
                     ) : (
@@ -83,7 +84,7 @@ const ConfirmWallet = ({ mnemonic, setMnemonicSaved, handleMnemonicConfirmed }) 
                 <ErrorMessageBlock message={error} className="mb-2"/>
                 <div className="d-grid gap-3">
                     <ButtonRepeat onClick={reset} />
-                    <ButtonBack label={'Back'} onClick={() => setMnemonicSaved(false)} />
+                    <ButtonBack onClick={() => setMnemonicSaved(false)} />
                 </div>
             </div>
         </div>

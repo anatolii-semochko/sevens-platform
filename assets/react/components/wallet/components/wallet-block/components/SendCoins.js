@@ -1,22 +1,21 @@
 import React, {useState} from 'react'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonBack, ButtonSendCoins } from '@react/components/wallet/components/form-elements/Buttons'
 import { MessagesBlock } from '@react/components/wallet/components/form-elements/Messages'
-import {
-    reloadAllWallets, getWallet, sendCoins, getEstimateCoinsTransferFee,
-} from '@react/components/wallet/scripts/apiActions'
+import { getWallet, sendCoins, getEstimateCoinsTransferFee } from '@react/components/wallet/scripts/apiActions'
 import { isValidWalletAddress } from '@react/components/wallet/scripts/utils'
 
 const SendCoins = () => {
+    const {walletData, walletReload, password} = useWalletContext()
     const [errorMessage, setErrorMessage] = useState(null)
     const [confirmMessage, setConfirmMessage] = useState(null)
     const [successMessage, setSuccessMessage] = useState(null)
     const [destinationAddress, setDestinationAddress] = useState('')
     const [coinsToSend, setCoinsToSend] = useState(0)
     const [sent, setSent] = useState(false)
-    const { setWalletsList, walletData, password } = useWalletContext()
 
     const handlerSendCoins = async () => {
         try {
@@ -26,17 +25,20 @@ const SendCoins = () => {
             await checkSendCoins(wallet)
             if (!confirmMessage) {
                 return setConfirmMessage(
-                    `The ${coinsToSend} coins will be sent to wallet ${destinationAddress}.\nContinue?`
+                    t('coinsTransferWarning')
+                        .replace('{amount}', coinsToSend)
+                        .replace('{address}', destinationAddress)
                 )
             }
             setConfirmMessage(false)
             const transaction = await sendCoins(destinationAddress, coinsToSend * LAMPORTS_PER_SOL, wallet)
-            const updated = await reloadAllWallets(password)
             setSent(true)
-            setWalletsList(updated)
+            await walletReload()
             setSuccessMessage(
-                `${coinsToSend} ${coinsToSend === 1 ? 'coin' : 'coins'} ` +
-                 `successfully sent to ${destinationAddress}.\n Transaction ${transaction}.`
+                t('coinsTransferSuccess')
+                    .replace('{amount}', coinsToSend)
+                    .replace('{address}', destinationAddress)
+                    .replace('{tx}', transaction)
             )
         } catch (error) {
             setErrorMessage(error.message)
@@ -45,13 +47,13 @@ const SendCoins = () => {
 
     const checkForm = () => {
         if (!destinationAddress) {
-            throw new Error ('No destination address')
+            throw new Error (t('noDestinationAddress'))
         }
         if (!isValidWalletAddress(destinationAddress)) {
-            throw new Error ('Invalid destination address')
+            throw new Error (t('invalidDestinationAddress'))
         }
         if (!coinsToSend) {
-            throw new Error ('No sum filled')
+            throw new Error (t('noSumFilled'))
         }
     }
 
@@ -59,21 +61,21 @@ const SendCoins = () => {
         const toSent =  coinsToSend * LAMPORTS_PER_SOL
         const available = walletData.balance
         if (available < toSent) {
-            throw new Error('Insufficient balance')
+            throw new Error(t('insufficientBalance'))
         }
         const fee = await getEstimateCoinsTransferFee(destinationAddress, coinsToSend, wallet)
         if (available < (toSent + fee)) {
-            throw new Error('Insufficient balance')
+            throw new Error(t('insufficientBalance'))
         }
     }
 
     return (
         <div>
-            <BlockTitle title={'Send coins to another wallet'} className={'mb-4'}/>
+            <BlockTitle title={t('sendCoinsToAnotherWallet')} className={'mb-4'}/>
             <div className="d-grid gap-3">
                 <input
                     className="form-control"
-                    placeholder="New wallet address"
+                    placeholder={t('newWalletAddress')}
                     value={destinationAddress}
                     disabled={sent}
                     onChange={(e) => {
@@ -85,7 +87,7 @@ const SendCoins = () => {
                 <input
                     type="number"
                     className="form-control"
-                    placeholder="New wallet address"
+                    placeholder={t('coinsToSend')}
                     value={coinsToSend}
                     disabled={sent}
                     onChange={(e) => {
@@ -96,7 +98,7 @@ const SendCoins = () => {
                 />
                 <MessagesBlock error={errorMessage} info={confirmMessage} success={successMessage} className="mb-0" />
                 {!sent && <ButtonSendCoins onClick={() => handlerSendCoins()} />}
-                <ButtonBack label={!sent && 'Cancel'} />
+                <ButtonBack label={!sent && t('cancel')} />
             </div>
         </div>
     )

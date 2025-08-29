@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react'
+import { reloadAllWallets, setProviderUrl } from '@react/components/wallet/scripts/apiActions'
 import { getLocalStorageProperty, setLocalStorageProperty } from '@react/components/wallet/scripts/storageActions'
-import {reloadAllWallets, setProviderUrl} from "@react/components/wallet/scripts/apiActions";
+import { setTranslations } from '@react/components/wallet/translations/translations'
 
 const WalletContext = createContext(null)
 
@@ -10,7 +11,7 @@ const WalletContextProvider = ({ children }) => {
     const [walletsList, setWalletsList] = useState(null)
     const [walletData, setWalletData] = useState({})
     const [rateUsd, setRateUsd] = useState(0.2)
-    
+
     const [walletPublicKey, setWalletPublicKey] = useState(getLocalStorageProperty('walletPublicKey') || null)
     const setWalletByPublicKey = (publicKey) => {
         setLocalStorageProperty('walletPublicKey', publicKey)
@@ -27,6 +28,7 @@ const WalletContextProvider = ({ children }) => {
     const setLanguage = (value) => {
         setLocalStorageProperty('language', value)
         setLanguageState(value)
+        setTranslations(value)
     }
 
     const [hideBalances, setHideBalancesState] = useState(getLocalStorageProperty('hideBalances'))
@@ -34,19 +36,21 @@ const WalletContextProvider = ({ children }) => {
         setLocalStorageProperty('hideBalances', value)
         setHideBalancesState(value)
     }
-    
-    const walletReload = async () => { // TODO - move all wallet reloads here
+
+    const walletReload = async () => {
         const updated = await reloadAllWallets(password)
         setWalletsList(updated)
     }
+
+    useEffect(() => {setTranslations(language)}, [])
 
     useEffect(() => {
         if (password) {
             setProviderUrl(walletConnection)
             walletReload().catch()
         }
-    },[password, walletConnection])
-    
+    },[setWalletsList, password, walletConnection])
+
     useEffect(() => {
         if (!walletsList || walletsList.length === 0) {
             setWalletData({})
@@ -57,7 +61,7 @@ const WalletContextProvider = ({ children }) => {
         if (walletPublicKey) {
             wallet = walletsList.find(w => w.publicKey === walletPublicKey)
         }
-        
+
         if (!wallet) {
             const sortedWallets = [...walletsList].sort((a, b) => a.name.localeCompare(b.name))
             wallet = sortedWallets[0]
@@ -71,7 +75,7 @@ const WalletContextProvider = ({ children }) => {
         <WalletContext.Provider
             value={{
                 showComponent, setShowComponent,
-                walletData, walletsList, setWalletsList,
+                walletData, walletsList, setWalletsList, walletReload,
                 walletPublicKey, setWalletByPublicKey,
                 walletConnection, setConnection,
                 hideBalances, setHideBalances,

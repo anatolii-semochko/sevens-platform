@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
+import { t } from '@react/components/wallet/translations/translations'
 import { clearWallet } from '@react/components/wallet/scripts/storageActions'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonBack, ButtonClearWallet } from '@react/components/wallet/components/form-elements/Buttons'
@@ -21,16 +22,14 @@ const WalletClear = ({setShowWalletClear}) => {
 
     return (
         <div>
-            <BlockTitle title={`Clear wallet all data`} className={'mb-4'}/>
+            <BlockTitle title={t('clearWalletData')} className={'mb-4'}/>
             <div className="d-grid gap-3">
                 <InfoMessageBlock
-                    // TODO - CRATE CORRECT MESSAGE !!!
-                    message={'This operation clears all wallet data! Be sure you have saved all wallets secrets!'}
+                    message={t('clearWalletWarning')}
                     className={'text-danger mb-0'}
                 />
                 {confirm && <InfoMessageBlock
-                    // TODO - CRATE CORRECT MESSAGE !!!
-                    message={'Are you sure to clear the wallet?'}
+                    message={t('confirmClearWallet')}
                     className={'text-danger mb-0'}
                 />}
                 <ButtonClearWallet onClick={() => handleWalletClear()} />
