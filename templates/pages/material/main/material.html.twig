@@ -26,17 +26,21 @@
     </div>
 
     <!-- MORE FROM THIS AUTHOR (HORIZONTAL STRIP)-->
+    {% if data.materialsByAuthor|length > 0 %}
     <section class="mp-more-section mb-5">
-        <h2 class="mp-more-title">@allexy.len</h2>
+        <h2 class="mp-more-title">@{{ data.material.getAuthor().getFirstName() }} {{ data.material.getAuthor().getLastName() }}</h2>
         {% include 'gallery/single-row-gallery.html.twig' with {
             title: 'More from this author'|trans,
-            materials: data.materialsHighestRated,
+            materials: data.materialsByAuthor,
         } %}
     </section>
+    {% endif %}
 
+    {% if data.materialsHighestRated|length > 0 %}
     {% include 'gallery/single-row-gallery.html.twig' with {
         title: 'You also might like'|trans,
         materials: data.materialsHighestRated,
     } %}
+    {% endif %}
 
 </main>

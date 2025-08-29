@@ -41,9 +41,11 @@
     </div>
 </div>
 
+{% if data.material.hasBlockchainProof() %}
 <div class="mp-proof">
     <i class="bi bi-patch-check"></i>
     <span>Authenticity and Blockchain Proof</span>
 </div>
+{% endif %}
 
 {% include 'pages/material/main/info/buy.html.twig' %}

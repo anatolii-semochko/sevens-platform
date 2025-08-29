@@ -1,3 +1,6 @@
+{% if data.material.getPrice() %}
 <div class="mp-buy">
     <a href="#" class="mp-buy-btn">Buy Now</a>
+    <div class="mp-price">{{ data.material.getPrice()|number_format(8) }} SEVENS</div>
 </div>
+{% endif %}

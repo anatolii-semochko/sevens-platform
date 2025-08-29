@@ -85,7 +85,7 @@ class AppFixtures extends Fixture
 
         // Load Materials with existing data
         $materialsData = [
-            ['08dac8bd058be22da5d883d495892f85', 'Creative Workspace', 'Laptop and teamwork in focus.', 'Gallery-12.jpg'],
+            ['08dac8bd058be22da5d883d495892f85', 'Creative Workspace', 'Laptop and teamwork in focus.', 'Gallery-12.jpg', ['Gallery-25.jpg', 'Gallery-20.jpg', 'Gallery-24.jpg']],
             ['0cea6d9cb7c8c2dfb62fa4cd51d70b72', 'UX Flowchart', 'Planning user journey on paper.', 'Gallery-25.jpg'],
             ['1508a63027051490840c0fba66a4390d', 'Design Meeting', 'Colleagues discussing ideas around a screen.', 'Gallery-20.jpg'],
             ['1b54f55b3ebf7c8bd5d0c7d1c8b91881', 'Design Meeting', 'Colleagues discussing ideas around a screen.', 'Gallery-14.jpg'],
@@ -126,6 +126,9 @@ class AppFixtures extends Fixture
             $material->setAuthor($user);
             $material->setCreatedAt(new \DateTime());
             $material->setContractAddress('0x' . bin2hex(random_bytes(20)));
+            if (isset($materialData[4])) {
+                $material->setGalleryImages($materialData[4]);
+            }
             $manager->persist($material);
         }
 

@@ -3,12 +3,20 @@
         <div class="mp-thumb">
             <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
         </div>
-        <div class="mp-thumb">
-            <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
-        </div>
-        <div class="mp-thumb">
-            <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
-        </div>
+        {% if data.material.getGalleryImages() %}
+            {% for galleryImage in data.material.getGalleryImages() %}
+                <div class="mp-thumb">
+                    <img src="{{ global.path.materials }}/{{ galleryImage }}" alt="{{ data.material.getTitle }}" />
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="mp-thumb">
+                <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
+            </div>
+            <div class="mp-thumb">
+                <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
+            </div>
+        {% endif %}
     </div>
     <div class="mp-carousel">
         <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />

@@ -39,6 +39,22 @@ class Material
     #[Groups(['material:read'])]
     private ?string $contractAddress = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    #[Groups(['material:read'])]
+    private ?array $galleryImages = [];
+
+    #[ORM\Column(type: 'decimal', precision: 20, scale: 8, nullable: true)]
+    #[Groups(['material:read'])]
+    private ?string $price = null;
+
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    #[Groups(['material:read'])]
+    private int $viewCount = 0;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(['material:read'])]
+    private bool $hasBlockchainProof = false;
+
     public function getToken(): ?string
     {
         return $this->token;
@@ -107,5 +123,50 @@ class Material
     public function setContractAddress(?string $contractAddress): void
     {
         $this->contractAddress = $contractAddress;
+    }
+
+    public function getGalleryImages(): ?array
+    {
+        return $this->galleryImages;
+    }
+
+    public function setGalleryImages(?array $galleryImages): void
+    {
+        $this->galleryImages = $galleryImages;
+    }
+
+    public function getPrice(): ?string
+    {
+        return $this->price;
+    }
+
+    public function setPrice(?string $price): void
+    {
+        $this->price = $price;
+    }
+
+    public function getViewCount(): int
+    {
+        return $this->viewCount;
+    }
+
+    public function setViewCount(int $viewCount): void
+    {
+        $this->viewCount = $viewCount;
+    }
+
+    public function incrementViewCount(): void
+    {
+        $this->viewCount++;
+    }
+
+    public function hasBlockchainProof(): bool
+    {
+        return $this->hasBlockchainProof;
+    }
+
+    public function setHasBlockchainProof(bool $hasBlockchainProof): void
+    {
+        $this->hasBlockchainProof = $hasBlockchainProof;
     }
 }
