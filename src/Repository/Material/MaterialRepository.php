@@ -24,6 +24,7 @@ class MaterialRepository extends ServiceEntityRepository
         return $material;
     }
 
+
     public function create(): Material
     {
         return new Material();

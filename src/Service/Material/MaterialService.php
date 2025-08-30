@@ -31,8 +31,66 @@ readonly class MaterialService
         $this->em->flush();
     }
 
-    public function getHighestRated(int $limit = 10): array
+    public function getHighestRated(int $limit = 10, ?string $excludeToken = null): array
     {
-        return $this->repository->findBy([], null, $limit);
+        $qb = $this->repository->createQueryBuilder('m')
+            ->where('m.viewCount > 0')
+            ->orderBy('m.viewCount', 'DESC');
+            
+        if ($excludeToken) {
+            $qb->andWhere('m.token != :excludeToken')
+               ->setParameter('excludeToken', $excludeToken);
+        }
+        
+        return $qb->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function save(Material $material): void
+    {
+        $this->em->persist($material);
+        $this->em->flush();
+    }
+
+    public function getByAuthor(Material $material, int $limit = 10): array
+    {
+        return $this->repository->createQueryBuilder('m')
+            ->where('m.author = :author')
+            ->andWhere('m.token != :currentToken')
+            ->setParameter('author', $material->getAuthor())
+            ->setParameter('currentToken', $material->getToken())
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getNewest(int $limit = 50): array
+    {
+        return $this->repository->createQueryBuilder('m')
+            ->orderBy('m.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getByPriceLowToHigh(int $limit = 50): array
+    {
+        return $this->repository->createQueryBuilder('m')
+            ->where('m.price IS NOT NULL')
+            ->orderBy('m.price', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getByPriceHighToLow(int $limit = 50): array
+    {
+        return $this->repository->createQueryBuilder('m')
+            ->where('m.price IS NOT NULL')
+            ->orderBy('m.price', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 }

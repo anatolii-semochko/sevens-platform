@@ -12,28 +12,7 @@
             </a>
         </li>
 
-        <li class="mb-3">
-            <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
-                <i class="bi bi-funnel"></i><strong class="text-uppercase text-decoration-none">Filter</strong>
-            </a>
-            <ul class="list-unstyled ms-4 mt-2">
-                <li><a href="#" class="d-block py-1 text-decoration-none">New Products</a></li>
-                <li><a href="#" class="d-block py-1 text-decoration-none">Popular Products</a></li>
-                <li><a href="#" class="d-block py-1 text-decoration-none">New Auction</a></li>
-                <li><a href="#" class="d-block py-1 text-decoration-none">Popular Auction</a></li>
-            </ul>
-        </li>
-
-        <li class="mb-3">
-            <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
-                <i class="bi bi-cash"></i><strong class="text-uppercase text-decoration-none">Price</strong>
-            </a>
-            <ul class="list-inline ms-4 mt-2">
-                <li class="list-inline-item"><a href="#" class="text-decoration-none">Low</a></li>
-                <li class="list-inline-item"><a href="#" class="text-decoration-none">High</a></li>
-                <li class="list-inline-item"><a href="#" class="text-decoration-none">All</a></li>
-            </ul>
-        </li>
+        {% include 'pages/material/filter/material-filter.html.twig' %}
 
         <li class="mb-3">
             <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
