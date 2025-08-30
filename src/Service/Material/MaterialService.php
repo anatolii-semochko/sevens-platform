@@ -64,4 +64,33 @@ readonly class MaterialService
             ->getQuery()
             ->getResult();
     }
+
+    public function getNewest(int $limit = 50): array
+    {
+        return $this->repository->createQueryBuilder('m')
+            ->orderBy('m.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getByPriceLowToHigh(int $limit = 50): array
+    {
+        return $this->repository->createQueryBuilder('m')
+            ->where('m.price IS NOT NULL')
+            ->orderBy('m.price', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getByPriceHighToLow(int $limit = 50): array
+    {
+        return $this->repository->createQueryBuilder('m')
+            ->where('m.price IS NOT NULL')
+            ->orderBy('m.price', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

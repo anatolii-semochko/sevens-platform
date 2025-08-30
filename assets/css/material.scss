@@ -127,6 +127,23 @@ MATERIAL INDIVIDUAL PAGE
   background:#fff;
   font-size:.95rem;
 }
+.mp-vote-btn{
+  cursor:pointer;
+  transition: all 0.2s ease;
+}
+.mp-vote-btn:hover{
+  background:#f8fafc;
+  border-color:var(--mp-blue);
+}
+.mp-vote-btn:disabled{
+  opacity:0.6;
+  cursor:not-allowed;
+}
+.mp-vote-active{
+  background:var(--mp-blue) !important;
+  color:#fff !important;
+  border-color:var(--mp-blue) !important;
+}
 .mp-reactions{ gap:.5rem; }
 .mp-left .mp-views{ margin-left:0; }
 

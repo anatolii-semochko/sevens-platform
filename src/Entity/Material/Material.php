@@ -5,6 +5,9 @@ namespace App\Entity\Material;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Entity\User;
+use App\Entity\Material\MaterialVote;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: \App\Repository\Material\MaterialRepository::class)]
 #[ORM\Table(name: 'materials')]
@@ -54,6 +57,14 @@ class Material
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     #[Groups(['material:read'])]
     private bool $hasBlockchainProof = false;
+
+    #[ORM\OneToMany(targetEntity: MaterialVote::class, mappedBy: 'materialToken', cascade: ['persist', 'remove'])]
+    private Collection $votes;
+
+    public function __construct()
+    {
+        $this->votes = new ArrayCollection();
+    }
 
     public function getToken(): ?string
     {
@@ -168,5 +179,20 @@ class Material
     public function setHasBlockchainProof(bool $hasBlockchainProof): void
     {
         $this->hasBlockchainProof = $hasBlockchainProof;
+    }
+
+    public function getVotes(): Collection
+    {
+        return $this->votes;
+    }
+
+    public function getLikeCount(): int
+    {
+        return 0; // Will be implemented via repository service
+    }
+
+    public function getDislikeCount(): int
+    {
+        return 0; // Will be implemented via repository service
     }
 }

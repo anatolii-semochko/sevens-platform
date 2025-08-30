@@ -1,0 +1,20 @@
+<li class="mb-3 filter">
+    <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
+        <i class="bi bi-funnel"></i><strong class="text-uppercase text-decoration-none">Filter</strong>
+    </a>
+    <ul class="list-unstyled ms-4 mt-2">
+        <li><a href="{{ path('home_page', {'_locale': app.request.locale}) }}" class="d-block py-1 text-decoration-none">Default</a></li>
+        <li><a href="{{ path('home_page', {'_locale': app.request.locale, 'sort': 'new'}) }}" class="d-block py-1 text-decoration-none">New Products</a></li>
+        <li><a href="{{ path('home_page', {'_locale': app.request.locale, 'sort': 'popular'}) }}" class="d-block py-1 text-decoration-none">Popular Products</a></li>
+    </ul>
+</li>
+
+<li class="mb-3">
+    <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
+        <i class="bi bi-cash"></i><strong class="text-uppercase text-decoration-none">Price</strong>
+    </a>
+    <ul class="list-inline ms-4 mt-2">
+        <li class="list-inline-item"><a href="{{ path('home_page', {'_locale': app.request.locale, 'sort': 'price-low'}) }}" class="text-decoration-none">Low</a></li>
+        <li class="list-inline-item"><a href="{{ path('home_page', {'_locale': app.request.locale, 'sort': 'price-high'}) }}" class="text-decoration-none">High</a></li>
+    </ul>
+</li>

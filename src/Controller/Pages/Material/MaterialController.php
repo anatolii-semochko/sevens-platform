@@ -5,6 +5,7 @@ namespace App\Controller\Pages\Material;
 use App\Controller\BaseController;
 use App\Exception\NotFoundException;
 use App\Repository\Material\MaterialRepository;
+use App\Repository\Material\MaterialVoteRepository;
 use App\Service\Material\MaterialService;
 use App\Service\PageContent\PageService;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,6 +18,7 @@ class MaterialController extends BaseController
         private readonly PageService $pageService,
         private readonly MaterialService $materialService,
         private readonly MaterialRepository $materialRepository,
+        private readonly MaterialVoteRepository $voteRepository,
     ) {}
 
     #[Route('/{token}', name: 'page', methods: ['GET'])]
@@ -44,6 +46,9 @@ class MaterialController extends BaseController
                 'material' => $material,
                 'materialsHighestRated' => $this->materialService->getHighestRated(50, $material->getToken()),
                 'materialsByAuthor' => $this->materialService->getByAuthor($material, 10),
+                'likeCount' => $this->voteRepository->countLikes($material->getToken()),
+                'dislikeCount' => $this->voteRepository->countDislikes($material->getToken()),
+                'isLoggedIn' => $this->getUser() !== null,
             ],
         ]);
     }
