@@ -1,12 +1,7 @@
-api_controllers:
-    resource: ../src/Controller/Api/
-    type: attribute
-
 controllers:
     resource: ../src/Controller/
     type: attribute
     prefix: /{_locale}
-    exclude: ../src/Controller/Api/
 
 home_redirect:
     path: /
