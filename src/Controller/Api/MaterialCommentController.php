@@ -10,7 +10,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/material', name: 'api_material_comment_')]
 class MaterialCommentController extends AbstractController
@@ -19,7 +18,6 @@ class MaterialCommentController extends AbstractController
         private readonly EntityManagerInterface $em,
         private readonly MaterialRepository $materialRepository,
         private readonly MaterialCommentRepository $commentRepository,
-        private readonly ValidatorInterface $validator,
     ) {}
 
     #[Route('/{token}/comments', name: 'list', methods: ['GET'])]

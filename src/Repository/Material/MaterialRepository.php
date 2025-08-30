@@ -24,22 +24,6 @@ class MaterialRepository extends ServiceEntityRepository
         return $material;
     }
 
-    public function getWithVotes(string $token): Material
-    {
-        $material = $this->createQueryBuilder('m')
-            ->leftJoin('m.votes', 'v')
-            ->addSelect('v')
-            ->where('m.token = :token')
-            ->setParameter('token', $token)
-            ->getQuery()
-            ->getOneOrNullResult();
-
-        if (!$material instanceof Material) {
-            throw new NotFoundException('Material not found');
-        }
-
-        return $material;
-    }
 
     public function create(): Material
     {

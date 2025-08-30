@@ -79,7 +79,7 @@ class AppFixtures extends Fixture
         $user->setEmail('demo@example.com');
         $user->setFirstName('Demo');
         $user->setLastName('User');
-        $user->setPassword('$2y$13$demo'); // placeholder password
+        $user->setPassword('$2y$13$hr45YNM4MnV611FbnwW4eeg9NlDN1STrfg3.Y9I2TJuvoj/OLvGCO'); // password: 123123
         $manager->persist($user);
         $manager->flush(); // Flush to get user ID
 

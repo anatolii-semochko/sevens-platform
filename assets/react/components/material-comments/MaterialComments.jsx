@@ -1,35 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
 
 const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
-    const [comments, setComments] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({ name: '', email: '', comment: '' });
-    const [showAll, setShowAll] = useState(false);
+    const [comments, setComments] = useState([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [formData, setFormData] = useState({ name: '', email: '', comment: '' })
+    const [showAll, setShowAll] = useState(false)
 
     useEffect(() => {
-        fetchComments();
-    }, [materialToken]);
+        fetchComments()
+    }, [materialToken])
 
     const fetchComments = async () => {
         try {
-            const response = await fetch(`/en/api/material/${materialToken}/comments`);
+            const response = await fetch(`/en/api/material/${materialToken}/comments`)
             if (response.ok) {
-                const data = await response.json();
-                setComments(data.comments);
+                const data = await response.json()
+                setComments(data.comments)
             }
         } catch (error) {
-            console.error('Error fetching comments:', error);
+            console.error('Error fetching comments:', error)
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
-    };
+    }
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (isSubmitting) return;
+        e.preventDefault()
+        if (isSubmitting) return
 
-        setIsSubmitting(true);
+        setIsSubmitting(true)
         try {
             const response = await fetch(`/en/api/material/${materialToken}/comments`, {
                 method: 'POST',
@@ -37,28 +37,28 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(formData)
-            });
+            })
 
             if (response.ok) {
-                const data = await response.json();
-                setComments([data.comment, ...comments]);
-                setFormData({ name: '', email: '', comment: '' });
+                const data = await response.json()
+                setComments([data.comment, ...comments])
+                setFormData({ name: '', email: '', comment: '' })
             } else {
-                console.error('Comment submission failed');
+                console.error('Comment submission failed')
             }
         } catch (error) {
-            console.error('Error submitting comment:', error);
+            console.error('Error submitting comment:', error)
         } finally {
-            setIsSubmitting(false);
+            setIsSubmitting(false)
         }
-    };
+    }
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+        setFormData({ ...formData, [e.target.name]: e.target.value })
+    }
 
     if (isLoading) {
-        return <div>Loading comments...</div>;
+        return <div>Loading comments...</div>
     }
 
     return (
@@ -130,7 +130,7 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
                 )}
             </form>
         </div>
-    );
-};
+    )
+}
 
-export default MaterialComments;
+export default MaterialComments

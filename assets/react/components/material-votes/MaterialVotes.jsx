@@ -1,32 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 
 const MaterialVotes = ({ materialToken, initialLikes, initialDislikes, viewCount }) => {
-    const [likeCount, setLikeCount] = useState(initialLikes);
-    const [dislikeCount, setDislikeCount] = useState(initialDislikes);
-    const [isLoading, setIsLoading] = useState(false);
+    const [likeCount, setLikeCount] = useState(initialLikes)
+    const [dislikeCount, setDislikeCount] = useState(initialDislikes)
+    const [isLoading, setIsLoading] = useState(false)
     const [userVote, setUserVote] = useState(null); // 'like', 'dislike', or null
 
     const calculateRating = () => {
-        const totalVotes = likeCount + dislikeCount;
+        const totalVotes = likeCount + dislikeCount
         if (totalVotes === 0) return 0; // No votes = no rating
-        return Math.round((likeCount / totalVotes) * 5);
-    };
+        return Math.round((likeCount / totalVotes) * 5)
+    }
 
     const renderStars = () => {
-        const rating = calculateRating();
-        const stars = [];
+        const rating = calculateRating()
+        const stars = []
         for (let i = 1; i <= 5; i++) {
             stars.push(
                 <i key={i} className={`bi ${i <= rating ? 'bi-star-fill' : 'bi-star'}`}></i>
-            );
+            )
         }
-        return stars;
-    };
+        return stars
+    }
 
     const handleVote = async (voteType) => {
-        if (isLoading) return;
+        if (isLoading) return
         
-        setIsLoading(true);
+        setIsLoading(true)
         
         try {
             const response = await fetch(`/en/api/material/${materialToken}/vote`, {
@@ -35,24 +35,24 @@ const MaterialVotes = ({ materialToken, initialLikes, initialDislikes, viewCount
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ type: voteType })
-            });
+            })
             
             if (response.ok) {
-                const data = await response.json();
-                setLikeCount(data.likeCount);
-                setDislikeCount(data.dislikeCount);
+                const data = await response.json()
+                setLikeCount(data.likeCount)
+                setDislikeCount(data.dislikeCount)
                 
                 // Toggle user vote state
-                setUserVote(userVote === voteType ? null : voteType);
+                setUserVote(userVote === voteType ? null : voteType)
             } else {
-                console.error('Vote failed:', response.statusText);
+                console.error('Vote failed:', response.statusText)
             }
         } catch (error) {
-            console.error('Vote error:', error);
+            console.error('Vote error:', error)
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
-    };
+    }
 
     return (
         <>
@@ -81,7 +81,7 @@ const MaterialVotes = ({ materialToken, initialLikes, initialDislikes, viewCount
                 {renderStars()}
             </div>
         </>
-    );
-};
+    )
+}
 
-export default MaterialVotes;
+export default MaterialVotes
