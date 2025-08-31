@@ -27,7 +27,7 @@ fetch(config.SEVENS_TOKEN_IDL_PATH)
 export const reloadAllWallets = async (password) => {
     const base = await readEncryptedWallets(password)
 
-    const updated = await Promise.all(
+    return Promise.all(
         base.map(async (w) => {
             try {
                 const publicKey = new PublicKey(w.publicKey).toBase58()
@@ -39,10 +39,6 @@ export const reloadAllWallets = async (password) => {
             }
         })
     )
-
-    await writeEncryptedWallets(updated, password)
-
-    return updated
 }
 
 export const getBalance = async (pubKeyString) => {
@@ -339,6 +335,23 @@ export const burnToken = async (tokenPublicKey, wallet, amount = 1) => {
         return sig
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
+    }
+}
+
+export const checkConnection = async () => {
+    if (!providerUrl) return false
+
+    try {
+        const conn = connection()
+        await conn.getLatestBlockhash()
+        return true
+    } catch (_) {
+        try {
+            await connection().getVersion()
+            return true
+        } catch (__) {
+            return false
+        }
     }
 }
 

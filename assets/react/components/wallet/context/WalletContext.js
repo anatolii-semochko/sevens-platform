@@ -1,6 +1,7 @@
+import config from '@react/components/wallet/config.json'
 import React, { createContext, useEffect, useState } from 'react'
 import { reloadAllWallets, setProviderUrl } from '@react/components/wallet/scripts/apiActions'
-import { getLocalStorageProperty, setLocalStorageProperty } from '@react/components/wallet/scripts/storageActions'
+import { getWalletStateProperty, setWalletStateProperty } from '@react/components/wallet/scripts/storageActions'
 import { setTranslations } from '@react/components/wallet/translations/translations'
 
 const WalletContext = createContext(null)
@@ -8,41 +9,72 @@ const WalletContext = createContext(null)
 const WalletContextProvider = ({ children }) => {
     const [showComponent, setShowComponent] = useState(null)
     const [password, setPassword] = useState('')
+    const [unlocked, setUnlocked] = useState(false)
     const [walletsList, setWalletsList] = useState(null)
     const [walletData, setWalletData] = useState({})
     const [rateUsd, setRateUsd] = useState(0.2)
 
-    const [walletPublicKey, setWalletPublicKey] = useState(getLocalStorageProperty('walletPublicKey') || null)
-    const setWalletByPublicKey = (publicKey) => {
-        setLocalStorageProperty('walletPublicKey', publicKey)
+    const [walletPublicKey, setWalletPublicKey] = useState(null)
+    const setWalletByPublicKey = async (publicKey) => {
+        setWalletData({})
+        await setWalletStateProperty('walletPublicKey', publicKey)
         setWalletPublicKey(publicKey)
     }
 
-    const [walletConnection, setWalletConnectionState] = useState(getLocalStorageProperty('connection') || 'main')
-    const setConnection = (value) => {
-        setLocalStorageProperty('connection', value)
+    const [walletConnection, setWalletConnectionState] = useState(config.CONNECTION_ENDPOINTS['main'])
+    const setConnection = async (value) => {
+        await setWalletStateProperty('connection', value)
         setWalletConnectionState(value)
     }
 
-    const [language, setLanguageState] = useState(getLocalStorageProperty('language') || 'en')
-    const setLanguage = (value) => {
-        setLocalStorageProperty('language', value)
+    const [language, setLanguageState] = useState('en')
+    const setLanguage = async (value) => {
+        await setWalletStateProperty('language', value)
         setLanguageState(value)
         setTranslations(value)
     }
 
-    const [hideBalances, setHideBalancesState] = useState(getLocalStorageProperty('hideBalances'))
-    const setHideBalances = (value) => {
-        setLocalStorageProperty('hideBalances', value)
+    const [hideBalances, setHideBalancesState] = useState()
+    const setHideBalances = async (value) => {
+        await setWalletStateProperty('hideBalances', value)
         setHideBalancesState(value)
     }
 
     const walletReload = async () => {
-        const updated = await reloadAllWallets(password)
-        setWalletsList(updated)
+        try {
+            const updated = await reloadAllWallets(password)
+            setWalletsList(updated)
+        } catch (error) {}
     }
 
-    useEffect(() => {setTranslations(language)}, [])
+    useEffect(() => {
+        const loadState = async () => {
+            const [walletKey, connection, lang, hide] = await Promise.all([
+                getWalletStateProperty('walletPublicKey'),
+                getWalletStateProperty('connection'),
+                getWalletStateProperty('language'),
+                getWalletStateProperty('hideBalances'),
+            ])
+
+            if (walletKey) {
+                setWalletPublicKey(walletKey)
+            }
+
+            if (connection) {
+                setWalletConnectionState(connection)
+            }
+
+            if (lang) {
+                setLanguageState(lang)
+                setTranslations(lang)
+            }
+
+            if (typeof hide !== 'undefined') {
+                setHideBalancesState(hide)
+            }
+        }
+        loadState().catch(() => {})
+    }, [])
 
     useEffect(() => {
         if (password) {
@@ -81,6 +113,7 @@ const WalletContextProvider = ({ children }) => {
                 hideBalances, setHideBalances,
                 language, setLanguage,
                 password, setPassword,
+                unlocked, setUnlocked,
                 rateUsd, setRateUsd,
             }}
         >

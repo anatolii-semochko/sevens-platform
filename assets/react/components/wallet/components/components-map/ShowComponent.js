@@ -7,6 +7,8 @@ import SendCoins from '@react/components/wallet/components/wallet-block/componen
 import Token from '@react/components/wallet/components/tokens-list/Token'
 import Settings from '@react/components/wallet/components/settings/Settings'
 import SettingsConnection from '@react/components/wallet/components/settings/components/SettingsConnection'
+import ChangePassword from '@react/components/wallet/components/settings/components/ChangePassword'
+import WalletClear from '@react/components/wallet/components/settings/components/WalletClear'
 
 const componentsMap = {
     WalletsList,
@@ -16,6 +18,8 @@ const componentsMap = {
     Token,
     Settings,
     SettingsConnection,
+    ChangePassword,
+    WalletClear,
 }
 
 const ShowComponent = () => {

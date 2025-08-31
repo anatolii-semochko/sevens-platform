@@ -33,7 +33,7 @@ const WalletClear = ({setShowWalletClear}) => {
                     className={'text-danger mb-0'}
                 />}
                 <ButtonClearWallet onClick={() => handleWalletClear()} />
-                <ButtonBack onClick={() => setShowWalletClear(false)} />
+                <ButtonBack onClick={() => setShowComponent({component: 'Settings'})} />
             </div>
         </div>
     )

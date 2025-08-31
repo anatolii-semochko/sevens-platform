@@ -2,7 +2,7 @@ import React from 'react'
 import '@solana/wallet-adapter-react-ui/styles.css'
 import useWalletContext from '../hooks/useWalletContext'
 import { t } from '@react/components/wallet/translations/translations'
-import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
+import { BlockTitle, ConnectionInfo } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonSettings, ButtonWalletAdd, ButtonWalletSelect } from '@react/components/wallet/components/form-elements/Buttons'
 import Main from '@react/components/wallet/components/wallet-block/Main'
 import TokensList from '@react/components/wallet/components/tokens-list/TokensList'
@@ -19,7 +19,12 @@ const Content = () => {
         </div>
     )
 
-    if (showComponent) return <ShowComponent />
+    if (showComponent) return (
+        <div>
+            <ConnectionInfo />
+            <ShowComponent />
+        </div>
+    )
 
     if (walletsList.length === 0) return (
         <div>
@@ -33,6 +38,7 @@ const Content = () => {
 
     return (
         <div>
+            <ConnectionInfo />
             <ButtonWalletSelect />
             <Main walletData={walletData}/>
             <TokensList tokens={walletData?.tokens} />

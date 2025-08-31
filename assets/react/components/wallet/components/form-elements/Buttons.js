@@ -9,6 +9,7 @@ import {
     NotebookPen, Save, Repeat, Handshake, Trash2, CornerRightDown,
     FolderPen, Eye, Settings, EyeOff, RefreshCw, Wallet, GlobeLock,
 } from 'lucide-react'
+import ChangePassword from "@react/components/wallet/components/settings/components/ChangePassword";
 
 const iconSize = 16
 
@@ -292,23 +293,29 @@ const ButtonChangeConnection = ({className}) => {
     )
 }
 
-const ButtonChangePassword = ({onClick, className}) => (
-    <WalletButton
-        label={t('changePassword')}
-        onClick={onClick}
-        className={clsx('btn-primary w-100', className)}
-        icon={<KeyRound size={iconSize}/>}
-    />
-)
+const ButtonChangePassword = ({onClick, className}) => {
+    const {setShowComponent} = useWalletContext()
+    return (
+        <WalletButton
+            label={t('changePassword')}
+            onClick={onClick || (() => setShowComponent({component: 'ChangePassword'}))}
+            className={clsx('btn-primary w-100', className)}
+            icon={<KeyRound size={iconSize}/>}
+        />
+    )
+}
 
-const ButtonClearWallet = ({onClick, className}) => (
-    <WalletButton
-        label={t('clearWallet')}
-        onClick={onClick}
-        className={clsx('btn-danger w-100', className)}
-        icon={<Trash2 size={iconSize} />}
-    />
-)
+const ButtonClearWallet = ({onClick, className}) => {
+    const {setShowComponent} = useWalletContext()
+    return (
+        <WalletButton
+            label={t('clearWallet')}
+            onClick={onClick || (() => setShowComponent({component: 'WalletClear'}))}
+            className={clsx('btn-danger w-100', className)}
+            icon={<Trash2 size={iconSize} />}
+        />
+    )
+}
 
 const WalletButton = ({label, disabled, onClick, className, icon }) => (
     <button
