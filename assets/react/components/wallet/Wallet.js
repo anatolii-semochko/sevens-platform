@@ -11,17 +11,14 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { hasEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 import { showModal } from '@js/modal'
 import { ButtonWalletLock } from '@react/components/wallet/components/form-elements/Buttons'
-import { WalletLoading, WalletTitleContent } from '@react/components/wallet/components/form-elements/Blocks'
+import { WalletHeader, WalletLoading } from '@react/components/wallet/components/form-elements/Blocks'
 import Content from '@react/components/wallet/components/Content'
 import WalletCreate from '@react/components/wallet/components/authorization/WalletCreate'
 import WalletUnlock from '@react/components/wallet/components/authorization/WalletUnlock'
 
-const endpoint = process.env.ANCHOR_PROVIDER_URL
-
 const WalletInner = () => {
     const walletAdapters = useMemo(() => [new PhantomWalletAdapter()], [])
-    const {walletsList, setPassword} = useWalletContext()
-    const [unlocked, setUnlocked] = useState(false)
+    const {walletConnection, walletsList, unlocked, setUnlocked, setPassword} = useWalletContext()
     const [hasWallets, setHasWallets] = useState(null) // null = loading, true/false = result
 
     const checkWallets = async () => {
@@ -59,11 +56,11 @@ const WalletInner = () => {
     return (
         <Provider store={store}>
             <div className="panel-header p-3">
-                <WalletTitleContent />
+                <WalletHeader />
             </div>
             <div className="panel-scroll p-3">
                 <div className="panel-content">
-                    <ConnectionProvider endpoint={endpoint}>
+                    <ConnectionProvider endpoint={walletConnection}>
                         <WalletProvider wallets={walletAdapters} autoConnect>
                             <WalletModalProvider>
                                 <Content />

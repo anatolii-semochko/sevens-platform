@@ -1,37 +1,19 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import { t } from '@react/components/wallet/translations/translations'
+import { checkConnection } from '@react/components/wallet/scripts/apiActions'
 import {
-    copyToClipboard,
-    currentConnectionKey,
-    getBlurredAddress,
-    limitNumberString,
+    copyToClipboard, currentConnectionKey, getBlurredAddress, limitNumberString,
 } from '@react/components/wallet/scripts/utils'
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { ButtonCopy, ButtonWalletClose } from '@react/components/wallet/components/form-elements/Buttons'
+import { ErrorMessageBlock, InfoMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
 import clsx from 'clsx'
 
-const WalletTitle = () => {
-    const {walletConnection, password} = useWalletContext()
-    const connectionKey = currentConnectionKey(walletConnection)
-    const connection = !password || !connectionKey || connectionKey === 'main' ? null : (
-        <><br/><span className="badge bg-danger">{t('walletUsesConnection').replace('{net}', connectionKey)}</span></>
-    )
-    return (
-        <h5 className="text-center mb-0 ms-4 w-100">{t('sevensWallet')}{connection}</h5>
-    )
-}
-
-const WalletTitleContent = () => (
-    <>
-        <WalletTitle />
-        <ButtonWalletClose />
-    </>
-)
-
 const WalletHeader = () => (
-    <div className="panel-header p-3">
-        <WalletTitleContent />
+    <div className="panel-header w-100 p-2">
+        <h5 className="text-center mb-0 ms-3 w-100">{t('sevensWallet')}</h5>
+        <ButtonWalletClose />
     </div>
 )
 
@@ -53,6 +35,32 @@ const BlockTitle = ({title, className}) => {
             {title?.split('\n').map((line, idx) => (
                 <h6 className="text-center mb-0" key={`title-${idx}`}>{line}</h6>
             ))}
+        </div>
+    )
+}
+
+const ConnectionInfo = () => {
+    const {walletConnection} = useWalletContext()
+    const [isConnected, setIsConnected] = useState(true)
+    const connectionKey = currentConnectionKey(walletConnection)
+
+    const run = async () => {
+        const ok = await checkConnection()
+        setIsConnected(ok)
+    }
+
+    const connectionInfo = () => connectionKey === 'main' ? '' :
+        t('walletUsesConnection').replace('{net}', connectionKey.toUpperCase())
+
+    const connectionState = () => isConnected ? '' :
+        t('walletNoConnection').replace('{net}', walletConnection)
+
+    run().catch()
+
+    return (
+        <div>
+            <InfoMessageBlock message={connectionInfo()} className={'text-danger text-center'} />
+            <ErrorMessageBlock message={connectionState()} className={'text-center'} />
         </div>
     )
 }
@@ -155,7 +163,6 @@ const SecretsView = ({secrets}) => (
 )
 
 export {
-    WalletTitle, WalletTitleContent, WalletHeader,
-    WalletLoading, BlockTitle,
+    WalletHeader, WalletLoading, ConnectionInfo, BlockTitle,
     WalletDetails, WalletInfo, SecretsView,
 }

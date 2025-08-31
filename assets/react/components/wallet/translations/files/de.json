@@ -28,100 +28,105 @@
   "showBalances": "Kontostände anzeigen",
   "changeNetwork": "Netzwerk wechseln",
   "changePassword": "Passwort ändern",
-  "clearWallet": "Wallet leeren"
-  ,"privateInfoWarning": "Diese Information ist vertraulich. Stellen Sie sicher, dass niemand anderes sie sieht."
-  ,"generate": "Generieren"
-  ,"cancel": "Abbrechen"
-  ,"saveSeedPhrase": "Speichern Sie die Seed-Phrase Ihrer neuen Wallet"
-  ,"copy": "Kopieren"
-  ,"iSavedSeedPhraseWords": "Ich habe die Seed-Phrase gespeichert"
-  ,"burnTokenWarning1": "Das Verbrennen dieses Tokens ist unwiderruflich.\nSind Sie sicher, dass Sie es verbrennen möchten?"
-  ,"burnTokenWarning2": "Das Verbrennen dieses Tokens ist unwiderruflich.\nVerbrennen bestätigen."
-  ,"tokenBurnSuccess": "Token wurde erfolgreich verbrannt.\n Transaktion {tx}."
-  ,"confirmBurnYes": "Ja, ich bin sicher"
-  ,"cancelTokenBurn": "Tokenverbrennung abbrechen"
-  ,"noDestinationAddress": "Keine Zieladresse"
-  ,"invalidDestinationAddress": "Ungültige Zieladresse"
-  ,"tokenTransferWarning": "Der Token wird an die Wallet {address} übertragen und ist in Ihrer aktuellen Wallet nicht mehr verfügbar.\nFortfahren?"
-  ,"tokenTransferSuccess": "Token erfolgreich an {address} übertragen.\n Transaktion {tx}."
-  ,"newWalletAddress": "Neue Wallet-Adresse"
-  ,"cancelTokenTransfer": "Tokenübertragung abbrechen"
-  ,"myTokens": "Meine Tokens"
-  ,"token": "Token"
-  ,"address": "Adresse"
-  ,"author": "Autor"
-  ,"minted": "Erstellt"
-  ,"description": "Beschreibung"
-  ,"walletUsesConnection": "Wallet verwendet {net}-Verbindung"
-  ,"sevensWallet": "Sevens Wallet"
-  ,"loading": "Laden..."
-  ,"blockchainAccountInfo": "Blockchain-Kontoinformationen"
-  ,"account": "Konto"
-  ,"found": "Gefunden"
-  ,"notFound": "Nicht gefunden"
-  ,"balance": "Kontostand"
-  ,"tokens": "Tokens"
-  ,"recoveryPhrase": "Wiederherstellungsphrase"
-  ,"copyRecoveryPhrase": "Wiederherstellungsphrase kopieren"
-  ,"privateKey64": "64-Byte Privater Schlüssel (base58)"
-  ,"copyPrivateKey": "Privaten Schlüssel kopieren"
-  ,"seed32": "32-Byte Seed (base58)"
-  ,"availableWalletsList": "Verfügbare Wallets"
-  ,"wallet": "Wallet"
-  ,"backToWallet": "Zurück zur Wallet"
-  ,"showWalletPrivateKey": "Privaten Schlüssel der Wallet anzeigen"
-  ,"walletPassword": "Wallet-Passwort"
-  ,"invalidPassword": "Ungültiges Passwort"
-  ,"privateKeyAttention": "Ihr privater Schlüssel und Ihre Wiederherstellungsphrase sind hochsensible Informationen. Jeder, der sie besitzt, kann auf Ihre Gelder zugreifen und sie ausgeben. Bewahren Sie sie offline auf und teilen Sie sie niemals."
-  ,"clearWalletData": "Alle Wallet-Daten löschen"
-  ,"clearWalletWarning": "Dadurch werden alle Wallet-Daten gelöscht. Stellen Sie sicher, dass Sie Ihre Geheimnisse gesichert haben."
-  ,"confirmClearWallet": "Sind Sie sicher, dass Sie die Wallet leeren möchten?"
-  ,"pleaseEnterPassword": "Bitte geben Sie Ihr Passwort ein"
-  ,"unlockWallet": "Wallet entsperren"
-  ,"retryIn": "Erneut versuchen in {s}s"
-  ,"password": "Passwort"
-  ,"passwordTooShort": "Das Passwort muss mindestens {n} Zeichen lang sein"
-  ,"passwordsDontMatch": "Passwörter stimmen nicht überein"
-  ,"enterWalletPassword": "Geben Sie das Wallet-Passwort ein"
-  ,"enterPassword": "Passwort eingeben"
-  ,"repeatPassword": "Passwort wiederholen"
-  ,"createWallet": "Wallet erstellen"
-  ,"coinsTransferWarning": "Die {amount} Coins werden an die Wallet {address} gesendet.\nFortfahren?"
-  ,"coinsTransferSuccess": "{amount} Coins erfolgreich an {address} gesendet.\n Transaktion {tx}."
-  ,"noSumFilled": "Keine Summe eingegeben"
-  ,"insufficientBalance": "Unzureichender Kontostand"
-  ,"sendCoinsToAnotherWallet": "Coins an eine andere Wallet senden"
-  ,"coinsToSend": "Zu sendende Coins"
-  ,"noEncryptedData": "Keine verschlüsselten Wallet-Daten gefunden"
-  ,"invalidPasswordOrData": "Ungültiges Passwort oder beschädigte Daten"
-  ,"walletNameMissing": "Wallet-Name fehlt"
-  ,"walletNameExists": "Dieser Wallet-Name ist bereits in der Liste vorhanden"
-  ,"walletAlreadyPresent": "Wallet {key} ist bereits in der Liste vorhanden"
-  ,"walletSettings": "Wallet-Einstellungen"
-  ,"walletBlockchainConnection": "Wallet-Blockchain-Verbindung"
-  ,"addNewWallet": "Neue Wallet hinzufügen"
-  ,"phraseLength": "Länge der Phrase"
-  ,"words": "Wörter"
-  ,"restoreWallet": "Wallet wiederherstellen"
-  ,"from": "Von"
-  ,"privateKey": "Privater Schlüssel"
-  ,"seed": "Seed"
-  ,"mnemonicPhraseIncorrect": "Mnemonische Phrase ist falsch"
-  ,"walletRemoveConfirm": "Sind Sie sicher, dass Sie diese Wallet löschen möchten?"
-  ,"renameWalletTitle": "Wallet {name} umbenennen"
-  ,"removeWalletTitle": "Wallet {name} entfernen"
-  ,"walletName": "Wallet-Name"
-  ,"newWalletName": "Neuer Wallet-Name"
-  ,"netMain": "Main NET (original)"
-  ,"netDev": "Dev NET (Testen und Entwicklung)"
-  ,"netLocal": "Local NET (lokale Umgebung)"
-  ,"netCustom": "Custom NET (erweiterte Option)"
-  ,"language": "Sprache"
-  ,"selectLanguage": "Sprache wählen"
-  ,"noWallets": "Keine Wallets"
-  ,"singleWalletActions": "Aktionen für einzelne Wallet"
-  ,"confirmSeedPhrase": "Seed-Phrase bestätigen"
-  ,"confirmSeedInstruction": "Tippen Sie die Wörter unten in der richtigen Reihenfolge an"
-  ,"walletSeedConfirmError": "Bestätigung der Seed-Phrase fehlgeschlagen"
-  ,"unknownError": "Unbekannter Fehler"
+  "clearWallet": "Wallet leeren",
+  "privateInfoWarning": "Diese Information ist vertraulich. Stellen Sie sicher, dass niemand anderes sie sieht.",
+  "generate": "Generieren",
+  "cancel": "Abbrechen",
+  "saveSeedPhrase": "Speichern Sie die Seed-Phrase Ihrer neuen Wallet",
+  "copy": "Kopieren",
+  "iSavedSeedPhraseWords": "Ich habe die Seed-Phrase gespeichert",
+  "burnTokenWarning1": "Das Verbrennen dieses Tokens ist unwiderruflich.\nSind Sie sicher, dass Sie es verbrennen möchten?",
+  "burnTokenWarning2": "Das Verbrennen dieses Tokens ist unwiderruflich.\nVerbrennen bestätigen.",
+  "tokenBurnSuccess": "Token wurde erfolgreich verbrannt.\n Transaktion {tx}.",
+  "confirmBurnYes": "Ja, ich bin sicher",
+  "cancelTokenBurn": "Tokenverbrennung abbrechen",
+  "noDestinationAddress": "Keine Zieladresse",
+  "invalidDestinationAddress": "Ungültige Zieladresse",
+  "tokenTransferWarning": "Der Token wird an die Wallet {address} übertragen und ist in Ihrer aktuellen Wallet nicht mehr verfügbar.\nFortfahren?",
+  "tokenTransferSuccess": "Token erfolgreich an {address} übertragen.\n Transaktion {tx}.",
+  "newWalletAddress": "Neue Wallet-Adresse",
+  "cancelTokenTransfer": "Tokenübertragung abbrechen",
+  "myTokens": "Meine Tokens",
+  "token": "Token",
+  "address": "Adresse",
+  "author": "Autor",
+  "minted": "Erstellt",
+  "description": "Beschreibung",
+  "walletUsesConnection": "Testmodus !!!\nVerbindung {net} wird verwendet. Die Vermögenswerte im Wallet haben keinen Wert.",
+  "walletNoConnection": "Keine Verbindung zum {net}-Netzwerk",
+  "sevensWallet": "Sevens Wallet",
+  "loading": "Laden...",
+  "blockchainAccountInfo": "Blockchain-Kontoinformationen",
+  "account": "Konto",
+  "found": "Gefunden",
+  "notFound": "Nicht gefunden",
+  "balance": "Kontostand",
+  "tokens": "Tokens",
+  "recoveryPhrase": "Wiederherstellungsphrase",
+  "copyRecoveryPhrase": "Wiederherstellungsphrase kopieren",
+  "privateKey64": "64-Byte Privater Schlüssel (base58)",
+  "copyPrivateKey": "Privaten Schlüssel kopieren",
+  "seed32": "32-Byte Seed (base58)",
+  "availableWalletsList": "Verfügbare Wallets",
+  "wallet": "Wallet",
+  "backToWallet": "Zurück zur Wallet",
+  "showWalletPrivateKey": "Privaten Schlüssel der Wallet anzeigen",
+  "walletPassword": "Wallet-Passwort",
+  "invalidPassword": "Ungültiges Passwort",
+  "privateKeyAttention": "Ihr privater Schlüssel und Ihre Wiederherstellungsphrase sind hochsensible Informationen. Jeder, der sie besitzt, kann auf Ihre Gelder zugreifen und sie ausgeben. Bewahren Sie sie offline auf und teilen Sie sie niemals.",
+  "clearWalletData": "Alle Wallet-Daten löschen",
+  "clearWalletWarning": "Dadurch werden alle Wallet-Daten gelöscht. Stellen Sie sicher, dass Sie Ihre Geheimnisse gesichert haben.",
+  "confirmClearWallet": "Sind Sie sicher, dass Sie die Wallet leeren möchten?",
+  "pleaseEnterPassword": "Bitte geben Sie Ihr Passwort ein",
+  "unlockWallet": "Wallet entsperren",
+  "retryIn": "Erneut versuchen in {s}s",
+  "password": "Passwort",
+  "passwordTooShort": "Das Passwort muss mindestens {n} Zeichen lang sein",
+  "passwordsDontMatch": "Passwörter stimmen nicht überein",
+  "enterWalletPassword": "Geben Sie das Wallet-Passwort ein",
+  "currentPassword": "Aktuelles Passwort",
+  "enterPassword": "Passwort eingeben",
+  "newPassword": "Neues Passwort",
+  "repeatPassword": "Passwort wiederholen",
+  "changedPassword": "Das Passwort wurde geändert",
+  "createWallet": "Wallet erstellen",
+  "coinsTransferWarning": "Die {amount} Coins werden an die Wallet {address} gesendet.\nFortfahren?",
+  "coinsTransferSuccess": "{amount} Coins erfolgreich an {address} gesendet.\n Transaktion {tx}.",
+  "noSumFilled": "Keine Summe eingegeben",
+  "insufficientBalance": "Unzureichender Kontostand",
+  "sendCoinsToAnotherWallet": "Coins an eine andere Wallet senden",
+  "coinsToSend": "Zu sendende Coins",
+  "noEncryptedData": "Keine verschlüsselten Wallet-Daten gefunden",
+  "invalidPasswordOrData": "Ungültiges Passwort oder beschädigte Daten",
+  "walletNameMissing": "Wallet-Name fehlt",
+  "walletNameExists": "Dieser Wallet-Name ist bereits in der Liste vorhanden",
+  "walletAlreadyPresent": "Wallet {key} ist bereits in der Liste vorhanden",
+  "walletSettings": "Wallet-Einstellungen",
+  "walletBlockchainConnection": "Wallet-Blockchain-Verbindung",
+  "addNewWallet": "Neue Wallet hinzufügen",
+  "phraseLength": "Länge der Phrase",
+  "words": "Wörter",
+  "restoreWallet": "Wallet wiederherstellen",
+  "from": "Von",
+  "privateKey": "Privater Schlüssel",
+  "seed": "Seed",
+  "mnemonicPhraseIncorrect": "Mnemonische Phrase ist falsch",
+  "walletRemoveConfirm": "Sind Sie sicher, dass Sie diese Wallet löschen möchten?",
+  "renameWalletTitle": "Wallet {name} umbenennen",
+  "removeWalletTitle": "Wallet {name} entfernen",
+  "walletName": "Wallet-Name",
+  "newWalletName": "Neuer Wallet-Name",
+  "netMain": "Main NET (original)",
+  "netDev": "Dev NET (Testen und Entwicklung)",
+  "netLocal": "Local NET (lokale Umgebung)",
+  "netCustom": "Custom NET (erweiterte Option)",
+  "language": "Sprache",
+  "selectLanguage": "Sprache wählen",
+  "noWallets": "Keine Wallets",
+  "singleWalletActions": "Aktionen für einzelne Wallet",
+  "confirmSeedPhrase": "Seed-Phrase bestätigen",
+  "confirmSeedInstruction": "Tippen Sie die Wörter unten in der richtigen Reihenfolge an",
+  "walletSeedConfirmError": "Bestätigung der Seed-Phrase fehlgeschlagen",
+  "unknownError": "Unbekannter Fehler",
+  "urlConnectionError": "Die Verbindungs-URL zum Netzwerk muss mit http:// oder https:// beginnen"
 }

@@ -28,100 +28,105 @@
   "showBalances": "Mostrar saldos",
   "changeNetwork": "Cambiar red",
   "changePassword": "Cambiar contraseña",
-  "clearWallet": "Borrar billetera"
-  ,"privateInfoWarning": "Esta información es confidencial. Asegúrate de que nadie más pueda verla."
-  ,"generate": "Generar"
-  ,"cancel": "Cancelar"
-  ,"saveSeedPhrase": "Guarda la frase semilla de tu nueva billetera"
-  ,"copy": "Copiar"
-  ,"iSavedSeedPhraseWords": "He guardado la frase semilla"
-  ,"burnTokenWarning1": "Quemar este token es irreversible.\n¿Estás seguro de querer quemarlo?"
-  ,"burnTokenWarning2": "Quemar este token es irreversible.\nConfirma la quema del token."
-  ,"tokenBurnSuccess": "Token quemado con éxito.\n Transacción {tx}."
-  ,"confirmBurnYes": "Sí, estoy seguro"
-  ,"cancelTokenBurn": "Cancelar quema de token"
-  ,"noDestinationAddress": "Sin dirección de destino"
-  ,"invalidDestinationAddress": "Dirección de destino inválida"
-  ,"tokenTransferWarning": "El token se transferirá a la billetera {address} y ya no estará disponible en tu billetera actual.\n¿Continuar?"
-  ,"tokenTransferSuccess": "Token transferido correctamente a {address}.\n Transacción {tx}."
-  ,"newWalletAddress": "Nueva dirección de billetera"
-  ,"cancelTokenTransfer": "Cancelar transferencia de token"
-  ,"myTokens": "Mis tokens"
-  ,"token": "Token"
-  ,"address": "Dirección"
-  ,"author": "Autor"
-  ,"minted": "Creado"
-  ,"description": "Descripción"
-  ,"walletUsesConnection": "La billetera usa la conexión {net}"
-  ,"sevensWallet": "Billetera Sevens"
-  ,"loading": "Cargando..."
-  ,"blockchainAccountInfo": "Información de la cuenta blockchain"
-  ,"account": "Cuenta"
-  ,"found": "Encontrada"
-  ,"notFound": "No encontrada"
-  ,"balance": "Saldo"
-  ,"tokens": "Tokens"
-  ,"recoveryPhrase": "Frase de recuperación"
-  ,"copyRecoveryPhrase": "Copiar frase de recuperación"
-  ,"privateKey64": "Clave privada de 64 bytes (base58)"
-  ,"copyPrivateKey": "Copiar clave privada"
-  ,"seed32": "Seed de 32 bytes (base58)"
-  ,"availableWalletsList": "Lista de billeteras disponibles"
-  ,"wallet": "Billetera"
-  ,"backToWallet": "Volver a la billetera"
-  ,"showWalletPrivateKey": "Mostrar clave privada de la billetera"
-  ,"walletPassword": "Contraseña de la billetera"
-  ,"invalidPassword": "Contraseña inválida"
-  ,"privateKeyAttention": "Tu clave privada y frase de recuperación son información altamente sensible. Cualquiera que las tenga puede acceder y gastar tus fondos. Manténlas fuera de línea y nunca las compartas."
-  ,"clearWalletData": "Borrar todos los datos de la billetera"
-  ,"clearWalletWarning": "Esto eliminará todos los datos de la billetera. Asegúrate de haber guardado tus secretos."
-  ,"confirmClearWallet": "¿Estás seguro de que deseas borrar la billetera?"
-  ,"pleaseEnterPassword": "Por favor ingresa tu contraseña"
-  ,"unlockWallet": "Desbloquear billetera"
-  ,"retryIn": "Reintentar en {s}s"
-  ,"password": "Contraseña"
-  ,"passwordTooShort": "La contraseña debe tener al menos {n} caracteres"
-  ,"passwordsDontMatch": "Las contraseñas no coinciden"
-  ,"enterWalletPassword": "Ingresa la contraseña de la billetera"
-  ,"enterPassword": "Ingresa la contraseña"
-  ,"repeatPassword": "Repite la contraseña"
-  ,"createWallet": "Crear billetera"
-  ,"coinsTransferWarning": "Los {amount} coins se enviarán a la billetera {address}.\n¿Continuar?"
-  ,"coinsTransferSuccess": "{amount} coins enviados correctamente a {address}.\n Transacción {tx}."
-  ,"noSumFilled": "No se ingresó cantidad"
-  ,"insufficientBalance": "Saldo insuficiente"
-  ,"sendCoinsToAnotherWallet": "Enviar coins a otra billetera"
-  ,"coinsToSend": "Coins a enviar"
-  ,"noEncryptedData": "No se encontraron datos cifrados de la billetera"
-  ,"invalidPasswordOrData": "Contraseña inválida o datos corruptos"
-  ,"walletNameMissing": "Falta el nombre de la billetera"
-  ,"walletNameExists": "Este nombre de billetera ya está en la lista"
-  ,"walletAlreadyPresent": "La billetera {key} ya está en la lista"
-  ,"walletSettings": "Configuración de la cartera"
-  ,"walletBlockchainConnection": "Conexión de blockchain de la cartera"
-  ,"addNewWallet": "Añadir nueva cartera"
-  ,"phraseLength": "Longitud de la frase"
-  ,"words": "palabras"
-  ,"restoreWallet": "Restaurar cartera"
-  ,"from": "Desde"
-  ,"privateKey": "Clave privada"
-  ,"seed": "Semilla"
-  ,"mnemonicPhraseIncorrect": "La frase mnemónica es incorrecta"
-  ,"walletRemoveConfirm": "¿Está seguro de que desea eliminar esta cartera?"
-  ,"renameWalletTitle": "Renombrar cartera {name}"
-  ,"removeWalletTitle": "Eliminar cartera {name}"
-  ,"walletName": "Nombre de la cartera"
-  ,"newWalletName": "Nuevo nombre de la cartera"
-  ,"netMain": "Main NET (original)"
-  ,"netDev": "Dev NET (pruebas y desarrollo)"
-  ,"netLocal": "Local NET (entorno local)"
-  ,"netCustom": "Custom NET (opción avanzada)"
-  ,"language": "Idioma"
-  ,"selectLanguage": "Seleccionar idioma"
-  ,"noWallets": "No hay carteras"
-  ,"singleWalletActions": "Acciones de cartera individual"
-  ,"confirmSeedPhrase": "Confirmar frase semilla"
-  ,"confirmSeedInstruction": "Toque las palabras a continuación en el orden correcto"
-  ,"walletSeedConfirmError": "La confirmación de la frase semilla falló"
-  ,"unknownError": "Error desconocido"
+  "clearWallet": "Borrar billetera",
+  "privateInfoWarning": "Esta información es confidencial. Asegúrate de que nadie más pueda verla.",
+  "generate": "Generar",
+  "cancel": "Cancelar",
+  "saveSeedPhrase": "Guarda la frase semilla de tu nueva billetera",
+  "copy": "Copiar",
+  "iSavedSeedPhraseWords": "He guardado la frase semilla",
+  "burnTokenWarning1": "Quemar este token es irreversible.\n¿Estás seguro de querer quemarlo?",
+  "burnTokenWarning2": "Quemar este token es irreversible.\nConfirma la quema del token.",
+  "tokenBurnSuccess": "Token quemado con éxito.\n Transacción {tx}.",
+  "confirmBurnYes": "Sí, estoy seguro",
+  "cancelTokenBurn": "Cancelar quema de token",
+  "noDestinationAddress": "Sin dirección de destino",
+  "invalidDestinationAddress": "Dirección de destino inválida",
+  "tokenTransferWarning": "El token se transferirá a la billetera {address} y ya no estará disponible en tu billetera actual.\n¿Continuar?",
+  "tokenTransferSuccess": "Token transferido correctamente a {address}.\n Transacción {tx}.",
+  "newWalletAddress": "Nueva dirección de billetera",
+  "cancelTokenTransfer": "Cancelar transferencia de token",
+  "myTokens": "Mis tokens",
+  "token": "Token",
+  "address": "Dirección",
+  "author": "Autor",
+  "minted": "Creado",
+  "description": "Descripción",
+  "walletUsesConnection": "Modo de prueba !!!\nSe está utilizando la conexión {net}. Los activos en la cartera no tienen valor.",
+  "walletNoConnection": "Sin conexión a la red {net}",
+  "sevensWallet": "Billetera Sevens",
+  "loading": "Cargando...",
+  "blockchainAccountInfo": "Información de la cuenta blockchain",
+  "account": "Cuenta",
+  "found": "Encontrada",
+  "notFound": "No encontrada",
+  "balance": "Saldo",
+  "tokens": "Tokens",
+  "recoveryPhrase": "Frase de recuperación",
+  "copyRecoveryPhrase": "Copiar frase de recuperación",
+  "privateKey64": "Clave privada de 64 bytes (base58)",
+  "copyPrivateKey": "Copiar clave privada",
+  "seed32": "Seed de 32 bytes (base58)",
+  "availableWalletsList": "Lista de billeteras disponibles",
+  "wallet": "Billetera",
+  "backToWallet": "Volver a la billetera",
+  "showWalletPrivateKey": "Mostrar clave privada de la billetera",
+  "walletPassword": "Contraseña de la billetera",
+  "invalidPassword": "Contraseña inválida",
+  "privateKeyAttention": "Tu clave privada y frase de recuperación son información altamente sensible. Cualquiera que las tenga puede acceder y gastar tus fondos. Manténlas fuera de línea y nunca las compartas.",
+  "clearWalletData": "Borrar todos los datos de la billetera",
+  "clearWalletWarning": "Esto eliminará todos los datos de la billetera. Asegúrate de haber guardado tus secretos.",
+  "confirmClearWallet": "¿Estás seguro de que deseas borrar la billetera?",
+  "pleaseEnterPassword": "Por favor ingresa tu contraseña",
+  "unlockWallet": "Desbloquear billetera",
+  "retryIn": "Reintentar en {s}s",
+  "password": "Contraseña",
+  "passwordTooShort": "La contraseña debe tener al menos {n} caracteres",
+  "passwordsDontMatch": "Las contraseñas no coinciden",
+  "enterWalletPassword": "Ingresa la contraseña de la billetera",
+  "currentPassword": "Contraseña actual",
+  "enterPassword": "Ingresa la contraseña",
+  "newPassword": "Nueva contraseña",
+  "repeatPassword": "Repite la contraseña",
+  "changedPassword": "La contraseña ha sido cambiada",
+  "createWallet": "Crear billetera",
+  "coinsTransferWarning": "Los {amount} coins se enviarán a la billetera {address}.\n¿Continuar?",
+  "coinsTransferSuccess": "{amount} coins enviados correctamente a {address}.\n Transacción {tx}.",
+  "noSumFilled": "No se ingresó cantidad",
+  "insufficientBalance": "Saldo insuficiente",
+  "sendCoinsToAnotherWallet": "Enviar coins a otra billetera",
+  "coinsToSend": "Coins a enviar",
+  "noEncryptedData": "No se encontraron datos cifrados de la billetera",
+  "invalidPasswordOrData": "Contraseña inválida o datos corruptos",
+  "walletNameMissing": "Falta el nombre de la billetera",
+  "walletNameExists": "Este nombre de billetera ya está en la lista",
+  "walletAlreadyPresent": "La billetera {key} ya está en la lista",
+  "walletSettings": "Configuración de la cartera",
+  "walletBlockchainConnection": "Conexión de blockchain de la cartera",
+  "addNewWallet": "Añadir nueva cartera",
+  "phraseLength": "Longitud de la frase",
+  "words": "palabras",
+  "restoreWallet": "Restaurar cartera",
+  "from": "Desde",
+  "privateKey": "Clave privada",
+  "seed": "Semilla",
+  "mnemonicPhraseIncorrect": "La frase mnemónica es incorrecta",
+  "walletRemoveConfirm": "¿Está seguro de que desea eliminar esta cartera?",
+  "renameWalletTitle": "Renombrar cartera {name}",
+  "removeWalletTitle": "Eliminar cartera {name}",
+  "walletName": "Nombre de la cartera",
+  "newWalletName": "Nuevo nombre de la cartera",
+  "netMain": "Main NET (original)",
+  "netDev": "Dev NET (pruebas y desarrollo)",
+  "netLocal": "Local NET (entorno local)",
+  "netCustom": "Custom NET (opción avanzada)",
+  "language": "Idioma",
+  "selectLanguage": "Seleccionar idioma",
+  "noWallets": "No hay carteras",
+  "singleWalletActions": "Acciones de cartera individual",
+  "confirmSeedPhrase": "Confirmar frase semilla",
+  "confirmSeedInstruction": "Toque las palabras a continuación en el orden correcto",
+  "walletSeedConfirmError": "La confirmación de la frase semilla falló",
+  "unknownError": "Error desconocido",
+  "urlConnectionError": "La URL de conexión a la red debe comenzar con http:// o https://"
 }
