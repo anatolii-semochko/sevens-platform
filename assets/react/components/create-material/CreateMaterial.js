@@ -7,6 +7,7 @@ import { MessagesBlock } from '@react/components/form-elements/Messages'
 const CreateMaterial = () => {
     const [tokenName, setTokenName] = useState('')
     const [tokenAuthor, setTokenAuthor] = useState('')
+    const [tokenImages, setTokenImages] = useState([])
     const [tokenDescription, setTokenDescription] = useState('')
     const [errorMessage, setErrorMessage] = useState(null)
 
@@ -21,7 +22,7 @@ const CreateMaterial = () => {
                 <h1 className="mb-5">Create Material</h1>
                 <TokenName value={tokenName} onChange={setTokenName} maxLength={tokenNameMaxLength} setErrorMessage={setErrorMessage} />
                 <TokenAuthor value={tokenAuthor} onChange={setTokenAuthor} maxLength={tokenAuthorMaxLength} setErrorMessage={setErrorMessage}/>
-                <ImagesBlock />
+                <ImagesBlock tokenImages={tokenImages} setTokenImages={setTokenImages}/>
                 <TokenDescription value={tokenDescription} onChange={setTokenDescription} maxLength={tokenDescriptionMaxLength} setErrorMessage={setErrorMessage}/>
                 <MessagesBlock error={errorMessage} />
             </div>
