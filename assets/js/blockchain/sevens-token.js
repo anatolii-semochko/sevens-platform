@@ -14,7 +14,7 @@ const dummyWallet = {
 
 const provider = new anchor.AnchorProvider(connection, dummyWallet, {});
 
-let sevensIdl
+export let sevensIdl
 fetch(sevensIdlPath)
     .then(response => response.json())
     .then(idl => sevensIdl = idl)
