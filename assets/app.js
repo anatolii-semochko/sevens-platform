@@ -10,6 +10,7 @@ import '@js/help-link'
 import '@js/material-slider'
 import React from 'react'
 import store from '@react/store/index'
+import streamSaver from 'streamsaver'
 import { Buffer } from 'buffer'
 import { Provider } from 'react-redux'
 import { createRoot } from 'react-dom/client'
@@ -22,6 +23,12 @@ import MaterialComments from '@react/components/material-comments/MaterialCommen
 
 window.bootstrap = bootstrap
 window.Buffer = Buffer
+
+streamSaver.WritableStream = streamSaver.WritableStream || window.WritableStream
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/streamsaver-sw.js', { scope: '/' })
+        .catch(error => console.error('SW register failed:', error))
+}
 
 const createMaterial = document.getElementById('create-material')
 if (createMaterial) {
@@ -51,11 +58,11 @@ if (materialVotes) {
     const initialLikes = materialVotes.dataset.initialLikes || '0'
     const initialDislikes = materialVotes.dataset.initialDislikes || '0'
     const viewCount = materialVotes.dataset.viewCount || '0'
-    
+
     if (materialToken) {
         const root = createRoot(materialVotes)
         root.render(
-            <MaterialVotes 
+            <MaterialVotes
                 materialToken={materialToken}
                 initialLikes={parseInt(initialLikes)}
                 initialDislikes={parseInt(initialDislikes)}
@@ -71,7 +78,7 @@ const materialComments = document.getElementById('material-comments')
 if (materialComments) {
     const materialToken = materialComments.dataset.materialToken
     const isLoggedIn = materialComments.dataset.isLoggedIn === 'true'
-    
+
     if (materialToken) {
         const root = createRoot(materialComments)
         root.render(<MaterialComments materialToken={materialToken} isLoggedIn={isLoggedIn} />)
