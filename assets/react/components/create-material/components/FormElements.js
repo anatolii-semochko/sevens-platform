@@ -49,4 +49,40 @@ const TokenDescription = ({value, onChange, maxLength, error, setErrorMessage}) 
     </div>
 )
 
-export { TokenName, TokenAuthor, TokenDescription }
+export const TokenNameAuthorDescription = ({
+    tokenName,
+    setTokenName,
+    tokenNameMaxLength,
+    tokenAuthor,
+    setTokenAuthor,
+    tokenAuthorMaxLength,
+    tokenDescription,
+    setTokenDescription,
+    tokenDescriptionMaxLength,
+    setErrorMessage,
+}) => (
+    <div className="mb-3">
+        <div className="row g-3 mb-3">
+            <TokenName
+                value={tokenName}
+                onChange={setTokenName}
+                maxLength={tokenNameMaxLength}
+                setErrorMessage={setErrorMessage}
+            />
+            <TokenAuthor
+                value={tokenAuthor}
+                onChange={setTokenAuthor}
+                maxLength={tokenAuthorMaxLength}
+                setErrorMessage={setErrorMessage}
+            />
+        </div>
+        <div className="row g-3">
+            <TokenDescription
+                value={tokenDescription}
+                onChange={setTokenDescription}
+                maxLength={tokenDescriptionMaxLength}
+                setErrorMessage={setErrorMessage}
+            />
+        </div>
+    </div>
+)

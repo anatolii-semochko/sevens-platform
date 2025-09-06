@@ -3,6 +3,8 @@ import React, { createContext, useEffect, useState } from 'react'
 import { reloadAllWallets, setProviderUrl } from '@react/components/wallet/scripts/apiActions'
 import { getWalletStateProperty, setWalletStateProperty } from '@react/components/wallet/scripts/storageActions'
 import { setTranslations } from '@react/components/wallet/translations/translations'
+import { getWallet } from '../scripts/apiActions'
+import { openWallet, closeWallet } from '@js/wallet'
 
 const WalletContext = createContext(null)
 
@@ -13,6 +15,7 @@ const WalletContextProvider = ({ children }) => {
     const [walletsList, setWalletsList] = useState(null)
     const [walletData, setWalletData] = useState({})
     const [rateUsd, setRateUsd] = useState(0.2)
+    const [currentWallet, setCurrentWallet] = useState(null) // Secure wallet interface for adapters
 
     const [walletPublicKey, setWalletPublicKey] = useState(null)
     const setWalletByPublicKey = async (publicKey) => {
@@ -97,11 +100,93 @@ const WalletContextProvider = ({ children }) => {
         if (!wallet) {
             const sortedWallets = [...walletsList].sort((a, b) => a.name.localeCompare(b.name))
             wallet = sortedWallets[0]
-            setWalletByPublicKey(wallet.publicKey)
+            setWalletByPublicKey(wallet.publicKey).catch()
         }
 
         setWalletData(wallet || {})
     }, [walletsList, walletPublicKey])
+
+
+
+
+
+
+
+
+
+
+
+
+    // TODO - Check adn Optimize
+
+    // Update current wallet for adapter communication
+    useEffect(() => {
+        if (unlocked && walletData?.publicKey && password) {
+            try {
+                // Create standard wallet interface using getWallet
+                const standardWallet = getWallet(walletData, password)
+                setCurrentWallet(standardWallet)
+            } catch (error) {
+                console.error('Failed to create wallet interface:', error)
+                setCurrentWallet(null)
+            }
+        } else {
+            setCurrentWallet(null)
+        }
+    }, [unlocked, walletData, password])
+
+    // Listen for adapter connection requests
+    useEffect(() => {
+        const handleConnectRequest = (event) => {
+            console.log('Sevens Wallet connect request received')
+
+            // Open wallet panel for user to unlock/select wallet
+            openWallet()
+
+            // Check if we have a current wallet ready
+            if (currentWallet) {
+                // Immediately respond with current wallet
+                window.dispatchEvent(new CustomEvent('sevens-wallet-connected', {
+                    detail: { wallet: currentWallet }
+                }))
+            }
+            // If no current wallet, user needs to unlock through UI
+            // The wallet will be provided when user unlocks via currentWallet state change
+        }
+
+        const handleDisconnectRequest = (event) => {
+            console.log('Sevens Wallet disconnect request received')
+            closeWallet()
+        }
+
+        window.addEventListener('sevens-wallet-connect-request', handleConnectRequest)
+        window.addEventListener('sevens-wallet-disconnect-request', handleDisconnectRequest)
+
+        return () => {
+            window.removeEventListener('sevens-wallet-connect-request', handleConnectRequest)
+            window.removeEventListener('sevens-wallet-disconnect-request', handleDisconnectRequest)
+        }
+    }, [currentWallet])
+
+    // Notify adapters when wallet becomes available
+    useEffect(() => {
+        if (currentWallet) {
+            console.log('Sevens Wallet is now available, notifying adapters')
+            window.dispatchEvent(new CustomEvent('sevens-wallet-connected', {
+                detail: { wallet: currentWallet }
+            }))
+        }
+    }, [currentWallet])
+
+
+
+
+
+
+
+
+
+
 
     return (
         <WalletContext.Provider
@@ -115,6 +200,7 @@ const WalletContextProvider = ({ children }) => {
                 password, setPassword,
                 unlocked, setUnlocked,
                 rateUsd, setRateUsd,
+                currentWallet, // Secure wallet interface for adapters
             }}
         >
             {children}

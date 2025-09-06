@@ -10,21 +10,27 @@ export const IsNotReady = ({ssError}) => (
     </div>
 )
 
+export const FormTitle = ({publicMaterial}) => (
+    <h1 className="text-center mt-3 mb-4">{publicMaterial ? 'Create Public Material' : 'Create Private Token'}</h1>
+)
+
 export const SetTokenType = ({publicMaterial, setPublicMaterial}) => (
-    <div className="btn-group w-100 mb-4" role="group">
-        <button
-            className={clsx('btn w-50', publicMaterial ? 'btn-primary' : 'btn-outline-secondary')}
-            onClick={() => setPublicMaterial(true)}
-        >
-            Private token
-        </button>
-        <button
-            type="button"
-            className={clsx('btn w-50', !publicMaterial ? 'btn-primary' : 'btn-outline-secondary')}
-            onClick={() => setPublicMaterial(false)}
-        >
-            Public token (create material)
-        </button>
+    <div className="d-flex justify-content-center mb-3">
+        <div className="btn-group" role="group">
+            <button
+                className={clsx('btn px-3', !publicMaterial ? 'btn-primary' : 'btn-outline-secondary')}
+                onClick={() => setPublicMaterial(false)}
+            >
+                Private token
+            </button>
+            <button
+                type="button"
+                className={clsx('btn px-3', publicMaterial ? 'btn-primary' : 'btn-outline-secondary')}
+                onClick={() => setPublicMaterial(true)}
+            >
+                Public token (create material)
+            </button>
+        </div>
     </div>
 )
 
@@ -145,8 +151,8 @@ export const ImagePreview = ({it}) => {
     const _isI = isImage(f)
     const _isA = isAudio(f)
     const _isP = isPdf(f)
-    const boxW = _isV ? 160 : 96
-    const boxH = _isV ? 90 : 96
+    const boxW = 160 // _isV ? 160 : 96
+    const boxH = 90 // _isV ? 90 : 96
 
     return (
         <div
@@ -267,5 +273,11 @@ export const CompressingStatus = ({isCompressing, overallPct}) => isCompressing 
             </div>
             <div className="small text-muted mt-1">Total: {overallPct}%</div>
         </div>
+    </div>
+)
+
+export const SelectedPublicKey = ({publicKey}) => !!publicKey && (
+    <div className="text-muted small mb-3">
+        Selected wallet for mint: <span className="fw-semibold">{publicKey.toString()}</span>
     </div>
 )
