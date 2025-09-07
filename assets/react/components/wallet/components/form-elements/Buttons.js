@@ -4,7 +4,7 @@ import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import { t } from '@react/components/wallet/translations/translations'
 import { closeWallet } from '@js/wallet'
 import {
-    AlignJustify, Plus, Clipboard, ArrowLeft, Lock,
+    AlignJustify, Plus, Clipboard, ArrowLeft, Lock, Signature,
     Sparkles, RotateCcw, KeyRound, CircleDollarSign, Send, FlameKindling,
     NotebookPen, Save, Repeat, Handshake, Trash2, CornerRightDown,
     FolderPen, Eye, Settings, EyeOff, RefreshCw, Wallet, GlobeLock,
@@ -178,6 +178,15 @@ const ButtonReceiveCrypto = ({className}) => {
     )
 }
 
+const ButtonSignTransaction = ({onClick, className}) => (
+    <WalletButton
+        label={t('signTransaction')}
+        onClick={onClick}
+        className={clsx('btn-success w-100', className)}
+        icon={<Signature size={iconSize} />}
+    />
+)
+
 const ButtonWalletAdd = ({onClick, className}) => (
     <WalletButton
         label={t('addWallet')}
@@ -336,5 +345,5 @@ export {
     ButtonSendCoins, ButtonBuyCoins, ButtonSellCoins,  ButtonReceiveCrypto,
     ButtonReloadWallet, ButtonTokenTransfer, ButtonTokenBurn,
     ButtonSettings, ButtonBalancesVisibility, ButtonChangePassword, ButtonClearWallet,
-    ButtonChangeConnection,
+    ButtonChangeConnection, ButtonSignTransaction,
 }

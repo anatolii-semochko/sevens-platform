@@ -1,5 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react'
-import { sevensIdl } from '@js/blockchain/sevens-token'
+import { connection } from '@js/blockchain/sevens'
+import { mint, sevensIdl } from '@js/blockchain/sevens-token'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
@@ -71,17 +72,44 @@ const CreateMaterialInner = () => {
                 }
             }
 
-            console.log('Wallet:', wallet?.adapter?.name)
-            console.log('Wallet connected:', publicKey.toString())
-            console.log('Container:', container)
-            console.log('Token data:', { tokenName, tokenAuthor, tokenDescription })
-
-            // Use standard wallet interface - works with any wallet adapter
-            if (signTransaction && signAllTransactions) {
-                console.log('Wallet ready for transactions')
+            console.log('Creating token:', { tokenName, tokenAuthor, tokenDescription })
+            
+            // Ensure wallet is ready for transactions
+            if (!signTransaction || !signAllTransactions) {
+                throw new Error('Wallet does not support transaction signing')
             }
 
-            // TODO: Create and sign transaction here
+            const { tx, mint: mintKeypair, publicKey: mintPubkey } = await mint({
+                tokenName: tokenName,
+                hash: container.hash,
+                author: tokenAuthor,
+                description: tokenDescription,
+                canBeBurned: true, // TODO !!!!!!!!!!!!
+                walletPublicKey: publicKey.toString(), // Add wallet public key
+            })
+
+            // Sign transaction through wallet UI
+            const signedByWallet = await signTransaction(tx)
+
+            // Add mint keypair signature if needed (it should already be there from partialSign)
+            if (signedByWallet.signatures.some(s => !s.signature && s.publicKey.equals(mintKeypair.publicKey))) {
+                signedByWallet.partialSign(mintKeypair)
+            }
+
+            // 3) Відправка
+            const sig = await connection.sendRawTransaction(signedByWallet.serialize(), {
+                skipPreflight: false,
+                preflightCommitment: 'confirmed',
+            })
+
+            // 4) Підтвердження
+            const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
+            await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed')
+
+            console.log({
+                signature: sig,
+                mint: mintPubkey,
+            })
 
         } catch (error) {
             console.error('Error creating token:', error)

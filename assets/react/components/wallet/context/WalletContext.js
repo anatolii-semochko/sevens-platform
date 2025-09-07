@@ -159,12 +159,40 @@ const WalletContextProvider = ({ children }) => {
             closeWallet()
         }
 
+        const handleShowSignTransaction = (event) => {
+            console.log('Show SignTransaction request received')
+            const { transaction, onSign, onCancel } = event.detail
+            
+            // Open wallet if not already open
+            openWallet()
+            
+            // Show SignTransaction component
+            setShowComponent({
+                component: 'SignTransaction',
+                props: {
+                    transaction,
+                    onSign,
+                    onCancel
+                }
+            })
+        }
+
+        const handleCloseDialog = (event) => {
+            console.log('Close dialog request received')
+            // Reset to main wallet view
+            setShowComponent(null)
+        }
+
         window.addEventListener('sevens-wallet-connect-request', handleConnectRequest)
         window.addEventListener('sevens-wallet-disconnect-request', handleDisconnectRequest)
+        window.addEventListener('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
+        window.addEventListener('sevens-wallet-close-dialog', handleCloseDialog)
 
         return () => {
             window.removeEventListener('sevens-wallet-connect-request', handleConnectRequest)
             window.removeEventListener('sevens-wallet-disconnect-request', handleDisconnectRequest)
+            window.removeEventListener('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
+            window.removeEventListener('sevens-wallet-close-dialog', handleCloseDialog)
         }
     }, [currentWallet])
 

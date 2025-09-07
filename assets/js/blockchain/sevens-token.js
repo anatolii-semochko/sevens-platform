@@ -1,8 +1,8 @@
 import * as anchor from '@coral-xyz/anchor'
-import { PublicKey, Keypair, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import BN from 'bn.js'
+import { PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { connection, commitment, getPda, getAnchorErrorText } from './sevens'
-import BN from 'bn.js'
 
 const sevensIdlPath = '/storage/files/sevens_token.json'
 
@@ -12,9 +12,9 @@ const dummyWallet = {
     signTransaction: async (tx) => tx,
 }
 
-const provider = new anchor.AnchorProvider(connection, dummyWallet, {});
+const provider = () => new anchor.AnchorProvider(connection, dummyWallet, {});
 
-export let sevensIdl
+let sevensIdl
 fetch(sevensIdlPath)
     .then(response => response.json())
     .then(idl => sevensIdl = idl)
@@ -36,43 +36,48 @@ const mint = async ({
     author = '',
     description = '',
     canBeBurned = false,
+    walletPublicKey,
 }) => {
     try {
+        if (!walletPublicKey) {
+            new Error('Wallet public key is required')
+        }
+
         const mint = Keypair.generate()
-        const {
-            program,
-            metadataPda,
-            salePda,
-        } = getSevensToken(mint.publicKey)
+        const { program, metadataPda, salePda } = getSevensToken(mint.publicKey)
 
-        const payer = provider().wallet
-        const owner = payer
+        const payerPublicKey = new PublicKey(walletPublicKey)
+        const ownerPublicKey = payerPublicKey
 
-        const signature = await program.methods
+        const ix = await program.methods
             .mintToken(author, hash, description, tokenName, canBeBurned)
             .accounts({
                 mint: mint.publicKey,
                 metadata: metadataPda,
                 sale: salePda,
-                tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, owner.publicKey),
-                mintAuthority: owner.publicKey,
-                payer: payer.publicKey,
+                tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, ownerPublicKey),
+                mintAuthority: ownerPublicKey,
+                payer: payerPublicKey,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
                 rent: anchor.web3.SYSVAR_RENT_PUBKEY,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             })
-            .signers([mint])
-            .rpc()
+            .instruction()
 
-        const { blockhash, lastValidBlockHeight } = await provider().connection.getLatestBlockhash(commitment)
-        await provider().connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, commitment)
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(commitment)
+        const tx = new Transaction()
+        tx.add(ix)
+        tx.feePayer = payerPublicKey
+        tx.recentBlockhash = blockhash
+        tx.partialSign(mint)
 
         return {
+            tx,
+            mint, // Keypair (потрібен як локальний підписант, не передавай у проді за межі безпечного середовища)
             publicKey: mint.publicKey.toBase58(),
             metadataPublicKey: metadataPda.toBase58(),
             salePublicKey: salePda.toBase58(),
-            tx: signature,
         }
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
@@ -204,4 +209,4 @@ const buy = async ({ tokenPublicKey, lamports }) => {
     }
 }
 
-export { mint, burn, buy, getData, setSale }
+export { provider, connection, mint, burn, buy, getData, setSale, sevensIdl }

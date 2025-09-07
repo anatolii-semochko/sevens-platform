@@ -122,9 +122,10 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             const wallet = this._wallet
             if (!wallet) throw new WalletNotConnectedError()
 
-            // Use the signTransaction method from getWalletFromKeypair
-            const signedTransaction = await wallet.signTransaction(transaction)
-            return signedTransaction
+            console.log('signTransaction', transaction)
+            
+            // Open SignTransaction page and wait for user decision
+            return await this._showSignTransactionDialog(transaction)
 
         } catch (error) {
             this.emit('error', error)
@@ -132,10 +133,38 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
         }
     }
 
+    _showSignTransactionDialog(transaction) {
+        return new Promise((resolve, reject) => {
+            // Dispatch event to show SignTransaction page
+            const eventDetail = {
+                transaction,
+                onSign: (signedTransaction) => {
+                    // Close the dialog
+                    window.dispatchEvent(new CustomEvent('sevens-wallet-close-dialog'))
+                    resolve(signedTransaction)
+                },
+                onCancel: () => {
+                    // Close the dialog
+                    window.dispatchEvent(new CustomEvent('sevens-wallet-close-dialog'))
+                    reject(new WalletSignTransactionError('User rejected transaction'))
+                }
+            }
+
+            window.dispatchEvent(new CustomEvent('sevens-wallet-show-sign-transaction', {
+                detail: eventDetail
+            }))
+        })
+    }
+
     async signAllTransactions(transactions) {
         try {
             const wallet = this._wallet
             if (!wallet) throw new WalletNotConnectedError()
+
+            console.log('signAllTransactions', transactions)
+            // TODO - simulate transaction in assets/react/components/wallet/scripts/simulate.js
+            // TODO - open page by setShowComponent({component: 'SignTransaction'})
+            // TODO - show simulated data in SignTransaction
 
             // Use the signAllTransactions method from getWalletFromKeypair
             const signedTransactions = await wallet.signAllTransactions(transactions)
@@ -151,6 +180,11 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
         try {
             const wallet = this._wallet
             if (!wallet) throw new WalletNotConnectedError()
+
+            console.log('signMessage', message)
+            // TODO - simulate transaction in assets/react/components/wallet/scripts/simulate.js
+            // TODO - open page by setShowComponent({component: 'SignTransaction'})
+            // TODO - show simulated data in SignTransaction
 
             // Use the signMessage method from getWalletFromKeypair
             const signature = await wallet.signMessage(message)
