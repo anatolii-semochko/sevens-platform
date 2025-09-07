@@ -28,3 +28,18 @@
   border: 1px solid #ccc;
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.05);
 }
+
+/* Bootstrap spacing text-indent */
+.ti-0 { text-indent: 0; }
+.ti-1 { text-indent: .25rem; }  /* ~ m-1 */
+.ti-2 { text-indent: .5rem;  }  /* ~ m-2 */
+.ti-3 { text-indent: 1rem;   }  /* ~ m-3 */
+.ti-4 { text-indent: 1.5rem; }  /* ~ m-4 */
+.ti-5 { text-indent: 3rem;   }  /* ~ m-5 */
+
+/* Responsive text-indent */
+@media (min-width: 576px){ .ti-sm-3 { text-indent: 1rem; } }
+@media (min-width: 768px){ .ti-md-3 { text-indent: 1rem; } }
+@media (min-width: 992px){ .ti-lg-3 { text-indent: 1rem; } }
+@media (min-width:1200px){ .ti-xl-3 { text-indent: 1rem; } }
+@media (min-width:1400px){ .ti-xxl-3{ text-indent: 1rem; } }

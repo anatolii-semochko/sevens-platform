@@ -73,7 +73,7 @@ const CreateMaterialInner = () => {
             }
 
             console.log('Creating token:', { tokenName, tokenAuthor, tokenDescription })
-            
+
             // Ensure wallet is ready for transactions
             if (!signTransaction || !signAllTransactions) {
                 throw new Error('Wallet does not support transaction signing')
@@ -155,11 +155,19 @@ const CreateMaterialInner = () => {
                         <div className="d-flex justify-content-end gap-2">
                             <button className="btn btn-outline-primary" onClick={handlerChangeFiles}>Change files</button>
                             <button className="btn btn-outline-primary" onClick={handlerClear}>Clear</button>
-                            <button className="btn btn-success" onClick={handlerCreateToken}>Create Token</button>
+
 
 
                             <div>
-                                {!connected ? (
+                                {connected ? (
+                                    <span>
+                                        <button  className="btn btn-primary" disabled={connecting} onClick={async () => await disconnect()}>
+                                            Disconnect Phantom
+                                        </button>
+                                        <button className="btn btn-success" onClick={handlerCreateToken}>Create Token</button>
+                                        <button className="btn btn-primary" onClick={() => handleSignMessage()} >Sign Message</button>
+                                    </span>
+                                ) : (
                                     <span>
                                         <WalletMultiButton className="btn btn-primary"/>
                                         <button  className="btn btn-primary" disabled={connecting} onClick={async () => {
@@ -168,15 +176,6 @@ const CreateMaterialInner = () => {
                                         }}>
                                             Connect Phantom
                                         </button>
-                                    </span>
-                                ) : (
-                                    <span>
-                                        <button  className="btn btn-primary" disabled={connecting} onClick={async () => {
-                                            await disconnect()
-                                        }}>
-                                            Disconnect Phantom
-                                        </button>
-                                        <button className="btn btn-primary" onClick={() => handleSignMessage()} >Sign Message</button>
                                     </span>
                                 )}
                             </div>

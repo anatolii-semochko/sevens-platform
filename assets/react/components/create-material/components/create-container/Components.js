@@ -15,23 +15,32 @@ export const FormTitle = ({publicMaterial}) => (
 )
 
 export const SetTokenType = ({publicMaterial, setPublicMaterial}) => (
-    <div className="d-flex justify-content-center mb-3">
-        <div className="btn-group" role="group">
-            <button
-                className={clsx('btn px-3', !publicMaterial ? 'btn-primary' : 'btn-outline-secondary')}
-                onClick={() => setPublicMaterial(false)}
-            >
-                Private token
-            </button>
-            <button
-                type="button"
-                className={clsx('btn px-3', publicMaterial ? 'btn-primary' : 'btn-outline-secondary')}
-                onClick={() => setPublicMaterial(true)}
-            >
-                Public token (create material)
-            </button>
+    <>
+        <div className="d-flex justify-content-center mb-2">
+            <div className="btn-group" role="group">
+                <button
+                    className={clsx('btn px-3', !publicMaterial ? 'btn-primary' : 'btn-outline-secondary')}
+                    onClick={() => setPublicMaterial(false)}
+                >
+                    Private token
+                </button>
+                <button
+                    type="button"
+                    className={clsx('btn px-3', publicMaterial ? 'btn-primary' : 'btn-outline-secondary')}
+                    onClick={() => setPublicMaterial(true)}
+                >
+                    Public token (create material)
+                </button>
+            </div>
         </div>
-    </div>
+        <h5 className="ti-5 lh-sm lh-lg-base p-3">
+            {publicMaterial ? (
+                <>Create token and publish material on site. Your files will be sent to list of public materials and visible for everyone.</>
+            ) : (
+                <>Create private token. This operations is safe, your files will not be sent out from your device. Data will be available for no one. Only token mint transaction sends to blockchain.</>
+            )}
+        </h5>
+    </>
 )
 
 export const SelectFiles = ({addFiles, disabled}) => {
@@ -276,8 +285,12 @@ export const CompressingStatus = ({isCompressing, overallPct}) => isCompressing 
     </div>
 )
 
-export const SelectedPublicKey = ({publicKey}) => !!publicKey && (
+export const SelectedPublicKey = ({publicKey}) => (
     <div className="text-muted small mb-3">
-        Selected wallet for mint: <span className="fw-semibold">{publicKey.toString()}</span>
+        {publicKey ? (
+            <span>Selected wallet for mint: <span className="fw-semibold">{publicKey.toString()}</span></span>
+        ) : (
+            <span className="text-danger">Select and activate your wallet for token mint. Wallet needs positive balance for transaction fee payment.</span>
+        )}
     </div>
 )
