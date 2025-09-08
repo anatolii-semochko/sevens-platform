@@ -32,8 +32,8 @@ const WalletsList = () => {
         return <WalletActions walletData={showWalletActions} setShowWalletActions={setShowWalletActions} />
     }
 
-    const handleSetWallet = (walletData) => {
-        setWalletByPublicKey(walletData.publicKey)
+    const handleSetWallet = async (walletData) => {
+        await setWalletByPublicKey(walletData.publicKey)
         setShowComponent(null)
     }
 

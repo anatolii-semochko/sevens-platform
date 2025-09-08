@@ -5,6 +5,7 @@ import { getWalletStateProperty, setWalletStateProperty } from '@react/component
 import { setTranslations } from '@react/components/wallet/translations/translations'
 import { getWallet } from '../scripts/apiActions'
 import { openWallet, closeWallet } from '@js/wallet'
+import getWalletEventBus from '../EventBus.js'
 
 const WalletContext = createContext(null)
 
@@ -15,7 +16,8 @@ const WalletContextProvider = ({ children }) => {
     const [walletsList, setWalletsList] = useState(null)
     const [walletData, setWalletData] = useState({})
     const [rateUsd, setRateUsd] = useState(0.2)
-    const [currentWallet, setCurrentWallet] = useState(null) // Secure wallet interface for adapters
+    const [currentWallet, setCurrentWallet] = useState(null)
+    const [eventBus] = useState(() => getWalletEventBus())
 
     const [walletPublicKey, setWalletPublicKey] = useState(null)
     const setWalletByPublicKey = async (publicKey) => {
@@ -106,6 +108,19 @@ const WalletContextProvider = ({ children }) => {
         setWalletData(wallet || {})
     }, [walletsList, walletPublicKey])
 
+    useEffect(() => {
+        if (walletData?.publicKey && currentWallet) {
+            eventBus.emit('sevens-wallet-account-changed', {
+                publicKey: walletData.publicKey
+            })
+            
+            // Also emit connected event to ensure adapter has the wallet reference
+            eventBus.emit('sevens-wallet-connected', {
+                wallet: currentWallet
+            })
+        }
+    }, [walletData?.publicKey, currentWallet, eventBus])
+
 
 
 
@@ -135,38 +150,30 @@ const WalletContextProvider = ({ children }) => {
         }
     }, [unlocked, walletData, password])
 
-    // Listen for adapter connection requests
     useEffect(() => {
         const handleConnectRequest = (event) => {
             console.log('Sevens Wallet connect request received')
-
-            // Open wallet panel for user to unlock/select wallet
             openWallet()
 
-            // Check if we have a current wallet ready
             if (currentWallet) {
-                // Immediately respond with current wallet
-                window.dispatchEvent(new CustomEvent('sevens-wallet-connected', {
-                    detail: { wallet: currentWallet }
-                }))
+                eventBus.emit('sevens-wallet-connected', {
+                    wallet: currentWallet
+                })
             }
-            // If no current wallet, user needs to unlock through UI
-            // The wallet will be provided when user unlocks via currentWallet state change
         }
 
         const handleDisconnectRequest = (event) => {
             console.log('Sevens Wallet disconnect request received')
-            closeWallet()
+            // Don't call closeWallet() here as it will cause double event emission
+            // The adapter handles its own disconnection
         }
 
         const handleShowSignTransaction = (event) => {
             console.log('Show SignTransaction request received')
             const { transaction, onSign, onCancel } = event.detail
             
-            // Open wallet if not already open
             openWallet()
             
-            // Show SignTransaction component
             setShowComponent({
                 component: 'SignTransaction',
                 props: {
@@ -179,32 +186,36 @@ const WalletContextProvider = ({ children }) => {
 
         const handleCloseDialog = (event) => {
             console.log('Close dialog request received')
-            // Reset to main wallet view
             setShowComponent(null)
         }
 
-        window.addEventListener('sevens-wallet-connect-request', handleConnectRequest)
-        window.addEventListener('sevens-wallet-disconnect-request', handleDisconnectRequest)
-        window.addEventListener('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
-        window.addEventListener('sevens-wallet-close-dialog', handleCloseDialog)
+        eventBus.on('sevens-wallet-connect-request', handleConnectRequest)
+        eventBus.on('sevens-wallet-disconnect-request', handleDisconnectRequest)
+        eventBus.on('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
+        eventBus.on('sevens-wallet-close-dialog', handleCloseDialog)
 
         return () => {
-            window.removeEventListener('sevens-wallet-connect-request', handleConnectRequest)
-            window.removeEventListener('sevens-wallet-disconnect-request', handleDisconnectRequest)
-            window.removeEventListener('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
-            window.removeEventListener('sevens-wallet-close-dialog', handleCloseDialog)
+            eventBus.off('sevens-wallet-connect-request', handleConnectRequest)
+            eventBus.off('sevens-wallet-disconnect-request', handleDisconnectRequest)
+            eventBus.off('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
+            eventBus.off('sevens-wallet-close-dialog', handleCloseDialog)
         }
-    }, [currentWallet])
+    }, [currentWallet, eventBus])
 
-    // Notify adapters when wallet becomes available
     useEffect(() => {
         if (currentWallet) {
             console.log('Sevens Wallet is now available, notifying adapters')
-            window.dispatchEvent(new CustomEvent('sevens-wallet-connected', {
-                detail: { wallet: currentWallet }
-            }))
+            eventBus.emit('sevens-wallet-connected', {
+                wallet: currentWallet
+            })
+            eventBus.emit('sevens-wallet-opened', {
+                wallet: currentWallet
+            })
+        } else if (!unlocked) {
+            // Only emit closed event when wallet is actually locked, not during temporary transitions
+            eventBus.emit('sevens-wallet-closed', { forceDisconnect: true })
         }
-    }, [currentWallet])
+    }, [currentWallet, eventBus, unlocked])
 
 
 

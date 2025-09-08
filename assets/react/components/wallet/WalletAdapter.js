@@ -6,6 +6,7 @@ import {
     WalletDisconnectionError,
     WalletSignTransactionError,
 } from '@solana/wallet-adapter-base'
+import getWalletEventBus from './EventBus.js'
 
 export class SevensWalletAdapter extends BaseWalletAdapter {
 
@@ -22,8 +23,11 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
         this._connecting = false
         this._wallet = null
         this._publicKey = null
-        this._readyState = WalletReadyState.Installed // Installed or Loadable
+        this._readyState = WalletReadyState.Installed
         this._connectionCheckInterval = null
+        this._eventBus = getWalletEventBus()
+        
+        this._setupEventListeners()
     }
 
     get publicKey() {
@@ -42,16 +46,58 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
         return this._readyState
     }
 
+    _setupEventListeners() {
+        this._eventBus.on('sevens-wallet-opened', (event) => {
+            const { wallet } = event.detail
+            if (wallet && wallet.publicKey) {
+                this._wallet = wallet
+                this._publicKey = wallet.publicKey
+                this.emit('connect', this._publicKey)
+            }
+        })
+
+        this._eventBus.on('sevens-wallet-connected', (event) => {
+            const { wallet } = event.detail
+            if (wallet && wallet.publicKey) {
+                // Update wallet reference and publicKey when wallet becomes available
+                this._wallet = wallet
+                if (!this._publicKey || this._publicKey.toString() !== wallet.publicKey.toString()) {
+                    this._publicKey = wallet.publicKey
+                    this.emit('connect', this._publicKey)
+                }
+            }
+        })
+
+        this._eventBus.on('sevens-wallet-closed', (event) => {
+            const { forceDisconnect = false } = event.detail || {}
+            if (this.connected && forceDisconnect) {
+                this._wallet = null
+                this._publicKey = null
+                this.emit('disconnect')
+            }
+        })
+
+        this._eventBus.on('sevens-wallet-account-changed', (event) => {
+            const { publicKey } = event.detail
+            if (publicKey) {
+                this._publicKey = publicKey
+                // If we don't have a wallet reference, wait for the wallet connection
+                if (this._wallet) {
+                    this.emit('connect', this._publicKey)
+                }
+            }
+        })
+    }
+
     async connect() {
         try {
             if (this.connected || this.connecting) return
 
             this._connecting = true
 
-            // Dispatch standard event to request wallet connection
-            window.dispatchEvent(new CustomEvent('sevens-wallet-connect-request', {
-                detail: { adapter: this }
-            }))
+            this._eventBus.emit('sevens-wallet-connect-request', {
+                adapter: this
+            })
 
             // Wait for wallet response
             const wallet = await this._waitForWalletConnection()
@@ -71,7 +117,7 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
     _waitForWalletConnection() {
         return new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-                window.removeEventListener('sevens-wallet-connected', handleConnection)
+                this._eventBus.off('sevens-wallet-connected', handleConnection)
                 reject(new WalletConnectionError('Wallet connection timeout'))
             }, 30000)
 
@@ -79,7 +125,7 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
                 const { wallet, error } = event.detail
 
                 clearTimeout(timeout)
-                window.removeEventListener('sevens-wallet-connected', handleConnection)
+                this._eventBus.off('sevens-wallet-connected', handleConnection)
 
                 if (error) {
                     reject(new WalletConnectionError(error))
@@ -90,7 +136,7 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
                 }
             }
 
-            window.addEventListener('sevens-wallet-connected', handleConnection)
+            this._eventBus.on('sevens-wallet-connected', handleConnection)
         })
     }
 
@@ -101,10 +147,12 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             this._publicKey = null
 
             try {
-                // Notify Sevens Wallet about disconnection
-                window.dispatchEvent(new CustomEvent('sevens-wallet-disconnect-request', {
-                    detail: { adapter: this }
-                }))
+                this._eventBus.emit('sevens-wallet-disconnect-request', {
+                    adapter: this
+                })
+                
+                // Emit close event with force disconnect to properly disconnect adapter
+                this._eventBus.emit('sevens-wallet-closed', { forceDisconnect: true })
 
                 if (wallet.disconnect) {
                     await wallet.disconnect()
@@ -139,20 +187,16 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             const eventDetail = {
                 transaction,
                 onSign: (signedTransaction) => {
-                    // Close the dialog
-                    window.dispatchEvent(new CustomEvent('sevens-wallet-close-dialog'))
+                    this._eventBus.emit('sevens-wallet-close-dialog')
                     resolve(signedTransaction)
                 },
                 onCancel: () => {
-                    // Close the dialog
-                    window.dispatchEvent(new CustomEvent('sevens-wallet-close-dialog'))
+                    this._eventBus.emit('sevens-wallet-close-dialog')
                     reject(new WalletSignTransactionError('User rejected transaction'))
                 }
             }
 
-            window.dispatchEvent(new CustomEvent('sevens-wallet-show-sign-transaction', {
-                detail: eventDetail
-            }))
+            this._eventBus.emit('sevens-wallet-show-sign-transaction', eventDetail)
         })
     }
 

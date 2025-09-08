@@ -45,7 +45,7 @@ const CreateMaterialInner = () => {
 
 
     // TODO - take values from sevens IDL
-    console.log({sevensIdl})
+    // console.log({sevensIdl})
     const tokenNameMaxLength = 32
     const tokenAuthorMaxLength = 32
     const tokenDescriptionMaxLength = 128
@@ -122,6 +122,16 @@ const CreateMaterialInner = () => {
         // signWithPhantom().then(console.log).catch(console.error)
     }
 
+    const testState = () => {
+        console.log('testState', {
+            publicKey: publicKey?.toString(),
+            wallet,
+            connected,
+            connecting,
+            wallets,
+        })
+    }
+
     return (
         <div className="row justify-content-center mb-3">
             <div className="col-12 col-lg-6">
@@ -179,6 +189,10 @@ const CreateMaterialInner = () => {
                                     </span>
                                 )}
                             </div>
+
+                            <button className="btn btn-success" onClick={() => testState()}>
+                                WALLET ADAPTER STATE TEST
+                            </button>
 
 
                         </div>
