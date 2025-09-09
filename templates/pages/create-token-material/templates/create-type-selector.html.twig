@@ -1,0 +1,34 @@
+<div class="d-flex justify-content-center mb-4">
+    <div class="btn-group" role="group" aria-label="{{ 'Create options'|trans }}">
+        {% set current_route = app.request.get('_route') %}
+        {% set locale = current_locale is defined ? current_locale : app.request.locale %}
+
+        {% set buttons = [
+            {
+                route: 'create_private_token',
+                label: 'Create private token'|trans
+            },
+            {
+                route: 'create_token_material',
+                label: 'Create token and publish material'|trans
+            },
+            {
+                route: 'create_material_from_token',
+                label: 'Publish material from token container'|trans
+            }
+        ] %}
+
+        {% for btn in buttons %}
+            {% if current_route == btn.route %}
+                <span class="btn px-3 btn-primary" aria-current="page">
+                    {{ btn.label }}
+                </span>
+            {% else %}
+                <a href="{{ path(btn.route, {'_locale': locale}) }}"
+                   class="btn px-3 btn-outline-secondary">
+                    {{ btn.label }}
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>

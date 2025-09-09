@@ -10,7 +10,7 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { CreateContainer } from './components/CreateContainer'
 import { removeContainer } from './components/create-container/utils'
-import { FormTitle, SelectedPublicKey, SetTokenType } from './components/create-container/Components'
+import { SelectedPublicKey } from './components/create-container/Components'
 import { TokenNameAuthorDescription } from './components/FormElements'
 
 const CreateMaterialInner = () => {
@@ -141,68 +141,64 @@ const CreateMaterialInner = () => {
 
 
     return (
-        <div className="row justify-content-center mb-3">
-            <div className="col-12 col-lg-6">
-                <FormTitle publicMaterial={publicMaterial} />
-                <SetTokenType publicMaterial={publicMaterial} setPublicMaterial={setPublicMaterial} />
-                <CreateContainer
-                    items={tokenFiles}
-                    setItems={setTokenFiles}
-                    container={container}
-                    setContainer={setContainer}
-                    targetRef={targetRef}
-                    isCompressing={isCompressing}
-                    setIsCompressing={setIsCompressing}
-                />
-                {!!container && !isCompressing && (
-                    <>
-                        <TokenNameAuthorDescription
-                            tokenName={tokenName}
-                            setTokenName={setTokenName}
-                            tokenNameMaxLength={tokenNameMaxLength}
-                            tokenAuthor={tokenAuthor}
-                            setTokenAuthor={setTokenAuthor}
-                            tokenAuthorMaxLength={tokenAuthorMaxLength}
-                            tokenDescription={tokenDescription}
-                            setTokenDescription={setTokenDescription}
-                            tokenDescriptionMaxLength={tokenDescriptionMaxLength}
-                            setErrorMessage={setErrorMessage}
-                        />
-                        <SelectedPublicKey publicKey={publicKey} />
-                        <MessagesBlock error={errorMessage}/>
-                        <div className="d-flex justify-content-end gap-2">
-                            <button className="btn btn-outline-primary" onClick={handlerChangeFiles}>Change files</button>
-                            <button className="btn btn-outline-primary" onClick={handlerClear}>Clear</button>
+        <div>
+            <CreateContainer
+                items={tokenFiles}
+                setItems={setTokenFiles}
+                container={container}
+                setContainer={setContainer}
+                targetRef={targetRef}
+                isCompressing={isCompressing}
+                setIsCompressing={setIsCompressing}
+            />
+            {!!container && !isCompressing && (
+                <>
+                    <TokenNameAuthorDescription
+                        tokenName={tokenName}
+                        setTokenName={setTokenName}
+                        tokenNameMaxLength={tokenNameMaxLength}
+                        tokenAuthor={tokenAuthor}
+                        setTokenAuthor={setTokenAuthor}
+                        tokenAuthorMaxLength={tokenAuthorMaxLength}
+                        tokenDescription={tokenDescription}
+                        setTokenDescription={setTokenDescription}
+                        tokenDescriptionMaxLength={tokenDescriptionMaxLength}
+                        setErrorMessage={setErrorMessage}
+                    />
+                    <SelectedPublicKey publicKey={publicKey} />
+                    <MessagesBlock error={errorMessage}/>
+                    <div className="d-flex justify-content-end gap-2">
+                        <button className="btn btn-outline-primary" onClick={handlerChangeFiles}>Change files</button>
+                        <button className="btn btn-outline-primary" onClick={handlerClear}>Clear</button>
 
 
 
-                            <div>
-                                {connected ? (
-                                    <span>
-                                        <button  className="btn btn-primary" disabled={connecting} onClick={async () => await disconnect()}>
-                                            Disconnect Phantom
-                                        </button>
-                                        <button className="btn btn-success" onClick={handlerCreateToken}>Create Token</button>
-                                        <button className="btn btn-primary" onClick={() => handleSignMessage()} >Sign Message</button>
-                                    </span>
-                                ) : (
-                                    <span>
-                                        <WalletMultiButton className="btn btn-primary"/>
-                                        <button  className="btn btn-primary" disabled={connecting} onClick={async () => {
-                                            await select('Phantom');
-                                            await connect();
-                                        }}>
-                                            Connect Phantom
-                                        </button>
-                                    </span>
-                                )}
-                            </div>
-
-
+                        <div>
+                            {connected ? (
+                                <span>
+                                    <button  className="btn btn-primary" disabled={connecting} onClick={async () => await disconnect()}>
+                                        Disconnect Phantom
+                                    </button>
+                                    <button className="btn btn-success" onClick={handlerCreateToken}>Create Token</button>
+                                    <button className="btn btn-primary" onClick={() => handleSignMessage()} >Sign Message</button>
+                                </span>
+                            ) : (
+                                <span>
+                                    <WalletMultiButton className="btn btn-primary"/>
+                                    <button  className="btn btn-primary" disabled={connecting} onClick={async () => {
+                                        await select('Phantom');
+                                        await connect();
+                                    }}>
+                                        Connect Phantom
+                                    </button>
+                                </span>
+                            )}
                         </div>
-                    </>
-                )}
-            </div>
+
+
+                    </div>
+                </>
+            )}
         </div>
     )
 }

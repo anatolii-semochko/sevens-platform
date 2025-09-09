@@ -28,11 +28,9 @@
         <!-- Right side: Create + Icons -->
         <div class="d-flex align-items-center gap-3 header-right">
             <a href="{{ path('check_token', {'_locale': app.request.locale}) }}" class="create-btn">
-                <i class="bi bi-patch-check me-1"></i> {{ 'Check Material'|trans }}
+                <i class="bi bi-patch-check me-1"></i> {{ 'Check Container'|trans }}
             </a>
-            <a href="{{ path('create_material', {'_locale': app.request.locale}) }}" class="create-btn">
-                + {{ 'Create Material'|trans }}
-            </a>
+            {% include 'main-template/header/create.html.twig' %}
             {% include 'main-template/header/language-selector.html.twig' %}
             <a href="#" class="text-dark"><i class="bi bi-envelope fs-4 icon-button"></i></a>
             <a class="text-dark" id="openWalletBtn"><i class="bi bi-wallet fs-4 icon-button"></i></a>

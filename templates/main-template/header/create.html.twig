@@ -1,0 +1,32 @@
+<div class="d-flex align-items-center">
+    <div class="dropdown">
+        <a class="create-btn" href="#" role="button" id="createDropdown" data-bs-toggle="dropdown">
+            + {{ 'Create'|trans }}
+        </a>
+        {% set current_route = app.request.get('_route') %}
+        {% set locale = current_locale is defined ? current_locale : app.request.locale %}
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="createDropdown">
+            <li class="mx-2 my-3">
+                <a class="dropdown-item d-flex align-items-center gap-2{{ current_route == 'create_private_token' ? ' active' : '' }}"
+                   href="{{ path('create_private_token', {'_locale': locale}) }}"
+                >
+                    Create private token
+                </a>
+            </li>
+            <li class="mx-2 my-3">
+                <a class="dropdown-item d-flex align-items-center gap-2{{ current_route == 'create_token_material' ? ' active' : '' }}"
+                   href="{{ path('create_token_material', {'_locale': locale}) }}"
+                >
+                    Create token and publish material
+                </a>
+            </li>
+            <li class="mx-2 my-3">
+                <a class="dropdown-item d-flex align-items-center gap-2{{ current_route == 'create_material_from_token' ? ' active' : '' }}"
+                   href="{{ path('create_material_from_token', {'_locale': locale}) }}"
+                >
+                    Publish material from token container
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

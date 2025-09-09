@@ -43,3 +43,7 @@
 @media (min-width: 992px){ .ti-lg-3 { text-indent: 1rem; } }
 @media (min-width:1200px){ .ti-xl-3 { text-indent: 1rem; } }
 @media (min-width:1400px){ .ti-xxl-3{ text-indent: 1rem; } }
+
+.text-justify {
+  text-align: justify;
+}
