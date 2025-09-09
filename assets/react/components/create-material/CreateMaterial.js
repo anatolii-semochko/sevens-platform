@@ -97,14 +97,6 @@ const CreateMaterialInner = () => {
         }
     }
 
-    const handleSignMessage = () => {
-        console.log('Call sign message')
-        // signWithPhantom().then(console.log).catch(console.error)
-    }
-
-
-
-
 
     const {
         publicKey,
@@ -170,32 +162,8 @@ const CreateMaterialInner = () => {
                     <div className="d-flex justify-content-end gap-2">
                         <button className="btn btn-outline-primary" onClick={handlerChangeFiles}>Change files</button>
                         <button className="btn btn-outline-primary" onClick={handlerClear}>Clear</button>
-
-
-
-                        <div>
-                            {connected ? (
-                                <span>
-                                    <button  className="btn btn-primary" disabled={connecting} onClick={async () => await disconnect()}>
-                                        Disconnect Phantom
-                                    </button>
-                                    <button className="btn btn-success" onClick={handlerCreateToken}>Create Token</button>
-                                    <button className="btn btn-primary" onClick={() => handleSignMessage()} >Sign Message</button>
-                                </span>
-                            ) : (
-                                <span>
-                                    <WalletMultiButton className="btn btn-primary"/>
-                                    <button  className="btn btn-primary" disabled={connecting} onClick={async () => {
-                                        await select('Phantom');
-                                        await connect();
-                                    }}>
-                                        Connect Phantom
-                                    </button>
-                                </span>
-                            )}
-                        </div>
-
-
+                        <WalletMultiButton />
+                        <button className="btn btn-success" disabled={!connected} onClick={handlerCreateToken}>Create Token</button>
                     </div>
                 </>
             )}
