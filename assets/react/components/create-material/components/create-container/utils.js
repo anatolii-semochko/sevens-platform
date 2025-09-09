@@ -203,7 +203,7 @@ export const checkSwAvailability = (setSsReady, setSsError) => {
 
 
 
-
+// TODO - Is for testing !!! Move out from here !!!
 // =================================================== Sign Message ====================================================
 /*
     зберігайти message, address, signatureBase64, date, nonce на бекенді — вони знадобляться для верифікації

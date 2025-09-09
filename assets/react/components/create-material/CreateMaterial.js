@@ -24,26 +24,6 @@ const CreateMaterialInner = () => {
     const [tokenDescription, setTokenDescription] = useState('')
     const [errorMessage, setErrorMessage] = useState(null)
 
-    const {
-        publicKey,
-        wallet,
-        select,
-        connected,
-        connecting,
-        connect,
-        disconnect,
-        signTransaction,
-        signAllTransactions,
-        wallets
-    } = useWallet()
-
-
-    // TODO - To REMOVE !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    useEffect(() => {
-        console.log('Wallet status:', { connected, publicKey: publicKey?.toString(), wallet: wallet?.adapter?.name })
-    }, [connected, publicKey, wallet])
-
-
     // TODO - take values from sevens IDL
     // console.log({sevensIdl})
     const tokenNameMaxLength = 32
@@ -122,15 +102,43 @@ const CreateMaterialInner = () => {
         // signWithPhantom().then(console.log).catch(console.error)
     }
 
-    const testState = () => {
-        console.log('testState', {
-            publicKey: publicKey?.toString(),
-            wallet,
-            connected,
-            connecting,
-            wallets,
-        })
-    }
+
+
+
+
+    const {
+        publicKey,
+        wallet,
+        select,
+        connected,
+        connecting,
+        connect,
+        disconnect,
+        signTransaction,
+        signAllTransactions,
+        wallets
+    } = useWallet()
+
+    // TODO - Check if it is needed
+    // Force connection check for Sevens Wallet
+    useEffect(() => {
+        if (wallet?.adapter?.name === 'Sevens Wallet' && !connected && !connecting) {
+            const adapter = wallet.adapter
+            console.log('🔍 [CreateMaterial] Sevens Wallet selected but not connected, forcing connection check')
+
+            // Check if adapter has a wallet but React hasn't updated
+            if (adapter._wallet && adapter._publicKey) {
+                console.log('🔄 [CreateMaterial] Adapter has wallet, forcing connect call')
+                setTimeout(() => {
+                    connect().catch(console.error)
+                }, 100)
+            }
+        }
+    }, [wallet, connected, connecting, connect])
+
+
+
+
 
     return (
         <div className="row justify-content-center mb-3">
@@ -189,10 +197,6 @@ const CreateMaterialInner = () => {
                                     </span>
                                 )}
                             </div>
-
-                            <button className="btn btn-success" onClick={() => testState()}>
-                                WALLET ADAPTER STATE TEST
-                            </button>
 
 
                         </div>

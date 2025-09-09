@@ -21,7 +21,7 @@ const WalletContextProvider = ({ children }) => {
 
     const [walletPublicKey, setWalletPublicKey] = useState(null)
     const setWalletByPublicKey = async (publicKey) => {
-        setWalletData({})
+        if (walletData.publicKey !== publicKey) setWalletData({})
         await setWalletStateProperty('walletPublicKey', publicKey)
         setWalletPublicKey(publicKey)
     }
@@ -113,7 +113,7 @@ const WalletContextProvider = ({ children }) => {
             eventBus.emit('sevens-wallet-account-changed', {
                 publicKey: walletData.publicKey
             })
-            
+
             // Also emit connected event to ensure adapter has the wallet reference
             eventBus.emit('sevens-wallet-connected', {
                 wallet: currentWallet
@@ -171,9 +171,9 @@ const WalletContextProvider = ({ children }) => {
         const handleShowSignTransaction = (event) => {
             console.log('Show SignTransaction request received')
             const { transaction, onSign, onCancel } = event.detail
-            
+
             openWallet()
-            
+
             setShowComponent({
                 component: 'SignTransaction',
                 props: {
@@ -189,16 +189,58 @@ const WalletContextProvider = ({ children }) => {
             setShowComponent(null)
         }
 
+        const handleGetCurrent = (event) => {
+            console.log('📥 [Context] Get current wallet request received')
+            console.log('📊 [Context] Current state:', {
+                hasCurrentWallet: !!currentWallet,
+                hasPublicKey: !!currentWallet?.publicKey,
+                publicKey: currentWallet?.publicKey?.toString(),
+                unlocked,
+                hasWalletData: !!walletData?.publicKey
+            })
+            const { callback } = event.detail || {}
+            if (callback && currentWallet && currentWallet.publicKey) {
+                console.log('✅ [Context] Calling callback with current wallet')
+                callback(currentWallet)
+            } else if (callback) {
+                console.log('❌ [Context] Calling callback with null (no wallet available)')
+                callback(null)
+            }
+        }
+
+        const handlePing = (event) => {
+            console.log('📥 [Context] Wallet ping received, announcing current state')
+            console.log('📊 [Context] Current state:', {
+                hasCurrentWallet: !!currentWallet,
+                hasPublicKey: !!currentWallet?.publicKey,
+                publicKey: currentWallet?.publicKey?.toString(),
+                unlocked
+            })
+            // Respond to ping by announcing current wallet state
+            if (currentWallet && currentWallet.publicKey) {
+                console.log('📤 [Context] Emitting sevens-wallet-connected in response to ping')
+                eventBus.emit('sevens-wallet-connected', {
+                    wallet: currentWallet
+                })
+            } else {
+                console.log('⚠️ [Context] No current wallet to announce')
+            }
+        }
+
         eventBus.on('sevens-wallet-connect-request', handleConnectRequest)
         eventBus.on('sevens-wallet-disconnect-request', handleDisconnectRequest)
         eventBus.on('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
         eventBus.on('sevens-wallet-close-dialog', handleCloseDialog)
+        eventBus.on('sevens-wallet-get-current', handleGetCurrent)
+        eventBus.on('sevens-wallet-ping', handlePing)
 
         return () => {
             eventBus.off('sevens-wallet-connect-request', handleConnectRequest)
             eventBus.off('sevens-wallet-disconnect-request', handleDisconnectRequest)
             eventBus.off('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
             eventBus.off('sevens-wallet-close-dialog', handleCloseDialog)
+            eventBus.off('sevens-wallet-get-current', handleGetCurrent)
+            eventBus.off('sevens-wallet-ping', handlePing)
         }
     }, [currentWallet, eventBus])
 
@@ -218,6 +260,13 @@ const WalletContextProvider = ({ children }) => {
     }, [currentWallet, eventBus, unlocked])
 
 
+    // TODO - Remove All window. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // Make current wallet globally accessible for debugging and direct access
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            window.__sevensCurrentWallet = currentWallet
+        }
+    }, [currentWallet])
 
 
 
