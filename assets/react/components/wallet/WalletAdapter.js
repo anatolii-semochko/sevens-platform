@@ -340,7 +340,12 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             console.log('signTransaction', transaction)
 
             // Open SignTransaction page and wait for user decision
-            return await this._showSignTransactionDialog(transaction)
+            const signedTransaction = await this._showSignTransactionDialog(transaction)
+            
+            // Reload wallet data after successful transaction signing
+            this._eventBus.emit('sevens-wallet-reload-request')
+            
+            return signedTransaction
 
         } catch (error) {
             this.emit('error', error)
@@ -379,6 +384,10 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
 
             // Use the signAllTransactions method from getWalletFromKeypair
             const signedTransactions = await wallet.signAllTransactions(transactions)
+            
+            // Reload wallet data after successful transaction signing
+            this._eventBus.emit('sevens-wallet-reload-request')
+            
             return signedTransactions
 
         } catch (error) {

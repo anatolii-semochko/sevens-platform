@@ -47,4 +47,23 @@ const TextArea = ({
     />
 )
 
-export { Input, TextArea }
+const Select = ({id, placeHolder, className, value, onChange, options, disabled, required, setErrorMessage}) => (
+    <select
+        className={clsx('form-control', className)}
+        id={id}
+        placeholder={placeHolder}
+        disabled={disabled}
+        required={required}
+        value={value}
+        onChange={(e) => {
+            onChange(e.target.value)
+            if (setErrorMessage) setErrorMessage(null)
+        }}
+    >
+        {options.map((option, key) => (
+            <option key={key} value={option.value}>{option.label}</option>
+        ))}
+    </select>
+)
+
+export { Input, TextArea, Select }

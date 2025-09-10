@@ -102,17 +102,17 @@ export const DropZone = ({addFiles, disabled}) => {
     )
 }
 
-export const SummaryActions = ({items, clearAll, disabled}) => {
-    const totalSelected = useMemo(() => items.length, [items])
-    const totalSize = useMemo(() => items.reduce((s, it) => s + (it.size || 0), 0), [items])
-    const anyCompressing = useMemo(() => items.some((x) => x.status === 'compressing'), [items])
+export const SummaryActions = ({tokenFiles, clearAll, disabled}) => {
+    const totalSelected = useMemo(() => tokenFiles.length, [tokenFiles])
+    const totalSize = useMemo(() => tokenFiles.reduce((s, it) => s + (it.size || 0), 0), [tokenFiles])
+    const anyCompressing = useMemo(() => tokenFiles.some((x) => x.status === 'compressing'), [tokenFiles])
 
     return (
         <div className="d-flex flex-wrap align-items-center gap-2">
             Selected: <span className="fw-semibold">{totalSelected}</span> files · Total size: {prettyBytes(totalSize)}
             <div className="ms-auto d-flex gap-2">
                 {!disabled && (
-                    <button type="button" onClick={clearAll} disabled={!items.length || anyCompressing} className="btn btn-outline-secondary">
+                    <button type="button" onClick={clearAll} disabled={!tokenFiles.length || anyCompressing} className="btn btn-outline-secondary">
                         Clear all
                     </button>
                 )}
@@ -121,19 +121,19 @@ export const SummaryActions = ({items, clearAll, disabled}) => {
     )
 }
 
-export const ImagePreview = ({it}) => {
+export const ImagePreview = ({it, width, height}) => {
     const f = it.file || it
     const _isV = isVideo(f)
     const _isI = isImage(f)
     const _isA = isAudio(f)
     const _isP = isPdf(f)
-    const boxW = 160 // _isV ? 160 : 96
-    const boxH = 90 // _isV ? 90 : 96
+    // const boxW = 160 // _isV ? 160 : 96
+    // const boxH = 90 // _isV ? 90 : 96
 
     return (
         <div
             className="bg-light rounded d-flex align-items-center justify-content-center"
-            style={{ width: boxW, height: boxH, overflow: "hidden", minWidth: boxW }}
+            style={{ width: width, height: height, overflow: "hidden", minWidth: width }}
         >
             {_isI && it.previewUrl && (
                 <img src={it.previewUrl} alt={it.name} className="img-fluid" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -186,26 +186,44 @@ export const ImageInfo = ({it}) => (
     </div>
 )
 
-export const FilesList = ({items, removeOne, clearAll, disabled}) => {
-    if (!items.length) return (
+export const FilesList = ({tokenFiles, doMaterial, setAsMain, removeOne, clearAll, disabled}) => {
+    if (!tokenFiles.length) return (
         <li className="list-group-item text-center small text-muted">No files selected yet.</li>
     )
 
     return (
         <>
-            <SummaryActions items={items} clearAll={clearAll} disabled={disabled}/>
+            <SummaryActions tokenFiles={tokenFiles} clearAll={clearAll} disabled={disabled}/>
             <ul className="list-group list-group-flush border rounded overflow-hidden">
-                {items.map((it) => (
-                    <li key={it.id} className="list-group-item d-flex align-items-start gap-3">
-                        <ImagePreview it={it} />
-                        <ImageInfo  it={it} />
-                        {!disabled && (
-                            <div className="d-flex align-items-center gap-2">
-                                <button type="button" onClick={() => removeOne(it.id)} disabled={it.status === "compressing"} className="btn btn-outline-secondary btn-sm">
+                {tokenFiles.map((it) => (
+                    <li
+                        key={it.id}
+                        className="list-group-item d-flex align-items-start gap-3"
+                        style={{background: it.main ? 'aliceblue' : ''}}
+                    >
+                        <ImagePreview it={it} width={160} height={90} />
+                        <ImageInfo it={it} />
+                        <div className="d-flex align-items-center gap-2">
+                            {!disabled && (
+                                <button
+                                    type="button"
+                                    onClick={() => removeOne(it.id)}
+                                    disabled={it.status === "compressing"}
+                                    className="btn btn-outline-secondary btn-sm"
+                                >
                                     Remove
                                 </button>
-                            </div>
-                        )}
+                            )}
+                            {doMaterial && (
+                                <button
+                                    type="button"
+                                    onClick={() => setAsMain(it.id)}
+                                    className={clsx('btn btn-sm', it.main ? 'btn-primary' : 'btn-outline-secondary')}
+                                >
+                                    Main
+                                </button>
+                            )}
+                        </div>
                     </li>
                 ))}
             </ul>
@@ -214,25 +232,24 @@ export const FilesList = ({items, removeOne, clearAll, disabled}) => {
 }
 
 export const CompressingActions = ({
-    items,
+    tokenFiles,
     createContainer,
-    isCompressing,
     container,
     cancelCompression,
-}) => !!items.length && (
+}) => !!tokenFiles.length && (
     <div className="d-flex gap-2 align-items-center">
-        {!container && !isCompressing && (
-            <button className="btn btn-info" disabled={isCompressing} onClick={createContainer}>
+        {!container && (
+            <button className="btn btn-info" onClick={createContainer}>
                 Create container
             </button>
         )}
-        {container && isCompressing && (
+        {container && container.isCompressing && (
             <span>
                 Creating container...
                 <button className="btn btn-outline-danger ms-3" onClick={cancelCompression}>Cancel</button>
             </span>
         )}
-        {container && !isCompressing && (
+        {container && !container.isCompressing && (
             <div className="text-muted small">
                 <div className="mb-2">Saved as <span className="fw-semibold">{container.name}</span></div>
                 <div>Container hash: <span className="fw-semibold">{container.hash}</span></div>
@@ -241,23 +258,66 @@ export const CompressingActions = ({
     </div>
 )
 
-export const CompressingStatus = ({isCompressing, overallPct}) => isCompressing && (
+export const CompressingStatus = ({container, overallCompressing}) => container?.isCompressing && (
     <div className="d-flex align-items-center gap-2">
         <div className="flex-grow-1">
             <div className="progress" role="progressbar" aria-label="total compression progress">
-                <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${overallPct}%` }} />
+                <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${overallCompressing}%` }} />
             </div>
-            <div className="small text-muted mt-1">Total: {overallPct}%</div>
+            <div className="small text-muted mt-1">Adding files to container: {overallCompressing}%</div>
         </div>
     </div>
 )
 
-export const SelectedPublicKey = ({publicKey}) => (
+export const HashingStatus = ({container, overallHashing}) => (container?.isCompressing || container?.isHashing) && (
+    <div className="d-flex align-items-center gap-2">
+        <div className="flex-grow-1">
+            <div className="progress" role="progressbar" aria-label="hashing progress">
+                <div className="progress-bar bg-success progress-bar-striped progress-bar-animated" style={{ width: `${overallHashing}%` }} />
+            </div>
+            <div className="small text-muted mt-1">Calculating container hash: {overallHashing}%</div>
+        </div>
+    </div>
+)
+
+export const SelectedPublicKey = ({wallet}) => (
     <div className="text-muted small mb-3">
-        {publicKey ? (
-            <span>Selected wallet for mint: <span className="fw-semibold">{publicKey.toString()}</span></span>
+        {wallet.publicKey ? (
+            <span>Selected wallet for token minting: <span className="fw-semibold">{wallet.publicKey?.toString()}</span></span>
         ) : (
-            <span className="text-danger">Select and activate your wallet for token mint. Wallet needs positive balance for transaction fee payment.</span>
+            <span className="text-primary fw-semibold">To create and store a token, select and activate your wallet. A positive wallet balance is required to pay the transaction fee.</span>
         )}
+    </div>
+)
+
+export const MintedInfo = ({minted}) => minted && (
+    <div className="alert-success alert text-break" role="alert">
+        <h4 className="text-center">Congratulations !</h4>
+        <p className="text-center">Your token has been successfully minted.</p>
+        <div className="d-flex justify-content-center">
+            <table className=" table-sm w-auto text-start">
+                <tbody>
+                <tr>
+                    <td><strong>Token public key:</strong></td>
+                    <td className="ps-3">{minted.mint}</td>
+                </tr>
+                <tr>
+                    <td><strong>Transaction signature:</strong></td>
+                    <td className="ps-3">{minted.signature}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+)
+
+export const TryMoreOptions = ({minted, doMaterial, handlerClear}) => minted && !doMaterial && (
+    <div className="d-flex flex-column align-items-center gap-2 text-center mb-3">
+        <h6>You can try:</h6>
+        <div className="d-flex flex-wrap justify-content-center gap-2">
+            <button className="btn btn-primary">Check your token container</button>
+            <button className="btn btn-primary" onClick={handlerClear}>Mint a new token</button>
+            <button className="btn btn-primary">Publish material on site</button>
+        </div>
     </div>
 )

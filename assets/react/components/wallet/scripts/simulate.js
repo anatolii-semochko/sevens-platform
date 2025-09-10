@@ -10,6 +10,8 @@ import {
     AddressLookupTableAccount,
 } from "@solana/web3.js";
 
+// TODO - Analyze and clean
+
 /** === Константи програм === */
 export const PROGRAM_IDS = {
     SYSTEM: SystemProgram.programId.toBase58(),

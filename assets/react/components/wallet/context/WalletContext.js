@@ -227,12 +227,41 @@ const WalletContextProvider = ({ children }) => {
             }
         }
 
+        const handleReloadRequest = (event) => {
+            console.log('🔄 [Context] Wallet reload request received')
+            if (password && walletReload) {
+                // Perform 3 sequential reloads with 1-second intervals
+                const performReloads = async () => {
+                    try {
+                        for (let i = 1; i <= 3; i++) {
+                            console.log(`🔄 [Context] Wallet reload attempt ${i}/3`)
+                            await walletReload()
+                            
+                            // Wait 1 second between reloads (except after the last one)
+                            if (i < 3) {
+                                await new Promise(resolve => setTimeout(resolve, 1000))
+                            }
+                        }
+                        console.log('✅ [Context] All wallet reloads completed successfully')
+                    } catch (error) {
+                        console.error('❌ [Context] Wallet reload failed:', error)
+                    }
+                }
+                
+                // Start the reload sequence after a short initial delay
+                setTimeout(() => {
+                    performReloads()
+                }, 500)
+            }
+        }
+
         eventBus.on('sevens-wallet-connect-request', handleConnectRequest)
         eventBus.on('sevens-wallet-disconnect-request', handleDisconnectRequest)
         eventBus.on('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
         eventBus.on('sevens-wallet-close-dialog', handleCloseDialog)
         eventBus.on('sevens-wallet-get-current', handleGetCurrent)
         eventBus.on('sevens-wallet-ping', handlePing)
+        eventBus.on('sevens-wallet-reload-request', handleReloadRequest)
 
         return () => {
             eventBus.off('sevens-wallet-connect-request', handleConnectRequest)
@@ -241,6 +270,7 @@ const WalletContextProvider = ({ children }) => {
             eventBus.off('sevens-wallet-close-dialog', handleCloseDialog)
             eventBus.off('sevens-wallet-get-current', handleGetCurrent)
             eventBus.off('sevens-wallet-ping', handlePing)
+            eventBus.off('sevens-wallet-reload-request', handleReloadRequest)
         }
     }, [currentWallet, eventBus])
 

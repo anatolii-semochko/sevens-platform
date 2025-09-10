@@ -15,7 +15,7 @@ import { Buffer } from 'buffer'
 import { Provider } from 'react-redux'
 import { createRoot } from 'react-dom/client'
 import { openWallet, closeWallet } from '@js/wallet'
-import CreateMaterial from '@react/components/create-material/CreateMaterial'
+import Create from '@react/components/create-token-material/Create'
 import CheckToken from '@react/components/check-token/CheckToken'
 import UserAuth from '@react/components/user-auth/UserAuth'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
@@ -30,10 +30,10 @@ if ('serviceWorker' in navigator) {
         .catch(error => console.error('SW register failed:', error))
 }
 
-const createMaterial = document.getElementById('create-material')
-if (createMaterial) {
-    const root = createRoot(createMaterial)
-    root.render(<Provider store={store}><CreateMaterial /></Provider>)
+const createTokenMaterial = document.getElementById('create-token-material')
+if (createTokenMaterial) {
+    const root = createRoot(createTokenMaterial)
+    root.render(<Provider store={store}><Create type={createTokenMaterial.dataset.type} /></Provider>)
 }
 
 const checkToken = document.getElementById('check-token')

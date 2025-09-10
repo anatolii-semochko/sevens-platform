@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react'
 import streamSaver from 'streamsaver'
 import { Zip, AsyncZipDeflate, ZipPassThrough } from 'fflate'
 import { getExt, getContainerName, getContainerHash } from './utils'
-import { CompressingActions, CompressingStatus } from './Components'
+import { CompressingActions, CompressingStatus, HashingStatus } from './Components'
 
 // --- налаштування backpressure та тротлінгу ---
 const MAX_BUFFERED_BYTES = 64 * 1024 * 1024; // 64MB максимум незаписаних даних
@@ -16,8 +16,9 @@ const STORE_EXTS = new Set([
     'pdf','zip','7z','gz','bz2','xz'
 ]);
 
-export const Compressing = ({items, setItems, isCompressing, setIsCompressing, container, setContainer, targetRef}) => {
-    const [overallPct, setOverallPct] = useState(0)
+export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
+    const [overallCompressing, setOverallCompressing] = useState(0)
+    const [overallHashing, setOverallHashing] = useState(0)
 
     const cancelFlagRef = useRef(false)
     const activeReadersRef = useRef([])       // ReadableStreamDefaultReader[]
@@ -31,7 +32,7 @@ export const Compressing = ({items, setItems, isCompressing, setIsCompressing, c
     const lastUiFileRef = useRef(0)
     const lastUiGlobalRef = useRef(0)
 
-    const totalBytes = useMemo(() => items.reduce((s, it) => s + (it.size || 0), 0), [items])
+    const totalBytes = useMemo(() => tokenFiles.reduce((s, it) => s + (it.size || 0), 0), [tokenFiles])
 
     // ---- Writable target: SaveFilePicker (де є) або StreamSaver (Downloads) ----
     const getWritableTarget = async (suggestedName) => {
@@ -131,7 +132,7 @@ export const Compressing = ({items, setItems, isCompressing, setIsCompressing, c
     }
 
     const cancelCompression = useCallback(async () => {
-        if (!isCompressing) return
+        if (!container?.isCompressing) return
         cancelFlagRef.current = true
 
         for (const r of activeReadersRef.current) { try { await r.cancel() } catch (_) {} }
@@ -140,20 +141,21 @@ export const Compressing = ({items, setItems, isCompressing, setIsCompressing, c
         try { zipInstanceRef.current?.end() } catch (_) {}
         try { await targetRef.current?.abort() } catch (_) {}
 
-        setItems((prev) => prev.map((x) => {
+        setTokenFiles((prev) => prev.map((x) => {
             if (x.status === 'compressing') return { ...x, status: 'error', error: 'Canceled by user' }
             return x
         }))
 
+        setOverallHashing(0)
         setContainer(null)
-        setIsCompressing(false)
-    }, [isCompressing])
+    }, [container?.isCompressing])
 
     const createContainer = useCallback(async () => {
-        if (!items.length || isCompressing) return
+        if (!tokenFiles.length || container?.isCompressing) return
 
         setContainer(null)
-        setOverallPct(0)
+        setOverallCompressing(0)
+        setOverallHashing(0)
         cancelFlagRef.current = false
         activeReadersRef.current = []
         zipInstanceRef.current = null
@@ -170,11 +172,10 @@ export const Compressing = ({items, setItems, isCompressing, setIsCompressing, c
         try {
             const target = await getWritableTarget(zipName)
             targetRef.current = target
-            setContainer({ name: zipName, where: target.kind })
+            setContainer({ name: zipName, where: target.kind, isCompressing: true, isHashing: false })
 
             // позначаємо всі як compressing
-            setItems((prev) => prev.map((x) => ({ ...x, status: 'compressing', progress: 0, error: null })))
-            setIsCompressing(true)
+            setTokenFiles((prev) => prev.map((x) => ({ ...x, status: 'compressing', progress: 0, error: null })))
 
             // обгортка запису з обліком буфера
             const enqueueWrite = (chunk) => {
@@ -209,19 +210,19 @@ export const Compressing = ({items, setItems, isCompressing, setIsCompressing, c
             const updateFileProgress = (id, pct) => {
                 const now = performance.now()
                 if (pct === 100 || now - lastUiFileRef.current >= UI_THROTTLE_MS) {
-                    setItems((prev) => prev.map((x) => (x.id === id ? { ...x, progress: pct } : x)))
+                    setTokenFiles((prev) => prev.map((x) => (x.id === id ? { ...x, progress: pct } : x)))
                     lastUiFileRef.current = now
                 }
             }
             const updateGlobalProgress = (pct) => {
                 const now = performance.now()
                 if (pct === 100 || now - lastUiGlobalRef.current >= UI_THROTTLE_MS) {
-                    setOverallPct(pct)
+                    setOverallCompressing(pct)
                     lastUiGlobalRef.current = now
                 }
             }
 
-            for (const it of items) {
+            for (const it of tokenFiles) {
                 if (cancelFlagRef.current) break
 
                 const entryName = (it.relativePath && it.relativePath.trim()) ? it.relativePath : it.name
@@ -280,7 +281,7 @@ export const Compressing = ({items, setItems, isCompressing, setIsCompressing, c
 
                 entry.push(new Uint8Array(0), true) // закрити entry
                 updateFileProgress(it.id, 100)
-                setItems((prev) => prev.map((x) => (x.id === it.id ? { ...x, status: 'done' } : x)))
+                setTokenFiles((prev) => prev.map((x) => (x.id === it.id ? { ...x, status: 'done' } : x)))
             }
 
             if (cancelFlagRef.current) {
@@ -293,35 +294,35 @@ export const Compressing = ({items, setItems, isCompressing, setIsCompressing, c
 
                 if (targetRef.current?.kind === 'savePicker' && targetRef.current?.handle) {
                     try {
-                        const hash = await getContainerHash(targetRef.current)
-                        setContainer(prev => prev ? { ...prev, hash } : null)
+                        await new Promise(resolve => setTimeout(resolve, 100))
+                        setContainer(prev => prev ? { ...prev, isHashing: true } : null)
+                        const hash = await getContainerHash(targetRef.current, setOverallHashing)
+                        setContainer(prev => prev ? { ...prev, hash, isHashing: false } : null)
                     } catch (hashError) {
                         console.warn('Could not calculate container hash:', hashError)
+                        setContainer(prev => prev ? { ...prev, isHashing: false } : null)
                     }
                 }
             }
         } catch (e) {
             console.error(e)
             const msg = e?.message || String(e)
-            setItems((prev) => prev.map((x) =>
+            setTokenFiles((prev) => prev.map((x) =>
                 (x.status === 'compressing' || x.status === 'queued') ? { ...x, status: 'error', error: msg } : x
             ))
             alert(msg)
         } finally {
-            if (!cancelFlagRef.current) setIsCompressing(false)
+            if (!cancelFlagRef.current) {
+                setContainer(prev => prev ? { ...prev, isCompressing: false } : null)
+            }
         }
-    }, [items, isCompressing, totalBytes])
+    }, [tokenFiles, container?.isCompressing, totalBytes])
 
     return (
         <>
-            <CompressingStatus isCompressing={isCompressing} overallPct={overallPct} />
-            <CompressingActions
-                items={items}
-                createContainer={createContainer}
-                isCompressing={isCompressing}
-                container={container}
-                cancelCompression={cancelCompression}
-            />
+            <CompressingStatus {...{container, overallCompressing}} />
+            <HashingStatus {...{container, overallHashing}} />
+            <CompressingActions {...{tokenFiles, createContainer, container, cancelCompression}} />
         </>
     )
 }

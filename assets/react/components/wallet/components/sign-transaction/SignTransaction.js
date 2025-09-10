@@ -74,7 +74,7 @@ const SignTransaction = ({ transaction, onSign, onCancel }) => {
 
     const formatLamports = (lamports) => {
         if (!lamports) return '0'
-        return (lamports / 1e9).toFixed(9)
+        return (lamports / 1e9).toFixed(9).replace(/\.?0+$/, '')
     }
 
     if (!transaction) {

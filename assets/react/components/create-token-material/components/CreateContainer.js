@@ -3,15 +3,7 @@ import { SelectFiles, FilesList, DropZone, IsNotReady } from './create-container
 import { createItem, checkSwAvailability } from './create-container/utils'
 import { Compressing } from './create-container/Compressing'
 
-export const CreateContainer = ({
-    items,
-    setItems,
-    container,
-    setContainer,
-    targetRef,
-    isCompressing,
-    setIsCompressing,
-}) => {
+export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef, doMaterial}) => {
     const [ssReady, setSsReady] = useState(false)
     const [ssError, setSsError] = useState(null)
 
@@ -22,7 +14,7 @@ export const CreateContainer = ({
     const addFiles = useCallback((fileList) => {
         const files = Array.from(fileList || [])
         if (!files.length) return
-        setItems((prev) => {
+        setTokenFiles((prev) => {
             const existingKeys = new Set(prev.map((p) => `${p.name}|${p.size}|${p.lastModified}`))
             const add = []
             for (const f of files) {
@@ -33,8 +25,17 @@ export const CreateContainer = ({
         })
     }, [])
 
+    const setAsMain = (id) => {
+        setTokenFiles((prev) => {
+            return prev.map((x) => ({
+                ...x,
+                main: x.id === id
+            }))
+        })
+    }
+
     const removeOne = (id) => {
-        setItems((prev) => {
+        setTokenFiles((prev) => {
             const next = prev.filter((x) => x.id !== id)
             prev.forEach((x) => { if (x.id === id && x.previewUrl) URL.revokeObjectURL(x.previewUrl) })
             return next
@@ -42,13 +43,11 @@ export const CreateContainer = ({
     }
 
     const clearAll = () => {
-        setItems((prev) => {
+        setTokenFiles((prev) => {
             prev.forEach((x) => x.previewUrl && URL.revokeObjectURL(x.previewUrl))
             return []
         })
     }
-
-    const filesActionsDisabled = () => isCompressing || container
 
     if (!window.showSaveFilePicker && !ssReady) return (
         <IsNotReady ssError={ssError} />
@@ -57,14 +56,10 @@ export const CreateContainer = ({
     return (
         <div className="row g-3">
             <div className="d-flex flex-column gap-3 mb-3">
-                <SelectFiles addFiles={addFiles} disabled={filesActionsDisabled()} />
-                <DropZone addFiles={addFiles} disabled={filesActionsDisabled()} />
-                <FilesList items={items} removeOne={removeOne} clearAll={clearAll} disabled={filesActionsDisabled()}/>
-                <Compressing
-                    items={items} setItems={setItems}
-                    isCompressing={isCompressing} setIsCompressing={setIsCompressing}
-                    container={container} setContainer={setContainer} targetRef={targetRef}
-                />
+                <SelectFiles addFiles={addFiles} disabled={!!container} />
+                <DropZone addFiles={addFiles} disabled={!!container} />
+                <FilesList {...{tokenFiles, doMaterial, setAsMain, removeOne, clearAll, disabled: !!container}} />
+                <Compressing {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
             </div>
         </div>
     )

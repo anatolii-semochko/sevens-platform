@@ -36,60 +36,56 @@ export const getContainerName = () => {
     return `Token_Container_${date}_${time}.zip`
 }
 
-export const getContainerHash = async (target) => {
+export const getContainerHash = async (target, setOverallHashing) => {
     if (!target || !target.handle) {
         throw new Error('Cannot calculate hash: no file handle available')
     }
 
     try {
+        setOverallHashing(0)
         const file = await target.handle.getFile()
-        const reader = file.stream().getReader()
-        const hashContext = await crypto.subtle.importKey(
-            'raw',
-            new TextEncoder().encode(''),
-            { name: 'HMAC', hash: 'SHA-256' },
-            false,
-            ['sign']
-        ).catch(() => crypto.subtle.digest.bind(crypto.subtle, 'SHA-256'))
+        console.log('File size for hashing:', file.size, 'bytes')
 
-        let hasher
-        if (typeof hashContext === 'function') {
-            const chunks = []
-            try {
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-                    chunks.push(new Uint8Array(value))
-                }
-
-                const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
-                const allBytes = new Uint8Array(totalLength)
-                let offset = 0
-                for (const chunk of chunks) {
-                    allBytes.set(chunk, offset)
-                    offset += chunk.length
-                }
-
-                const hashBuffer = await hashContext(allBytes)
-                return Array.from(new Uint8Array(hashBuffer))
-                    .map(b => b.toString(16).padStart(2, '0'))
-                    .join('')
-            } finally {
-                try { reader.releaseLock() } catch (_) {}
-            }
+        if (file.size === 0) {
+            console.warn('File is empty, cannot calculate meaningful hash')
+            throw new Error('File is empty')
         }
 
-        hasher = await crypto.subtle.digest('SHA-256', new Uint8Array(0))
+        const reader = file.stream().getReader()
+        const totalSize = file.size
+        let processedBytes = 0
+
         const chunks = []
+
         try {
             while (true) {
                 const { done, value } = await reader.read()
                 if (done) break
-                chunks.push(new Uint8Array(value))
+
+                const chunk = new Uint8Array(value)
+                chunks.push(chunk)
+                processedBytes += chunk.byteLength
+
+                const progress = Math.min(95, Math.floor((processedBytes / totalSize) * 100))
+                setOverallHashing(progress)
+
+                if (processedBytes > 1024 * 1024) {
+                    await new Promise(resolve => setTimeout(resolve, 10))
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 1))
+                }
             }
         } finally {
             try { reader.releaseLock() } catch (_) {}
         }
+
+        console.log('Total bytes read:', processedBytes, 'chunks:', chunks.length)
+
+        if (processedBytes === 0) {
+            new Error('No data was read from file')
+        }
+
+        setOverallHashing(98)
 
         const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
         const allBytes = new Uint8Array(totalLength)
@@ -99,13 +95,20 @@ export const getContainerHash = async (target) => {
             offset += chunk.length
         }
 
+        console.log('Combined array length:', allBytes.length)
         const hashBuffer = await crypto.subtle.digest('SHA-256', allBytes)
-        return Array.from(new Uint8Array(hashBuffer))
+        setOverallHashing(100)
+
+        const hash = Array.from(new Uint8Array(hashBuffer))
             .map(b => b.toString(16).padStart(2, '0'))
             .join('')
 
+        console.log('Calculated hash:', hash)
+        return hash
+
     } catch (error) {
         console.error('Error calculating container hash:', error)
+        setOverallHashing(0)
         throw error
     }
 }
