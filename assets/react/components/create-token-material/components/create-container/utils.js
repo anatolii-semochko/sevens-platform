@@ -45,14 +45,17 @@ export const isFileRenamingSupported = () => window.showSaveFilePicker &&
     typeof window.showSaveFilePicker === 'function' &&
     window.location.protocol === 'https:'
 
-export const renameContainerFile = async (targetRef, mintPubkey, container, setContainer) => {
+export const renameContainerFile = async (targetRef, mintPubkey, container, setContainer, newHandle = null) => {
+    // Use targetRef from container if available, otherwise fallback to passed parameter
+    const actualTargetRef = container?.targetRef || targetRef
+    
     // Check if renaming is supported and container can be renamed
     if (!container?.canBeRenamed) {
         console.log('File renaming not supported or not allowed for this container')
         return null
     }
 
-    if (!targetRef?.current || targetRef.current.kind !== 'savePicker' || !targetRef.current.handle) {
+    if (!actualTargetRef?.current || actualTargetRef.current.kind !== 'savePicker' || !actualTargetRef.current.handle) {
         console.warn('Cannot rename container file: no file handle available')
         return null
     }
@@ -69,9 +72,11 @@ export const renameContainerFile = async (targetRef, mintPubkey, container, setC
         const newName = getTokenContainerName(mintPubkey)
         console.log('Renaming container file to:', newName)
 
-        const currentHandle = targetRef.current.handle
+        const currentHandle = actualTargetRef.current.handle
         const currentFile = await currentHandle.getFile()
 
+        // Add delay to show progress
+        await new Promise(resolve => setTimeout(resolve, 200))
         setContainer(prev => prev ? { ...prev, overallRenaming: 20 } : null)
 
         // Check file size and warn about large files
@@ -90,28 +95,59 @@ export const renameContainerFile = async (targetRef, mintPubkey, container, setC
             }
         }
 
+        await new Promise(resolve => setTimeout(resolve, 200))
         setContainer(prev => prev ? { ...prev, overallRenaming: 40 } : null)
 
-        // Simple approach - use container.folder if available
-        const savePickerOptions = {
-            suggestedName: newName,
-            types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
+        // Use provided handle or create new one
+        let fileHandle = newHandle
+        if (!fileHandle) {
+            const savePickerOptions = {
+                suggestedName: newName,
+                types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
+                startIn: 'downloads' // Valid WellKnownDirectory
+            }
+
+            setContainer(prev => prev ? { ...prev, overallRenaming: 60 } : null)
+            fileHandle = await window.showSaveFilePicker(savePickerOptions)
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 200))
+            setContainer(prev => prev ? { ...prev, overallRenaming: 60 } : null)
         }
+        const writable = await fileHandle.createWritable()
 
-        if (container?.folder) {
-            savePickerOptions.startIn = container.folder
-        }
-
-        setContainer(prev => prev ? { ...prev, overallRenaming: 60 } : null)
-
-        const newHandle = await window.showSaveFilePicker(savePickerOptions)
-        const writable = await newHandle.createWritable()
-
+        await new Promise(resolve => setTimeout(resolve, 200))
         setContainer(prev => prev ? { ...prev, overallRenaming: 80 } : null)
 
-        // Stream copy
-        const stream = currentFile.stream()
-        await stream.pipeTo(writable)
+        // Chunked copy for large files with progress
+        const reader = currentFile.stream().getReader()
+        const totalSize = currentFile.size
+        let copiedBytes = 0
+        
+        try {
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+                
+                await writable.write(value)
+                copiedBytes += value.byteLength
+                
+                // Update progress based on copying progress
+                const copyProgress = Math.floor((copiedBytes / totalSize) * 20) // 20% of total progress allocated to copying
+                const totalProgress = 80 + copyProgress // Start from 80%, add up to 20% more
+                setContainer(prev => prev ? { ...prev, overallRenaming: Math.min(100, totalProgress) } : null)
+                
+                // Small delay for large files to prevent UI blocking
+                if (copiedBytes % (10 * 1024 * 1024) === 0) { // Every 10MB
+                    await new Promise(resolve => setTimeout(resolve, 10))
+                }
+            }
+        } finally {
+            try {
+                reader.releaseLock()
+            } catch (e) {
+                // Reader already released
+            }
+        }
 
         // Remove old file
         try {
@@ -120,13 +156,15 @@ export const renameContainerFile = async (targetRef, mintPubkey, container, setC
             console.warn('Could not remove old container file:', removeError.message)
         }
 
+        // Ensure we show 100% completion
         setContainer(prev => prev ? { ...prev, overallRenaming: 100 } : null)
+        await new Promise(resolve => setTimeout(resolve, 300)) // Show 100% briefly
 
         // Update references
-        targetRef.current = {
-            ...targetRef.current,
+        actualTargetRef.current = {
+            ...actualTargetRef.current,
             name: newName,
-            handle: newHandle
+            handle: fileHandle
         }
 
         // Update container state

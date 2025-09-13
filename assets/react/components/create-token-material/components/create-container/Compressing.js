@@ -39,7 +39,7 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
         if (window.showSaveFilePicker && typeof window.showSaveFilePicker === 'function') {
             const handle = await window.showSaveFilePicker({
                 suggestedName,
-                startIn: 'downloads', // Always start in downloads to avoid cached directory issues
+                startIn: 'downloads', // Valid WellKnownDirectory value
                 types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
             })
             const writable = await handle.createWritable()
@@ -185,11 +185,11 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
                 isRenaming: false,
                 isRenamed: false,
                 overallRenaming: 0,
-                folder: target.kind === 'savePicker' ? 'downloads' : null,
                 fileName: zipName,
+                targetRef: targetRef,
                 renameContainerFile: async (mintPubkey) => {
                     const { renameContainerFile } = await import('./utils')
-                    return await renameContainerFile(targetRef, mintPubkey, containerObj, setContainer)
+                    return await renameContainerFile(containerObj.targetRef, mintPubkey, containerObj, setContainer)
                 }
             }
 

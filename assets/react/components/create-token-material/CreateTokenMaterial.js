@@ -70,7 +70,7 @@ export const CreateTokenMaterial = ({doMaterial}) => {
                 </>
             )}
             <MintedInfo minted={minted} />
-            <RenameContainerFile {...{container, minted}} />
+            <RenameContainerFile {...{container, minted, setContainer}} />
             <TryMoreOptions {...{minted, doMaterial, handlerClear}} />
             {minted && doMaterial && (
                 <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles}} />
