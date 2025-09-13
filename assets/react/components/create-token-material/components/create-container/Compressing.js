@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import streamSaver from 'streamsaver'
 import { Zip, AsyncZipDeflate, ZipPassThrough } from 'fflate'
-import { getExt, getContainerName, getContainerHash } from './utils'
+import { getExt, getContainerName, getContainerHash, clearTargetRef, isFileRenamingSupported, getTokenContainerName } from './utils'
 import { CompressingActions, CompressingStatus, HashingStatus } from './Components'
 
 // --- налаштування backpressure та тротлінгу ---
@@ -39,6 +39,7 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
         if (window.showSaveFilePicker && typeof window.showSaveFilePicker === 'function') {
             const handle = await window.showSaveFilePicker({
                 suggestedName,
+                startIn: 'downloads', // Always start in downloads to avoid cached directory issues
                 types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
             })
             const writable = await handle.createWritable()
@@ -159,7 +160,9 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
         cancelFlagRef.current = false
         activeReadersRef.current = []
         zipInstanceRef.current = null
-        targetRef.current = null
+
+        // Force clear targetRef to prevent hanging on deleted files
+        clearTargetRef(targetRef)
 
         // скидання backpressure лічильників
         bufferedBytesRef.current = 0
@@ -172,7 +175,25 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
         try {
             const target = await getWritableTarget(zipName)
             targetRef.current = target
-            setContainer({ name: zipName, where: target.kind, isCompressing: true, isHashing: false })
+
+            const containerObj = {
+                name: zipName,
+                where: target.kind,
+                isCompressing: true,
+                isHashing: false,
+                canBeRenamed: isFileRenamingSupported() && target.kind === 'savePicker',
+                isRenaming: false,
+                isRenamed: false,
+                overallRenaming: 0,
+                folder: target.kind === 'savePicker' ? 'downloads' : null,
+                fileName: zipName,
+                renameContainerFile: async (mintPubkey) => {
+                    const { renameContainerFile } = await import('./utils')
+                    return await renameContainerFile(targetRef, mintPubkey, containerObj, setContainer)
+                }
+            }
+
+            setContainer(containerObj)
 
             // позначаємо всі як compressing
             setTokenFiles((prev) => prev.map((x) => ({ ...x, status: 'compressing', progress: 0, error: null })))

@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react'
 import { getExt, isImage, isVideo, isAudio, isPdf, prettyBytes, classNames } from './utils'
+import { StatusBar } from '@react/components/form-elements/Charts'
 import clsx from 'clsx'
 
 export const IsNotReady = ({ssError}) => (
@@ -31,6 +32,36 @@ export const SelectFiles = ({addFiles, disabled}) => {
                 </button>
                 <input ref={fileInputRef} type="file" multiple className="d-none" onChange={onPickFiles} />
                 <input ref={dirInputRef} type="file" webkitdirectory="" directory="" multiple className="d-none" onChange={onPickDir} />
+            </div>
+        </div>
+    )
+}
+
+export const SelectContainerFile = ({container, onSelectContainer}) => {
+    if (container?.files) return null
+
+    const fileInputRef = useRef(null)
+
+    const onPickContainer = (e) => {
+        const files = e.target.files
+        if (files.length > 0) {
+            const file = files[0]
+            if (file.name.toLowerCase().endsWith('.zip')) {
+                onSelectContainer(file)
+            } else {
+                alert('Please select a ZIP container file')
+            }
+        }
+    }
+
+    return (
+        <div className="d-flex flex-wrap align-items-center gap-2">
+            Select container file:
+            <div className="ms-auto d-flex gap-2">
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="btn btn-outline-primary">
+                    Select ZIP Container
+                </button>
+                <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />
             </div>
         </div>
     )
@@ -252,32 +283,28 @@ export const CompressingActions = ({
         {container && !container.isCompressing && (
             <div className="text-muted small">
                 <div className="mb-2">Saved as <span className="fw-semibold">{container.name}</span></div>
-                <div>Container hash: <span className="fw-semibold">{container.hash}</span></div>
+                {container.hash && (
+                    <div>Container hash: <span className="fw-semibold">{container.hash}</span></div>
+                )}
             </div>
         )}
     </div>
 )
 
 export const CompressingStatus = ({container, overallCompressing}) => container?.isCompressing && (
-    <div className="d-flex align-items-center gap-2">
-        <div className="flex-grow-1">
-            <div className="progress" role="progressbar" aria-label="total compression progress">
-                <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${overallCompressing}%` }} />
-            </div>
-            <div className="small text-muted mt-1">Adding files to container: {overallCompressing}%</div>
-        </div>
-    </div>
+    <StatusBar label={'Adding files to container'} processStatus={overallCompressing} />
+)
+
+export const DecompressingStatus = ({container, overallDecompressing}) => container?.isCompressing && (
+    <StatusBar label={'Retrieving files from container'} processStatus={overallDecompressing} />
+)
+
+export const RenamingStatus = ({overallRenaming}) => (
+    <StatusBar label={'Renaming files container'} processStatus={overallRenaming} className={'bg-success'} />
 )
 
 export const HashingStatus = ({container, overallHashing}) => (container?.isCompressing || container?.isHashing) && (
-    <div className="d-flex align-items-center gap-2">
-        <div className="flex-grow-1">
-            <div className="progress" role="progressbar" aria-label="hashing progress">
-                <div className="progress-bar bg-success progress-bar-striped progress-bar-animated" style={{ width: `${overallHashing}%` }} />
-            </div>
-            <div className="small text-muted mt-1">Calculating container hash: {overallHashing}%</div>
-        </div>
-    </div>
+    <StatusBar label={'Calculating container hash'} processStatus={overallHashing} className={'bg-success'} />
 )
 
 export const SelectedPublicKey = ({wallet}) => (
@@ -291,7 +318,7 @@ export const SelectedPublicKey = ({wallet}) => (
 )
 
 export const MintedInfo = ({minted}) => minted && (
-    <div className="alert-success alert text-break" role="alert">
+    <div className="alert-success alert text-break p-4" role="alert">
         <h4 className="text-center">Congratulations !</h4>
         <p className="text-center">Your token has been successfully minted.</p>
         <div className="d-flex justify-content-center">
@@ -308,6 +335,31 @@ export const MintedInfo = ({minted}) => minted && (
                 </tbody>
             </table>
         </div>
+    </div>
+)
+
+export const RenameContainerFile = ({container, minted}) => !!minted && (
+    <div className="alert-info alert text-break p-4" role="alert">
+        <h5 className="text-center">
+            Save and keep the container file in a safe place! It is an integral part of the token !
+        </h5>
+        <div className="text-center text-primary fw-bold w-100 pb-2">File: {container.folder}/{container.fileName}</div>
+        <p className="text-justify ti-4 mb-0">
+            If you lose the container, the token loses its value!
+            Also we recommend to rename the token container (to add a public key of the token to the name of the file)
+            for future comfortability, to understand which token it belongs to, or to leave the current name.
+        </p>
+        {container.canBeRenamed && !container.isRenamed && !container.isRenaming && (
+            <button
+                className="btn btn-primary w-100"
+                onClick={() => container.renameContainerFile(minted.mint)}
+            >
+                Перейменувати токент контейнер на Token_Container_{minted.mint}.zip
+            </button>
+        )}
+        {container.isRenaming && (
+            <RenamingStatus overallRenaming={container.overallRenaming} />
+        )}
     </div>
 )
 

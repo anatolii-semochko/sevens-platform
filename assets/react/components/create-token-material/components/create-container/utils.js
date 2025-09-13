@@ -36,6 +36,122 @@ export const getContainerName = () => {
     return `Token_Container_${date}_${time}.zip`
 }
 
+export const getTokenContainerName = (mintPubkey) => {
+    return `Token_Container_${mintPubkey}.zip`
+}
+
+// Check if file renaming is supported
+export const isFileRenamingSupported = () => window.showSaveFilePicker &&
+    typeof window.showSaveFilePicker === 'function' &&
+    window.location.protocol === 'https:'
+
+export const renameContainerFile = async (targetRef, mintPubkey, container, setContainer) => {
+    // Check if renaming is supported and container can be renamed
+    if (!container?.canBeRenamed) {
+        console.log('File renaming not supported or not allowed for this container')
+        return null
+    }
+
+    if (!targetRef?.current || targetRef.current.kind !== 'savePicker' || !targetRef.current.handle) {
+        console.warn('Cannot rename container file: no file handle available')
+        return null
+    }
+
+    if (container.isRenamed || container.isRenaming) {
+        console.log('Container is already renamed or currently being renamed')
+        return null
+    }
+
+    try {
+        // Start renaming process
+        setContainer(prev => prev ? { ...prev, isRenaming: true, overallRenaming: 10 } : null)
+
+        const newName = getTokenContainerName(mintPubkey)
+        console.log('Renaming container file to:', newName)
+
+        const currentHandle = targetRef.current.handle
+        const currentFile = await currentHandle.getFile()
+
+        setContainer(prev => prev ? { ...prev, overallRenaming: 20 } : null)
+
+        // Check file size and warn about large files
+        const fileSizeMB = (currentFile.size / (1024 * 1024)).toFixed(1)
+        console.log(`File size: ${fileSizeMB} MB`)
+
+        if (currentFile.size > 500 * 1024 * 1024) { // > 500MB - be more conservative
+            const userConfirm = confirm(
+                `Warning: File is ${fileSizeMB} MB. Renaming will copy the entire file.\n\n` +
+                `Click OK to rename or Cancel to skip renaming.`
+            )
+            if (!userConfirm) {
+                console.log('User chose to skip renaming large file')
+                setContainer(prev => prev ? { ...prev, isRenaming: false, overallRenaming: 0 } : null)
+                return null
+            }
+        }
+
+        setContainer(prev => prev ? { ...prev, overallRenaming: 40 } : null)
+
+        // Simple approach - use container.folder if available
+        const savePickerOptions = {
+            suggestedName: newName,
+            types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
+        }
+
+        if (container?.folder) {
+            savePickerOptions.startIn = container.folder
+        }
+
+        setContainer(prev => prev ? { ...prev, overallRenaming: 60 } : null)
+
+        const newHandle = await window.showSaveFilePicker(savePickerOptions)
+        const writable = await newHandle.createWritable()
+
+        setContainer(prev => prev ? { ...prev, overallRenaming: 80 } : null)
+
+        // Stream copy
+        const stream = currentFile.stream()
+        await stream.pipeTo(writable)
+
+        // Remove old file
+        try {
+            await currentHandle.remove()
+        } catch (removeError) {
+            console.warn('Could not remove old container file:', removeError.message)
+        }
+
+        setContainer(prev => prev ? { ...prev, overallRenaming: 100 } : null)
+
+        // Update references
+        targetRef.current = {
+            ...targetRef.current,
+            name: newName,
+            handle: newHandle
+        }
+
+        // Update container state
+        setContainer(prev => prev ? {
+            ...prev,
+            name: newName,
+            fileName: newName,
+            isRenaming: false,
+            isRenamed: true
+        } : null)
+
+        // Reset progress after a delay
+        setTimeout(() => {
+            setContainer(prev => prev ? { ...prev, overallRenaming: 0 } : null)
+        }, 1000)
+
+        console.log(`File successfully renamed to: ${newName}`)
+        return newName
+    } catch (error) {
+        console.error('Error renaming container file:', error)
+        setContainer(prev => prev ? { ...prev, isRenaming: false, overallRenaming: 0 } : null)
+        return null
+    }
+}
+
 export const getContainerHash = async (target, setOverallHashing) => {
     if (!target || !target.handle) {
         throw new Error('Cannot calculate hash: no file handle available')
@@ -43,8 +159,18 @@ export const getContainerHash = async (target, setOverallHashing) => {
 
     try {
         setOverallHashing(0)
-        const file = await target.handle.getFile()
-        console.log('File size for hashing:', file.size, 'bytes')
+
+        // Check if file still exists before trying to access it
+        let file
+        try {
+            file = await target.handle.getFile()
+            console.log('File size for hashing:', file.size, 'bytes')
+        } catch (fileError) {
+            if (fileError.name === 'NotFoundError') {
+                throw new Error('Container file was deleted externally')
+            }
+            throw fileError
+        }
 
         if (file.size === 0) {
             console.warn('File is empty, cannot calculate meaningful hash')
@@ -134,13 +260,118 @@ export const removeContainer = async (container, targetRef, setTokenFiles, setCo
             error: null,
         })))
 
+        // Force clear all references to prevent hanging on deleted files
+        clearTargetRef(targetRef)
         setContainer(null)
-        targetRef.current = null
 
     } catch (error) {
         console.error('Error removing container:', error)
         throw error
     }
+}
+
+export const clearTargetRef = (targetRef) => {
+    if (targetRef?.current) {
+        // Clear all properties to prevent stale references
+        targetRef.current = null
+    }
+
+    // Force garbage collection hint (though not guaranteed)
+    if (window.gc) {
+        setTimeout(() => window.gc(), 100)
+    }
+}
+
+export const decompressContainer = async (containerFile, setOverallDecompressing, setTokenFiles) => {
+    const { unzip } = await import('fflate')
+
+    try {
+        setOverallDecompressing(0)
+        console.log('Starting decompression of:', containerFile.name)
+
+        const arrayBuffer = await containerFile.arrayBuffer()
+        const uint8Array = new Uint8Array(arrayBuffer)
+
+        return new Promise((resolve, reject) => {
+            const files = []
+            let processedEntries = 0
+            let totalEntries = 0
+
+            // First pass to count entries
+            unzip(uint8Array, (err, data) => {
+                if (err) {
+                    console.error('Decompression error:', err)
+                    reject(err)
+                    return
+                }
+
+                totalEntries = Object.keys(data).length
+                console.log('Total entries to decompress:', totalEntries)
+
+                if (totalEntries === 0) {
+                    resolve([])
+                    return
+                }
+
+                Object.entries(data).forEach(([fileName, fileData]) => {
+                    const blob = new Blob([fileData])
+                    const file = new File([blob], fileName.split('/').pop() || fileName, {
+                        type: getFileType(fileName)
+                    })
+
+                    Object.defineProperty(file, 'relativePath', {
+                        value: fileName,
+                        configurable: true
+                    })
+
+                    const item = createItem(file)
+                    item.status = 'done'
+                    files.push(item)
+
+                    processedEntries++
+                    const progress = Math.floor((processedEntries / totalEntries) * 100)
+                    setOverallDecompressing(progress)
+
+                    if (processedEntries === totalEntries) {
+                        console.log('Decompression completed, files:', files.length)
+                        setTokenFiles(files)
+                        setOverallDecompressing(100)
+                        resolve(files)
+                    }
+                })
+            })
+        })
+
+    } catch (error) {
+        console.error('Error decompressing container:', error)
+        setOverallDecompressing(0)
+        throw error
+    }
+}
+
+const getFileType = (fileName) => {
+    const ext = getExt(fileName)
+    const mimeTypes = {
+        'txt': 'text/plain',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'mp4': 'video/mp4',
+        'webm': 'video/webm',
+        'mov': 'video/quicktime',
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav',
+        'ogg': 'audio/ogg',
+        'pdf': 'application/pdf',
+        'zip': 'application/zip',
+        'json': 'application/json',
+        'js': 'application/javascript',
+        'css': 'text/css',
+        'html': 'text/html'
+    }
+    return mimeTypes[ext] || 'application/octet-stream'
 }
 
 export const checkSwAvailability = (setSsReady, setSsError) => {
