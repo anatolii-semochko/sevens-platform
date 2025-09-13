@@ -315,7 +315,8 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
 
                 if (targetRef.current?.kind === 'savePicker' && targetRef.current?.handle) {
                     try {
-                        await new Promise(resolve => setTimeout(resolve, 100))
+                        // Longer delay to ensure file is fully written to disk
+                        await new Promise(resolve => setTimeout(resolve, 500))
                         setContainer(prev => prev ? { ...prev, isHashing: true } : null)
                         const hash = await getContainerHash(targetRef.current, setOverallHashing)
                         setContainer(prev => prev ? { ...prev, hash, isHashing: false } : null)

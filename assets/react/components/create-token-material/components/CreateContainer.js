@@ -3,7 +3,7 @@ import { SelectFiles, FilesList, DropZone, IsNotReady } from './create-container
 import { createItem, checkSwAvailability } from './create-container/utils'
 import { Compressing } from './create-container/Compressing'
 
-export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef, doMaterial}) => {
+export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
     const [ssReady, setSsReady] = useState(false)
     const [ssError, setSsError] = useState(null)
 
@@ -58,7 +58,7 @@ export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContai
             <div className="d-flex flex-column gap-3 mb-3">
                 <SelectFiles addFiles={addFiles} disabled={!!container} />
                 <DropZone addFiles={addFiles} disabled={!!container} />
-                <FilesList {...{tokenFiles, doMaterial, setAsMain, removeOne, clearAll, disabled: !!container}} />
+                <FilesList {...{tokenFiles, removeOne, clearAll, disabled: !!container}} />
                 <Compressing {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
             </div>
         </div>

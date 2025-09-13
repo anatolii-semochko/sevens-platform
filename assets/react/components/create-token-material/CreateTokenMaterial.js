@@ -55,7 +55,9 @@ export const CreateTokenMaterial = ({doMaterial}) => {
 
     return (
         <div>
-            <CreateContainer {...{tokenFiles, setTokenFiles, container, setContainer, targetRef, doMaterial}} />
+            {(!doMaterial || !minted) && (
+                <CreateContainer {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
+            )}
             {container && !container.isCompressing && !minted && (
                 <>
                     <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />
@@ -73,7 +75,7 @@ export const CreateTokenMaterial = ({doMaterial}) => {
             <RenameContainerFile {...{container, minted, setContainer}} />
             <TryMoreOptions {...{minted, doMaterial, handlerClear}} />
             {minted && doMaterial && (
-                <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles}} />
+                <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}} />
             )}
         </div>
     )

@@ -60,16 +60,7 @@ const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, targ
     )
 }
 
-export const DecompressContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef, doMaterial}) => {
-    const setAsMain = (id) => {
-        setTokenFiles((prev) => {
-            return prev.map((x) => ({
-                ...x,
-                main: x.id === id
-            }))
-        })
-    }
-
+export const DecompressContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
     const removeOne = (id) => {
         setTokenFiles((prev) => prev.filter(x => x.id !== id))
     }
@@ -90,7 +81,7 @@ export const DecompressContainer = ({tokenFiles, setTokenFiles, container, setCo
                 <SelectContainerFile container={container} onSelectContainer={onSelectContainer} />
                 <Decompressing {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
                 {tokenFiles.length > 0 && (
-                    <FilesList {...{tokenFiles, doMaterial, setAsMain, removeOne, clearAll, disabled: !!container?.isDecompressing}} />
+                    <FilesList {...{tokenFiles, removeOne, clearAll, disabled: !!container?.isDecompressing}} />
                 )}
             </div>
         </div>

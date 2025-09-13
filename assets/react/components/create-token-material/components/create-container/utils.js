@@ -48,7 +48,7 @@ export const isFileRenamingSupported = () => window.showSaveFilePicker &&
 export const renameContainerFile = async (targetRef, mintPubkey, container, setContainer, newHandle = null) => {
     // Use targetRef from container if available, otherwise fallback to passed parameter
     const actualTargetRef = container?.targetRef || targetRef
-    
+
     // Check if renaming is supported and container can be renamed
     if (!container?.canBeRenamed) {
         console.log('File renaming not supported or not allowed for this container')
@@ -122,20 +122,20 @@ export const renameContainerFile = async (targetRef, mintPubkey, container, setC
         const reader = currentFile.stream().getReader()
         const totalSize = currentFile.size
         let copiedBytes = 0
-        
+
         try {
             while (true) {
                 const { done, value } = await reader.read()
                 if (done) break
-                
+
                 await writable.write(value)
                 copiedBytes += value.byteLength
-                
+
                 // Update progress based on copying progress
                 const copyProgress = Math.floor((copiedBytes / totalSize) * 20) // 20% of total progress allocated to copying
                 const totalProgress = 80 + copyProgress // Start from 80%, add up to 20% more
                 setContainer(prev => prev ? { ...prev, overallRenaming: Math.min(100, totalProgress) } : null)
-                
+
                 // Small delay for large files to prevent UI blocking
                 if (copiedBytes % (10 * 1024 * 1024) === 0) { // Every 10MB
                     await new Promise(resolve => setTimeout(resolve, 10))
@@ -198,21 +198,45 @@ export const getContainerHash = async (target, setOverallHashing) => {
     try {
         setOverallHashing(0)
 
-        // Check if file still exists before trying to access it
+        // FIX (NO FILE) - Wait for file to be fully written with retry logic
         let file
-        try {
-            file = await target.handle.getFile()
-            console.log('File size for hashing:', file.size, 'bytes')
-        } catch (fileError) {
-            if (fileError.name === 'NotFoundError') {
-                throw new Error('Container file was deleted externally')
-            }
-            throw fileError
-        }
+        let retryCount = 0
+        const maxRetries = 10
+        const retryDelay = 300 // ms
 
-        if (file.size === 0) {
-            console.warn('File is empty, cannot calculate meaningful hash')
-            throw new Error('File is empty')
+        while (retryCount < maxRetries) {
+            try {
+                // Add delay before first attempt and between retries
+                if (retryCount > 0) {
+                    await new Promise(resolve => setTimeout(resolve, retryDelay))
+                } else {
+                    // Initial delay to let file write operations complete
+                    await new Promise(resolve => setTimeout(resolve, 200))
+                }
+
+                file = await target.handle.getFile()
+                console.log(`File size for hashing (attempt ${retryCount + 1}):`, file.size, 'bytes')
+
+                if (file.size > 0) {
+                    // File has content, proceed with hashing
+                    break
+                } else if (retryCount === maxRetries - 1) {
+                    // Last attempt and still empty
+                    console.warn('File is still empty after retries, cannot calculate meaningful hash')
+                    throw new Error('File is empty after retries')
+                }
+
+                retryCount++
+
+            } catch (fileError) {
+                if (fileError.name === 'NotFoundError') {
+                    throw new Error('Container file was deleted externally')
+                }
+                if (retryCount === maxRetries - 1) {
+                    throw fileError
+                }
+                retryCount++
+            }
         }
 
         const reader = file.stream().getReader()

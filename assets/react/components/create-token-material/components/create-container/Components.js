@@ -217,7 +217,7 @@ export const ImageInfo = ({it}) => (
     </div>
 )
 
-export const FilesList = ({tokenFiles, doMaterial, setAsMain, removeOne, clearAll, disabled}) => {
+export const FilesList = ({tokenFiles, removeOne, clearAll, disabled}) => {
     if (!tokenFiles.length) return (
         <li className="list-group-item text-center small text-muted">No files selected yet.</li>
     )
@@ -243,15 +243,6 @@ export const FilesList = ({tokenFiles, doMaterial, setAsMain, removeOne, clearAl
                                     className="btn btn-outline-secondary btn-sm"
                                 >
                                     Remove
-                                </button>
-                            )}
-                            {doMaterial && (
-                                <button
-                                    type="button"
-                                    onClick={() => setAsMain(it.id)}
-                                    className={clsx('btn btn-sm', it.main ? 'btn-primary' : 'btn-outline-secondary')}
-                                >
-                                    Main
                                 </button>
                             )}
                         </div>
