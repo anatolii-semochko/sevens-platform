@@ -1,3 +1,5 @@
+import { isValidSolanaAddress } from '@js/blockchain/sevens'
+
 const genId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
 
 export const getExt = (name = '') => name.split('.').pop()?.toLowerCase() || ''
@@ -38,6 +40,34 @@ export const getContainerName = () => {
 
 export const getTokenContainerName = (mintPubkey) => {
     return `Token_Container_${mintPubkey}.zip`
+}
+
+export const getPublicKeyFromContainerName = (fileName) => {
+    if (!fileName) return null
+
+    // Remove file extension if present
+    const nameWithoutExt = fileName.replace(/\.zip$/i, '')
+
+    // Expected pattern: Token_Container_{PublicKey} or similar
+    const patterns = [
+        /Token_Container_([A-Za-z0-9]{32,44})$/,     // Token_Container_PublicKey
+        /Token_Container_([A-Za-z0-9]{32,44})_/,     // Token_Container_PublicKey_something
+        /_([A-Za-z0-9]{32,44})$/,                    // anything_PublicKey
+        /([A-Za-z0-9]{32,44})$/                      // just PublicKey at the end
+    ]
+
+    for (const pattern of patterns) {
+        const match = nameWithoutExt.match(pattern)
+        if (match) {
+            const potentialKey = match[1]
+            if (isValidSolanaAddress(potentialKey)) {
+                return potentialKey
+            }
+        }
+    }
+
+    console.log('No valid public key found in container name:', fileName)
+    return null
 }
 
 // Check if file renaming is supported
@@ -301,6 +331,77 @@ export const getContainerHash = async (target, setOverallHashing) => {
     }
 }
 
+// Hash calculation for File objects (used during decompression)
+export const getFileHash = async (file, setOverallHashing) => {
+    if (!file) {
+        throw new Error('Cannot calculate hash: no file provided')
+    }
+
+    try {
+        setOverallHashing(0)
+
+        const reader = file.stream().getReader()
+        const totalSize = file.size
+        let processedBytes = 0
+
+        const chunks = []
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = new Uint8Array(value)
+                chunks.push(chunk)
+                processedBytes += chunk.byteLength
+
+                const progress = Math.min(95, Math.floor((processedBytes / totalSize) * 100))
+                setOverallHashing(progress)
+
+                if (processedBytes > 1024 * 1024) {
+                    await new Promise(resolve => setTimeout(resolve, 10))
+                } else {
+                    await new Promise(resolve => setTimeout(resolve, 1))
+                }
+            }
+        } finally {
+            try { reader.releaseLock() } catch (_) {}
+        }
+
+        console.log('Total bytes read:', processedBytes, 'chunks:', chunks.length)
+
+        if (processedBytes === 0) {
+            throw new Error('No data was read from file')
+        }
+
+        setOverallHashing(98)
+
+        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+        const allBytes = new Uint8Array(totalLength)
+        let offset = 0
+        for (const chunk of chunks) {
+            allBytes.set(chunk, offset)
+            offset += chunk.length
+        }
+
+        console.log('Combined array length:', allBytes.length)
+        const hashBuffer = await crypto.subtle.digest('SHA-256', allBytes)
+        setOverallHashing(100)
+
+        const hash = Array.from(new Uint8Array(hashBuffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('')
+
+        console.log('Calculated hash:', hash)
+        return hash
+
+    } catch (error) {
+        console.error('Error calculating file hash:', error)
+        setOverallHashing(0)
+        throw error
+    }
+}
+
 export const removeContainer = async (container, targetRef, setTokenFiles, setContainer) => {
     if (!container) return
 
@@ -332,6 +433,32 @@ export const removeContainer = async (container, targetRef, setTokenFiles, setCo
     }
 }
 
+export const removeExtractedFilesFolder = async (container, tokenFiles) => {
+    if (!container?.folderHandle) {
+        console.log('No folder handle available for cleanup')
+        return
+    }
+
+    try {
+        console.log('Removing extracted files folder:', container.extractionPath)
+
+        // Clean up preview URLs first
+        tokenFiles.forEach(file => {
+            if (file.previewUrl) {
+                URL.revokeObjectURL(file.previewUrl)
+            }
+        })
+
+        // Remove the entire extraction folder
+        await container.folderHandle.remove({ recursive: true })
+        console.log('Successfully removed extraction folder')
+
+    } catch (error) {
+        console.warn('Could not remove extraction folder:', error.message)
+        // Don't throw error - folder cleanup is not critical
+    }
+}
+
 export const clearTargetRef = (targetRef) => {
     if (targetRef?.current) {
         // Clear all properties to prevent stale references
@@ -344,12 +471,49 @@ export const clearTargetRef = (targetRef) => {
     }
 }
 
-export const decompressContainer = async (containerFile, setOverallDecompressing, setTokenFiles) => {
+export const decompressContainer = async (containerFile, setOverallDecompressing, setTokenFiles, downloadsHandle = null) => {
     const { unzip } = await import('fflate')
 
     try {
         setOverallDecompressing(0)
-        console.log('Starting decompression of:', containerFile.name)
+        console.log('Starting disk-based decompression of:', containerFile.name)
+
+        // Check if File System Access API is supported
+        if (!downloadsHandle && !window.showDirectoryPicker) {
+            throw new Error('File System Access API not supported. Please use Chrome/Edge browser.')
+        }
+
+        // Create folder name based on container file name (remove .zip extension)
+        const baseName = containerFile.name.replace(/\.zip$/i, '')
+        const folderName = `${baseName}_extracted`
+
+        // Use provided handle or show picker - disk-based decompression only
+        let actualDownloadsHandle = downloadsHandle
+
+        if (!actualDownloadsHandle) {
+            try {
+                console.log('No downloads handle provided, trying to get directory picker in fallback mode')
+                actualDownloadsHandle = await window.showDirectoryPicker({
+                    startIn: 'downloads',
+                    mode: 'readwrite'
+                })
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('User cancelled directory selection')
+                } else {
+                    throw new Error('Failed to select extraction directory. Please try again and ensure you select a writable folder.')
+                }
+            }
+        }
+
+        // Create extraction folder
+        let extractionFolderHandle
+        try {
+            extractionFolderHandle = await actualDownloadsHandle.getDirectoryHandle(folderName, { create: true })
+        } catch (error) {
+            console.error('Failed to create extraction folder:', error)
+            throw new Error(`Cannot create folder "${folderName}". Please ensure you have write permissions to the selected directory.`)
+        }
 
         const arrayBuffer = await containerFile.arrayBuffer()
         const uint8Array = new Uint8Array(arrayBuffer)
@@ -359,8 +523,7 @@ export const decompressContainer = async (containerFile, setOverallDecompressing
             let processedEntries = 0
             let totalEntries = 0
 
-            // First pass to count entries
-            unzip(uint8Array, (err, data) => {
+            unzip(uint8Array, async (err, data) => {
                 if (err) {
                     console.error('Decompression error:', err)
                     reject(err)
@@ -368,44 +531,135 @@ export const decompressContainer = async (containerFile, setOverallDecompressing
                 }
 
                 totalEntries = Object.keys(data).length
-                console.log('Total entries to decompress:', totalEntries)
+                console.log('Total entries to extract to disk:', totalEntries)
 
                 if (totalEntries === 0) {
                     resolve([])
                     return
                 }
 
-                Object.entries(data).forEach(([fileName, fileData]) => {
-                    const blob = new Blob([fileData])
-                    const file = new File([blob], fileName.split('/').pop() || fileName, {
-                        type: getFileType(fileName)
-                    })
+                const entries = Object.entries(data)
 
-                    Object.defineProperty(file, 'relativePath', {
-                        value: fileName,
-                        configurable: true
-                    })
+                try {
+                    for (let i = 0; i < entries.length; i++) {
+                        const [fileName, fileData] = entries[i]
+                        const pathParts = fileName.split('/')
+                        const actualFileName = pathParts.pop() || fileName
 
-                    const item = createItem(file)
-                    item.status = 'done'
-                    files.push(item)
+                        // Create nested directories if needed
+                        let currentDirHandle = extractionFolderHandle
+                        for (const dirName of pathParts) {
+                            if (dirName) {
+                                try {
+                                    currentDirHandle = await currentDirHandle.getDirectoryHandle(dirName, { create: true })
+                                } catch (dirError) {
+                                    console.error(`Failed to create directory "${dirName}":`, dirError)
+                                    throw new Error(`Cannot create directory structure for "${fileName}"`)
+                                }
+                            }
+                        }
 
-                    processedEntries++
-                    const progress = Math.floor((processedEntries / totalEntries) * 100)
-                    setOverallDecompressing(progress)
+                        // Create file handle and write data
+                        let fileHandle, writable
+                        try {
+                            fileHandle = await currentDirHandle.getFileHandle(actualFileName, { create: true })
+                            writable = await fileHandle.createWritable()
+                        } catch (fileError) {
+                            console.error(`Failed to create file "${actualFileName}":`, fileError)
+                            throw new Error(`Cannot create file "${actualFileName}". Check file name validity and permissions.`)
+                        }
 
-                    if (processedEntries === totalEntries) {
-                        console.log('Decompression completed, files:', files.length)
-                        setTokenFiles(files)
-                        setOverallDecompressing(100)
-                        resolve(files)
+                        try {
+                            // Write file data in chunks for large files - streaming approach
+                            const chunkSize = 64 * 1024 // 64KB chunks
+                            for (let offset = 0; offset < fileData.length; offset += chunkSize) {
+                                const chunk = fileData.slice(offset, offset + chunkSize)
+                                await writable.write(chunk)
+
+                                // Progress update for large files
+                                if (fileData.length > 1024 * 1024) { // Files > 1MB
+                                    const fileProgress = Math.floor((offset / fileData.length) * 100)
+                                    if (fileProgress % 10 === 0) { // Update every 10%
+                                        console.log(`Writing ${actualFileName}: ${fileProgress}%`)
+                                    }
+                                    // Small delay for very large files to prevent UI blocking
+                                    if (offset > 0) {
+                                        await new Promise(resolve => setTimeout(resolve, 2))
+                                    }
+                                }
+                            }
+
+                            await writable.close()
+                        } catch (writeError) {
+                            console.error(`Failed to write file "${actualFileName}":`, writeError)
+                            try {
+                                await writable.close()
+                            } catch (closeError) {
+                                console.warn('Failed to close writable stream:', closeError)
+                            }
+                            throw new Error(`Failed to write file "${actualFileName}". Check available disk space.`)
+                        }
+
+                        // Create metadata object for UI
+                        const fileInfo = {
+                            id: Math.random().toString(36),
+                            name: actualFileName,
+                            size: fileData.length,
+                            type: getFileType(fileName),
+                            relativePath: fileName,
+                            status: 'done',
+                            diskPath: `${folderName}/${fileName}`,
+                            fileHandle: fileHandle,
+                            isOnDisk: true
+                        }
+
+                        // Generate preview for images/videos/audio from disk file
+                        try {
+                            const fileType = getFileType(fileName)
+                            if (fileType && (fileType.startsWith('image/') || fileType.startsWith('video/') || fileType.startsWith('audio/'))) {
+                                const diskFile = await fileHandle.getFile()
+                                fileInfo.previewUrl = URL.createObjectURL(diskFile)
+                                fileInfo.file = diskFile
+                            }
+                        } catch (previewError) {
+                            console.warn('Could not create preview for', fileName, previewError)
+                        }
+
+                        files.push(fileInfo)
+
+                        processedEntries++
+                        const progress = Math.floor((processedEntries / totalEntries) * 100)
+                        setOverallDecompressing(progress)
+
+                        // Add delays for UI updates
+                        if (i > 0 && i % 5 === 0) { // Every 5 files
+                            await new Promise(resolve => setTimeout(resolve, 30))
+                        } else {
+                            await new Promise(resolve => setTimeout(resolve, 10))
+                        }
                     }
-                })
+
+                    console.log(`Decompression completed, ${files.length} files saved to ${folderName}`)
+                    setTokenFiles(files)
+                    setOverallDecompressing(100)
+
+                    setTimeout(() => {
+                        resolve({
+                            files,
+                            extractionPath: folderName,
+                            folderHandle: extractionFolderHandle
+                        })
+                    }, 200)
+
+                } catch (processingError) {
+                    console.error('Error during disk extraction:', processingError)
+                    reject(processingError)
+                }
             })
         })
 
     } catch (error) {
-        console.error('Error decompressing container:', error)
+        console.error('Error decompressing container to disk:', error)
         setOverallDecompressing(0)
         throw error
     }

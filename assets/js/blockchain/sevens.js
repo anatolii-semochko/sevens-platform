@@ -80,6 +80,29 @@ const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSy
     programId,
 )[0]
 
+const isValidSolanaAddress = (input) => {
+    if (typeof input !== 'string') return false
+    const s = input.trim()
+    if (s.length < 32 || s.length > 44) return false
+
+    try {
+        const pk = new PublicKey(s)
+        return pk.toBase58() === s
+    } catch {
+        return false
+    }
+}
+
+/** Valid Wallet Address (ed25519 public key на кривій). PDA — false */
+const isValidWalletAddress = (input) => {
+    try {
+        const pk = new PublicKey(String(input).trim())
+        return pk.toBase58() === String(input).trim() && PublicKey.isOnCurve(pk.toBytes())
+    } catch {
+        return false
+    }
+}
+
 const getAnchorErrorText = (error) => {
     let message = error?.message || 'Unknown error' // Simple useful error
     if (error?.error?.errorMessage) { // If it is Anchor-program with structured error
@@ -92,4 +115,7 @@ const getAnchorErrorText = (error) => {
     return message
 }
 
-export { connection, commitment, getWalletTokens, tokenTransfer, getPda, getAnchorErrorText }
+export {
+    connection, commitment, getWalletTokens, tokenTransfer, getPda, getAnchorErrorText,
+    isValidSolanaAddress, isValidWalletAddress,
+}

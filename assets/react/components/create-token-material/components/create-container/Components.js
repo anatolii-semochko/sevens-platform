@@ -1,6 +1,13 @@
-import React, { useMemo, useRef, useState } from 'react'
-import { getExt, isImage, isVideo, isAudio, isPdf, prettyBytes, classNames, getTokenContainerName, renameContainerFile } from './utils'
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import { getData } from '@js/blockchain/sevens-token'
+import {
+    getExt, isImage, isVideo, isAudio, isPdf, prettyBytes, classNames, getTokenContainerName, renameContainerFile,
+    getPublicKeyFromContainerName
+} from './utils'
+import { isValidSolanaAddress } from '@js/blockchain/sevens'
 import { StatusBar } from '@react/components/form-elements/Charts'
+import { Input } from '@react/components/form-elements/Inputs'
+import { ErrorMessageBlock } from '@react/components/form-elements/Messages'
 import clsx from 'clsx'
 
 export const IsNotReady = ({ssError}) => (
@@ -52,17 +59,16 @@ export const SelectContainerFile = ({container, onSelectContainer}) => {
                 alert('Please select a ZIP container file')
             }
         }
+        // Reset input value to allow selecting the same file again
+        e.target.value = ''
     }
 
     return (
-        <div className="d-flex flex-wrap align-items-center gap-2">
-            Select container file:
-            <div className="ms-auto d-flex gap-2">
-                <button type="button" onClick={() => fileInputRef.current?.click()} className="btn btn-outline-primary">
-                    Select ZIP Container
-                </button>
-                <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />
-            </div>
+        <div>
+            <button onClick={() => fileInputRef.current?.click()} className="btn btn-primary w-100">
+                Select container file (Token_Container.zip)
+            </button>
+            <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />
         </div>
     )
 }
@@ -178,7 +184,7 @@ export const ImagePreview = ({it, width, height}) => {
             {_isP && it.previewUrl && <embed src={it.previewUrl} type="application/pdf" style={{ width: "100%", height: "100%" }} />}
             {!it.previewUrl && (
                 <span className="small text-muted text-center p-1">
-                    {it.type || (getExt(it.name) ? `.${getExt(it.name)}` : "file")}
+                    {it.diskPath ? "💾" : ""} {it.type || (getExt(it.name) ? `.${getExt(it.name)}` : "file")}
                 </span>
             )}
         </div>
@@ -190,7 +196,12 @@ export const ImageInfo = ({it}) => (
         <div className="d-flex align-items-center gap-2">
             <div className="text-truncate fw-semibold" title={it.name}>{it.name}</div>
         </div>
-        <div className="small text-muted">{prettyBytes(it.size)} · {it.type || 'unknown'}</div>
+        <div className="small text-muted">
+            {prettyBytes(it.size)} · {it.type || 'unknown'}
+            {it.diskPath && (
+                <div>📁 {it.diskPath}</div>
+            )}
+        </div>
 
         {!it.previewUrl && it.type?.startsWith?.('text/') && (
             <div className="mt-2 p-2 bg-light border rounded small" style={{ maxHeight: 96, overflow: 'auto' }}>
@@ -208,7 +219,9 @@ export const ImageInfo = ({it}) => (
                 </>
             )}
             {it.status === 'done' && (
-                <div className="small text-success">Compressed</div>
+                <div className="small text-success">
+                    {it.isOnDisk ? 'Extracted to disk' : 'Compressed'}
+                </div>
             )}
             {it.status === 'error' && (
                 <div className="small text-danger">Error: {it.error}</div>
@@ -286,9 +299,11 @@ export const CompressingStatus = ({container, overallCompressing}) => container?
     <StatusBar label={'Adding files to container'} processStatus={overallCompressing} />
 )
 
-export const DecompressingStatus = ({container, overallDecompressing}) => container?.isCompressing && (
-    <StatusBar label={'Retrieving files from container'} processStatus={overallDecompressing} />
-)
+export const DecompressingStatus = ({container, overallDecompressing}) => {
+    return container?.isDecompressing && (
+        <StatusBar label={'Retrieving files from container'} processStatus={overallDecompressing} />
+    )
+}
 
 export const RenamingStatus = ({overallRenaming}) => (
     <div className="mt-3">
@@ -398,3 +413,218 @@ export const TryMoreOptions = ({minted, doMaterial, handlerClear}) => minted && 
         </div>
     </div>
 )
+
+export const ContainerPublicKey = ({container, setContainer, tokenPublicKey, setTokenPublicKey}) => {
+    if (!container?.file) return null
+
+    const [isManualEdit, setIsManualEdit] = useState(false)
+    const [tempValue, setTempValue] = useState('')
+    const [validationError, setValidationError] = useState('')
+
+    const autoDetectedKey = container?.publicKey
+
+    useEffect(() => {
+        // Initialize tokenPublicKey from container.publicKey when container changes
+        if (autoDetectedKey && !tokenPublicKey) {
+            console.log('Setting tokenPublicKey from container.publicKey:', autoDetectedKey)
+            setTokenPublicKey(autoDetectedKey)
+            setIsManualEdit(false)
+        } else if (!autoDetectedKey && !tokenPublicKey) {
+            // If no auto-detected key found, start in manual edit mode
+            setIsManualEdit(true)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [container?.publicKey]) // Depend on container.publicKey changes
+
+    const showAutoDetected = container?.publicKey && tokenPublicKey === container.publicKey && !isManualEdit
+
+    const handleEditManually = useCallback(() => {
+        setIsManualEdit(true)
+        setTempValue(tokenPublicKey || '')
+        setValidationError('')
+    }, [tokenPublicKey])
+
+    const handleCancel = useCallback(() => {
+        setValidationError('')
+        setTempValue('')
+
+        if (container?.publicKey) {
+            // If there's a container public key, restore it and exit manual mode
+            setTokenPublicKey(container.publicKey)
+            setIsManualEdit(false)
+        } else {
+            // If no container public key, clear the field and stay in manual mode
+            setTokenPublicKey('')
+        }
+    }, [container?.publicKey, setTokenPublicKey])
+
+    const handleSave = useCallback(() => {
+        console.log('Save clicked:', { isManualEdit, tempValue, tokenPublicKey })
+
+        if (!tokenPublicKey?.trim()) {
+            setValidationError('Public key is required')
+            return
+        }
+
+        if (!isValidSolanaAddress(tokenPublicKey.trim())) {
+            setValidationError('Invalid Solana public key. Must be base58 encoded, 32-44 characters long.')
+            return
+        }
+
+        console.log('Validation passed, saving:', tokenPublicKey.trim())
+        const trimmedKey = tokenPublicKey.trim()
+        setTokenPublicKey(trimmedKey)
+
+        // Update container.publicKey to match the saved value
+        setContainer(prev => prev ? { ...prev, publicKey: trimmedKey } : prev)
+
+        setIsManualEdit(false)
+        setTempValue('')
+        setValidationError('')
+    }, [isManualEdit, tempValue, tokenPublicKey, setTokenPublicKey, setContainer])
+
+    const handleTempValueChange = useCallback((value) => {
+        setTempValue(value)
+        // Also update tokenPublicKey so it's always in sync
+        setTokenPublicKey(value)
+        if (validationError) {
+            setValidationError('')
+        }
+    }, [validationError, setTokenPublicKey])
+
+    return (
+        <div className="mb-3">
+            <label className="form-label">Token Public Key</label>
+            {showAutoDetected ? (
+                <div className="p-2 bg-light border rounded">
+                    <div className="d-flex align-items-center gap-2">
+                        <span className="text-success">✓</span>
+                        <span className="fw-semibold text-break">{tokenPublicKey}</span>
+                        <small className="text-muted">(auto-detected from container name)</small>
+                    </div>
+                    <button
+                        type="button"
+                        className="btn btn-outline-secondary btn-sm mt-2"
+                        onClick={handleEditManually}
+                    >
+                        Edit manually
+                    </button>
+                </div>
+            ) : (
+                <div>
+                    <div className="input-group">
+                        <Input
+                            value={isManualEdit ? tempValue : (tokenPublicKey || '')}
+                            onChange={isManualEdit ? handleTempValueChange : setTokenPublicKey}
+                            placeHolder="Enter token public key (base58 encoded, 32-44 characters)"
+                            className={validationError ? 'is-invalid' : ''}
+                        />
+                        {!showAutoDetected && (
+                            <>
+                                <button
+                                    type="button"
+                                    className="btn btn-danger"
+                                    onClick={handleCancel}
+                                    title="Cancel changes"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn btn-success"
+                                    onClick={handleSave}
+                                    title="Save public key"
+                                >
+                                    Save
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {validationError && (
+                        <ErrorMessageBlock message={validationError} className="mt-2 mb-0" />
+                    )}
+
+                    <div className="form-text">
+                        Enter the public key of the token associated with this container
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+export const CheckTokenValidity = ({container, tokenPublicKey, tokenData, setTokenData, tokenVerified, setTokenVerified}) => {
+    const [checkError, setCheckError] = useState(null)
+
+    useEffect(() => {
+        setTokenData(null)
+        setCheckError(null)
+        setTokenVerified(false)
+        if (container?.hash && tokenPublicKey) {
+            getTokenData(tokenPublicKey).then()
+        }
+    }, [container?.hash, tokenPublicKey])
+
+    const getTokenData = async () => {
+        try {
+            setCheckError(null)
+            const token = await getData(tokenPublicKey)
+            setTokenData(token)
+            console.log({token})
+
+            if (!token?.tokenPublicKey) {
+                throw new Error('No token public key')
+            }
+            if (token.tokenPublicKey !== tokenPublicKey) {
+                throw new Error('Wrong token public key')
+            }
+            if (!token.metadata?.hash) {
+                throw new Error('Wrong token hash')
+            }
+            if (token.metadata?.hash !== container.hash) {
+                throw new Error('Container hash doesn\'t match token hash')
+            }
+
+            // TODO - CONTINUE HERE !!!
+            console.log('---------------------')
+
+            setTokenVerified(true)
+        } catch (error) {
+            console.log({error})
+            setTokenData(null)
+            setCheckError(error.message)
+        }
+    }
+
+    return (tokenData || checkError) && (
+        <div>
+            {tokenVerified && (
+                <div className="alert-success alert text-break p-4" role="alert">
+                    <p className="text-center">
+                        Your container has been successfully checked in blockchain. It matches active token.
+                    </p>
+                    <div className="d-flex justify-content-center">
+                        <table className=" table-sm w-auto text-start">
+                            <tbody>
+                            <tr>
+                                <td><strong>Token public key:</strong></td>
+                                <td className="ps-3">{tokenData.tokenPublicKey}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Token hash:</strong></td>
+                                <td className="ps-3">{tokenData.metadata.hash}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+            {!!checkError && (
+                <div className="alert-danger alert text-break d-flex justify-content-center p-3" role="alert">
+                    Container check fail: {checkError}. Check if you token public key matches you container.
+                </div>
+            )}
+        </div>
+    )
+}

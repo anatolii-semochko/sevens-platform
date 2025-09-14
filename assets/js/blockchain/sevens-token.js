@@ -21,7 +21,7 @@ fetch(sevensIdlPath)
     .catch(error => console.error(error))
 
 const getSevensToken = (publicKey) => {
-    const program = new anchor.Program(sevensIdl, sevensIdl.metadata.address, provider)
+    const program = new anchor.Program(sevensIdl, sevensIdl.metadata.address, provider())
     return {
         sevensIdl,
         program,
@@ -92,6 +92,13 @@ const getData = async (tokenPublicKey) => {
             metadataPda,
             salePda,
         } = getSevensToken(publicKey)
+
+        console.log({publicKey})
+        console.log({
+            program,
+            metadataPda,
+            salePda,
+        })
 
         const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
         const sale = await program.account.tokenSaleData.fetch(salePda)
