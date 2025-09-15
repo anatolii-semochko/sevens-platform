@@ -23,8 +23,12 @@ const TokenDetails = ({token}) => {
                             </td>
                         </tr>
                         <tr>
+                            <td>{t('hash')}:</td>
+                            <td className="px-2 text-break">{token.data?.metadata?.hash}</td>
+                        </tr>
+                        <tr>
                             <td>{t('author')}:</td>
-                            <td className="px-2">{token.data?.metadata?.author || '-'}</td>
+                            <td className="px-2 text-break">{token.data?.metadata?.author || '-'}</td>
                         </tr>
                         <tr>
                             <td>{t('minted')}:</td>
@@ -33,7 +37,7 @@ const TokenDetails = ({token}) => {
                         {token.data?.metadata?.description && <>
                             <tr>
                                 <td>{t('description')}:</td>
-                                <td className="px-2">{token.data.metadata.description}</td>
+                                <td className="px-2 text-break">{token.data.metadata.description}</td>
                             </tr>
                         </>}
                     </tbody>

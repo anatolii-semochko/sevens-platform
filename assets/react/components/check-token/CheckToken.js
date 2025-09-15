@@ -1,85 +1,89 @@
-import React from 'react'
-import { showModal } from '@js/modal'
-import { openWallet } from '@js/wallet'
-import { Toaster, toast } from 'react-hot-toast'
-import { WalletButton } from '@react/components/wallet/Wallet'
-import HelpLink from '@react/components/translation-help/HelpLink'
-import Translation from '@react/components/translation-help/Translation'
+import React, { useState, useEffect } from 'react'
+import {
+    ContainerPublicKey, HashingStatus, SelectContainerFile,
+} from '@react/components/create-token-material/components/create-container/Components'
+import {
+    getAndCheckTokenData, getFileHash, getPublicKeyFromContainerName,
+} from '@react/components/create-token-material/components/create-container/utils'
+import { MessagesBlock } from '@react/components/form-elements/Messages'
+import {
+    ActionButtons,
+    ContainerCheckMessage,
+    ContainerFileInfo
+} from '@react/components/check-token/components/Components'
+import { getAnchorErrorText } from '@js/blockchain/sevens'
 
-export default class CheckToken extends React.Component {
+export const CheckToken = () =>  {
+    const [container, setContainer] = useState(null)
+    const [overallHashing, setOverallHashing] = useState(0)
+    const [tokenPublicKey, setTokenPublicKey] = useState(null)
+    const [tokenData, setTokenData] = useState(null)
+    const [errorMessage, setErrorMessage] = useState(null)
 
-    render() {
-        return (
-            <div className="pb-3">
-                <Toaster position="top-right" reverseOrder={false}/>
-                <h2>React (file assets/app/js/components/check-token/CheckToken.js)</h2>
-                <table className="table">
-                    <thead>
-                    <tr>
-                        <th className="w-25">React Element</th>
-                        <th>Content</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>Help Link without page</td>
-                        <td><HelpLink name="Test"/></td>
-                    </tr>
-                    <tr>
-                        <td>Not Existing Help LinK</td>
-                        <td><HelpLink name="Test is Absent"/></td>
-                    </tr>
-                    <tr>
-                        <td>Help Link with page</td>
-                        <td><HelpLink name="Container files"/></td>
-                    </tr>
-                    <tr>
-                        <td>Translation</td>
-                        <td><Translation text={'Home'} /></td>
-                    </tr>
-                    <tr>
-                        <td>Translation with domain</td>
-                        <td><Translation text={'Price'} domain={'material'} /></td>
-                    </tr>
-                    <tr>
-                        <td>Translation with domain and parameters</td>
-                        <td><Translation text={'Author: {{ name }}'} params={{name: 'Ali Baba'}} domain={'material'} /></td>
-                    </tr>
-                    <tr>
-                        <td>Absent translation</td>
-                        <td><Translation text={'Absent translation: {{ name }}'} /></td>
-                    </tr>
-                    </tbody>
-                </table>
-                <button className="btn btn-success" onClick={() => toast.success('Toaster Success!')}>
-                    Success
-                </button>
-                <button className="btn btn-danger ms-2" onClick={() => toast.error('Toaster Error!')}>
-                    Error
-                </button>
-                <button className="btn btn-info ms-2" onClick={() => showModal({
-                    id: 'modal-id',
-                    title: "Modal Popup",
-                    body: "This modal was dynamically created.",
-                    size: 'lg', // sm, lg, xl, ''
-                    footer: (
-                        <>
-                            <button type="button" className="btn btn-success" data-bs-dismiss="modal">
-                                Save
-                            </button>
-                            <button type="button" className="btn btn-danger" onClick={() => alert('Custom action')}>
-                                Delete
-                            </button>
-                        </>
-                    )
-                })}>
-                    <Translation text={'Open Popup'} />
-                </button>
-                <WalletButton />
-                <button className="btn btn-info ms-2" onClick={() => openWallet()}>
-                    Wallet Panel
-                </button>
-            </div>
-        )
+    const onSelectContainer = async (file) => {
+        const publicKey = getPublicKeyFromContainerName(file.name)
+        setTokenPublicKey(publicKey)
+        setContainer({file, publicKey, isHashing: true})
     }
+
+    const calculateHash = async () => {
+        setErrorMessage(null)
+        const hash = await getFileHash(container.file, setOverallHashing)
+        setContainer(prev => ({...prev, hash, isHashing: false}))
+    }
+
+    const getTokenData = async () => {
+        setErrorMessage(null)
+        try {
+            const token = await getAndCheckTokenData(tokenPublicKey, container.hash)
+            setTokenData(token)
+        } catch (error) {
+            setTokenData({error: getAnchorErrorText(error)})
+        }
+    }
+
+    const handlerClear = () => {
+        setContainer(false)
+        setOverallHashing(0)
+        setTokenPublicKey(null)
+        setTokenData(null)
+        setErrorMessage(null)
+    }
+
+    useEffect(() => {
+        if (container && !container.hash) {
+            calculateHash().catch(error => setErrorMessage(error.message))
+        }
+        if (tokenPublicKey && container && container.hash && !tokenData) {
+            getTokenData(tokenPublicKey, container.hash).catch(error => setErrorMessage(getAnchorErrorText(error)))
+        }
+    }, [container])
+
+    useEffect(() => {
+        setTokenData(null)
+        setErrorMessage(null)
+        if (tokenPublicKey && container && container.hash) {
+            getTokenData(tokenPublicKey, container.hash).catch(error => setErrorMessage(getAnchorErrorText(error)))
+        }
+    }, [tokenPublicKey])
+
+    if (!container?.file) return (
+        <SelectContainerFile {...{container, onSelectContainer}} />
+    )
+
+    if (container?.file && !container?.hash) return (
+        <HashingStatus {...{container, overallHashing}} />
+    )
+
+    return container && !container.isHashing && (
+        <div>
+            <ContainerFileInfo {...{container}} />
+            <ContainerPublicKey {...{container, setContainer, tokenPublicKey, setTokenPublicKey}} />
+            <ContainerCheckMessage {...{tokenData}} />
+            <MessagesBlock error={errorMessage} />
+            <ActionButtons {...{handlerClear}}/>
+        </div>
+    )
 }
+
+export default CheckToken

@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import { getData } from '@js/blockchain/sevens-token'
 import {
     getExt, isImage, isVideo, isAudio, isPdf, prettyBytes, classNames, getTokenContainerName, renameContainerFile,
-    getPublicKeyFromContainerName
+    getPublicKeyFromContainerName, getAndCheckTokenData,
 } from './utils'
 import { isValidSolanaAddress } from '@js/blockchain/sevens'
 import { StatusBar } from '@react/components/form-elements/Charts'
@@ -64,8 +64,8 @@ export const SelectContainerFile = ({container, onSelectContainer}) => {
     }
 
     return (
-        <div>
-            <button onClick={() => fileInputRef.current?.click()} className="btn btn-primary w-100">
+        <div className="my-4">
+            <button onClick={() => fileInputRef.current?.click()} className="btn btn-primary w-100 p-3">
                 Select container file (Token_Container.zip)
             </button>
             <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />
@@ -330,7 +330,7 @@ export const MintedInfo = ({minted}) => minted && (
         <h4 className="text-center">Congratulations !</h4>
         <p className="text-center">Your token has been successfully minted.</p>
         <div className="d-flex justify-content-center">
-            <table className=" table-sm w-auto text-start">
+            <table className="table-sm w-auto text-start">
                 <tbody>
                 <tr>
                     <td><strong>Token public key:</strong></td>
@@ -461,18 +461,18 @@ export const ContainerPublicKey = ({container, setContainer, tokenPublicKey, set
     const handleSave = useCallback(() => {
         console.log('Save clicked:', { isManualEdit, tempValue, tokenPublicKey })
 
-        if (!tokenPublicKey?.trim()) {
+        if (!tempValue?.trim()) {
             setValidationError('Public key is required')
             return
         }
 
-        if (!isValidSolanaAddress(tokenPublicKey.trim())) {
+        if (!isValidSolanaAddress(tempValue.trim())) {
             setValidationError('Invalid Solana public key. Must be base58 encoded, 32-44 characters long.')
             return
         }
 
-        console.log('Validation passed, saving:', tokenPublicKey.trim())
-        const trimmedKey = tokenPublicKey.trim()
+        console.log('Validation passed, saving:', tempValue.trim())
+        const trimmedKey = tempValue.trim()
         setTokenPublicKey(trimmedKey)
 
         // Update container.publicKey to match the saved value
@@ -481,20 +481,18 @@ export const ContainerPublicKey = ({container, setContainer, tokenPublicKey, set
         setIsManualEdit(false)
         setTempValue('')
         setValidationError('')
-    }, [isManualEdit, tempValue, tokenPublicKey, setTokenPublicKey, setContainer])
+    }, [isManualEdit, tempValue, setTokenPublicKey, setContainer])
 
     const handleTempValueChange = useCallback((value) => {
         setTempValue(value)
-        // Also update tokenPublicKey so it's always in sync
-        setTokenPublicKey(value)
         if (validationError) {
             setValidationError('')
         }
-    }, [validationError, setTokenPublicKey])
+    }, [validationError])
 
     return (
         <div className="mb-3">
-            <label className="form-label">Token Public Key</label>
+            <label className="form-label">Token Public Key:</label>
             {showAutoDetected ? (
                 <div className="p-2 bg-light border rounded">
                     <div className="d-flex align-items-center gap-2">
@@ -569,25 +567,13 @@ export const CheckTokenValidity = ({container, tokenPublicKey, tokenData, setTok
     const getTokenData = async () => {
         try {
             setCheckError(null)
-            const token = await getData(tokenPublicKey)
+            const token = await getAndCheckTokenData(tokenPublicKey, container?.hash)
             setTokenData(token)
-            console.log({token})
 
-            if (!token?.tokenPublicKey) {
-                throw new Error('No token public key')
-            }
-            if (token.tokenPublicKey !== tokenPublicKey) {
-                throw new Error('Wrong token public key')
-            }
-            if (!token.metadata?.hash) {
-                throw new Error('Wrong token hash')
-            }
-            if (token.metadata?.hash !== container.hash) {
-                throw new Error('Container hash doesn\'t match token hash')
-            }
 
             // TODO - CONTINUE HERE !!!
             console.log('---------------------')
+
 
             setTokenVerified(true)
         } catch (error) {

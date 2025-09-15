@@ -20,7 +20,7 @@ class CheckTokenController extends AbstractController
         $this->pageService->init('/check-token');
 
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/token/check.html.twig',
+            'main_template' => 'pages/create-token-material/check-token.html.twig',
             'data' => [],
         ]);
     }

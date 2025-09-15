@@ -1,4 +1,5 @@
 import { isValidSolanaAddress } from '@js/blockchain/sevens'
+import { getData } from '@js/blockchain/sevens-token'
 
 const genId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -730,7 +731,23 @@ export const checkSwAvailability = (setSsReady, setSsError) => {
     return () => { cancelled = true }
 }
 
+export const getAndCheckTokenData = async (tokenPublicKey, hash) => {
+    const tokenData = await getData(tokenPublicKey)
+    if (!tokenData?.tokenPublicKey) {
+        throw new Error('No token found')
+    }
+    if (tokenData.tokenPublicKey !== tokenPublicKey) {
+        throw new Error('Wrong token public key')
+    }
+    if (!tokenData.metadata?.hash) {
+        throw new Error('Wrong token hash')
+    }
+    if (tokenData.metadata?.hash !== hash) {
+        throw new Error('Container hash doesn\'t match token hash')
+    }
 
+    return tokenData
+}
 
 
 

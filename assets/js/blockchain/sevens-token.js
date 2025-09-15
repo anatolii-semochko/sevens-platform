@@ -93,12 +93,18 @@ const getData = async (tokenPublicKey) => {
             salePda,
         } = getSevensToken(publicKey)
 
+
+
+
         console.log({publicKey})
         console.log({
             program,
             metadataPda,
             salePda,
         })
+
+
+
 
         const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
         const sale = await program.account.tokenSaleData.fetch(salePda)
