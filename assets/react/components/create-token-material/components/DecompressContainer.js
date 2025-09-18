@@ -6,43 +6,14 @@ const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, setO
     const [overallDecompressing, setOverallDecompressing] = useState(0)
     const cancelFlagRef = useRef(false)
 
-    const onSelectContainer = async (file) => {
-        // Get directory picker first while we're still in user gesture context
-        let downloadsHandle = null
-        try {
-            if (window.showDirectoryPicker) {
-                downloadsHandle = await window.showDirectoryPicker({
-                    startIn: 'downloads',
-                    mode: 'readwrite'
-                })
-            }
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.log('User cancelled directory picker')
-                return // User cancelled
-            }
-            
-            // For other errors (including SecurityError), try to continue without directory picker
-            console.warn('Directory picker failed, will try fallback:', error.message)
-            
-            // Ask user to select directory manually on first decompression attempt
-            const userConfirm = confirm(
-                'Could not automatically select extraction folder.\n\n' +
-                'Click OK to manually select the Downloads folder, or Cancel to abort.'
-            )
-            if (!userConfirm) return
-            
-            // Set downloadsHandle to null - decompression will handle the error gracefully
-            downloadsHandle = null
-        }
-
+    const onSelectContainer = async (file, providedDownloadsHandle = null) => {
         // Extract public key from container name if possible
         const publicKey = getPublicKeyFromContainerName(file.name)
         
         const newContainer = { 
             file, 
             name: file.name, 
-            downloadsHandle,
+            downloadsHandle: providedDownloadsHandle,
             publicKey: publicKey
         }
         setContainer(newContainer)

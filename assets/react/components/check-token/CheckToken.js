@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { getFileHash } from '@react/components/create-token-material/components/create-container/utils'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import {
-    HashingStatus, SelectContainerFile,
+    HashingStatus, SelectContainerFileForCheck,
 } from '@react/components/create-token-material/components/create-container/Components'
 import {
     ActionButtons, ContainerCheckMessage, ContainerFileInfo,
@@ -46,7 +46,7 @@ export const CheckToken = () =>  {
     }, [container])
 
     if (!container?.file) return (
-        <SelectContainerFile {...{container, onSelectContainer}} />
+        <SelectContainerFileForCheck {...{container, onSelectContainer}} />
     )
 
     if (container?.file && !container?.hash) return (

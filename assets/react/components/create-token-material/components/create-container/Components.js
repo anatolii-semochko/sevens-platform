@@ -43,7 +43,8 @@ export const SelectFiles = ({addFiles, disabled}) => {
     )
 }
 
-export const SelectContainerFile = ({container, onSelectContainer}) => {
+// Simple file selector for checking tokens (no extraction)
+export const SelectContainerFileForCheck = ({container, onSelectContainer}) => {
     if (container?.files) return null
 
     const fileInputRef = useRef(null)
@@ -62,9 +63,117 @@ export const SelectContainerFile = ({container, onSelectContainer}) => {
         e.target.value = ''
     }
 
+    const handleButtonClick = async () => {
+        // Use modern File System Access API if available
+        if (window.showOpenFilePicker) {
+            try {
+                const fileHandles = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'ZIP files',
+                        accept: { 'application/zip': ['.zip'] }
+                    }],
+                    multiple: false
+                })
+                
+                if (fileHandles && fileHandles[0]) {
+                    const file = await fileHandles[0].getFile()
+                    onSelectContainer(file)
+                    return
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return // User cancelled
+                }
+                console.warn('File picker failed, falling back to input:', error)
+            }
+        }
+        
+        // Fallback to traditional file input
+        if (fileInputRef.current) {
+            fileInputRef.current.click()
+        }
+    }
+
     return (
         <div className="my-4">
-            <button onClick={() => fileInputRef.current?.click()} className="btn btn-primary fs-4 w-100 p-3">
+            <button onClick={handleButtonClick} className="btn btn-primary fs-4 w-100 p-3">
+                Select container file (Token_Container.zip)
+            </button>
+            <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />
+        </div>
+    )
+}
+
+// Full file selector for creating tokens (with extraction)
+export const SelectContainerFile = ({container, onSelectContainer}) => {
+    if (container?.files) return null
+
+    const fileInputRef = useRef(null)
+
+    const onPickContainer = (e) => {
+        const files = e.target.files
+        if (files.length > 0) {
+            const file = files[0]
+            if (file.name.toLowerCase().endsWith('.zip')) {
+                onSelectContainer(file, null)
+            } else {
+                alert('Please select a ZIP container file')
+            }
+        }
+        // Reset input value to allow selecting the same file again
+        e.target.value = ''
+    }
+
+    const handleButtonClick = async () => {
+        // Use modern File System Access API if available
+        if (window.showOpenFilePicker) {
+            try {
+                const fileHandles = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'ZIP files',
+                        accept: { 'application/zip': ['.zip'] }
+                    }],
+                    multiple: false
+                })
+
+                if (fileHandles && fileHandles[0]) {
+                    const file = await fileHandles[0].getFile()
+
+                    // Now try to get Downloads folder for extraction
+                    let downloadsHandle = null
+                    try {
+                        downloadsHandle = await window.showDirectoryPicker({
+                            startIn: 'downloads',
+                            mode: 'readwrite'
+                        })
+                    } catch (dirError) {
+                        if (dirError.name === 'AbortError') {
+                            return // User cancelled directory selection
+                        }
+                        // Continue without handle - will show error asking user to select folder
+                    }
+
+                    // Process the selected file
+                    onSelectContainer(file, downloadsHandle)
+                    return
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return // User cancelled
+                }
+                console.warn('File picker failed, falling back to input:', error)
+            }
+        }
+
+        // Fallback to traditional file input
+        if (fileInputRef.current) {
+            fileInputRef.current.click()
+        }
+    }
+
+    return (
+        <div className="my-4">
+            <button onClick={handleButtonClick} className="btn btn-primary fs-4 w-100 p-3">
                 Select container file (Token_Container.zip)
             </button>
             <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />

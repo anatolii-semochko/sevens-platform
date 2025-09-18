@@ -343,22 +343,20 @@ export const decompressContainer = async (containerFile, setOverallDecompressing
         const baseName = containerFile.name.replace(/\.zip$/i, '')
         const folderName = `${baseName}_extracted`
 
-        // Use provided handle or show picker - disk-based decompression only
+        // Use provided handle or try to get Downloads folder automatically
         let actualDownloadsHandle = downloadsHandle
 
         if (!actualDownloadsHandle) {
             try {
-                console.log('No downloads handle provided, trying to get directory picker in fallback mode')
+                console.log('No downloads handle provided, trying to get Downloads folder automatically')
+                // Try to get Downloads folder without user prompt
                 actualDownloadsHandle = await window.showDirectoryPicker({
                     startIn: 'downloads',
                     mode: 'readwrite'
                 })
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    throw new Error('User cancelled directory selection')
-                } else {
-                    throw new Error('Failed to select extraction directory. Please try again and ensure you select a writable folder.')
-                }
+                console.log('Auto-selection failed, asking user to select folder')
+                throw new Error('Please select a folder where to extract the container files.')
             }
         }
 
