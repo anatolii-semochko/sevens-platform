@@ -1,29 +1,22 @@
 import React, { useState, useEffect } from 'react'
-import {
-    ContainerPublicKey, HashingStatus, SelectContainerFile,
-} from '@react/components/create-token-material/components/create-container/Components'
-import {
-    getAndCheckTokenData, getFileHash, getPublicKeyFromContainerName,
-} from '@react/components/create-token-material/components/create-container/utils'
+import { getFileHash } from '@react/components/create-token-material/components/create-container/utils'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import {
-    ActionButtons,
-    ContainerCheckMessage,
-    ContainerFileInfo
+    HashingStatus, SelectContainerFile,
+} from '@react/components/create-token-material/components/create-container/Components'
+import {
+    ActionButtons, ContainerCheckMessage, ContainerFileInfo,
 } from '@react/components/check-token/components/Components'
-import { getAnchorErrorText } from '@js/blockchain/sevens'
+import {getTokenByHash} from "@js/blockchain/sevens-token";
 
 export const CheckToken = () =>  {
     const [container, setContainer] = useState(null)
     const [overallHashing, setOverallHashing] = useState(0)
-    const [tokenPublicKey, setTokenPublicKey] = useState(null)
     const [tokenData, setTokenData] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
 
     const onSelectContainer = async (file) => {
-        const publicKey = getPublicKeyFromContainerName(file.name)
-        setTokenPublicKey(publicKey)
-        setContainer({file, publicKey, isHashing: true})
+        setContainer({file, isHashing: true})
     }
 
     const calculateHash = async () => {
@@ -32,20 +25,13 @@ export const CheckToken = () =>  {
         setContainer(prev => ({...prev, hash, isHashing: false}))
     }
 
-    const getTokenData = async () => {
-        setErrorMessage(null)
-        try {
-            const token = await getAndCheckTokenData(tokenPublicKey, container.hash)
-            setTokenData(token)
-        } catch (error) {
-            setTokenData({error: getAnchorErrorText(error)})
-        }
-    }
+    const derivePublicKey = async () => getTokenByHash(container.hash)
+        .then(setTokenData)
+        .catch(() => setTokenData({error: 'Token not found'}))
 
     const handlerClear = () => {
         setContainer(false)
         setOverallHashing(0)
-        setTokenPublicKey(null)
         setTokenData(null)
         setErrorMessage(null)
     }
@@ -54,18 +40,10 @@ export const CheckToken = () =>  {
         if (container && !container.hash) {
             calculateHash().catch(error => setErrorMessage(error.message))
         }
-        if (tokenPublicKey && container && container.hash && !tokenData) {
-            getTokenData(tokenPublicKey, container.hash).catch(error => setErrorMessage(getAnchorErrorText(error)))
+        if (container?.hash) {
+            derivePublicKey().catch(error => setErrorMessage(error.message))
         }
     }, [container])
-
-    useEffect(() => {
-        setTokenData(null)
-        setErrorMessage(null)
-        if (tokenPublicKey && container && container.hash) {
-            getTokenData(tokenPublicKey, container.hash).catch(error => setErrorMessage(getAnchorErrorText(error)))
-        }
-    }, [tokenPublicKey])
 
     if (!container?.file) return (
         <SelectContainerFile {...{container, onSelectContainer}} />
@@ -78,7 +56,6 @@ export const CheckToken = () =>  {
     return container && !container.isHashing && (
         <div>
             <ContainerFileInfo {...{container}} />
-            <ContainerPublicKey {...{container, setContainer, tokenPublicKey, setTokenPublicKey}} />
             <ContainerCheckMessage {...{tokenData}} />
             <MessagesBlock error={errorMessage} />
             <ActionButtons {...{handlerClear}}/>

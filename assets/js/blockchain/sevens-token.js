@@ -1,8 +1,11 @@
 import * as anchor from '@coral-xyz/anchor'
+import crypto from 'crypto'
 import BN from 'bn.js'
 import { PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { connection, commitment, getPda, getAnchorErrorText } from './sevens'
+
+const CORRECT_TOKEN_PROGRAM_ID = TOKEN_PROGRAM_ID
 
 const sevensIdlPath = '/storage/files/sevens_token.json'
 
@@ -20,14 +23,24 @@ fetch(sevensIdlPath)
     .then(idl => sevensIdl = idl)
     .catch(error => console.error(error))
 
-const getSevensToken = (publicKey) => {
+const getSevensToken = (publicKey, hash = null) => {
     const program = new anchor.Program(sevensIdl, sevensIdl.metadata.address, provider())
     return {
         sevensIdl,
         program,
         metadataPda: publicKey ? getPda(program.programId, 'metadata', publicKey) : null,
         salePda: publicKey ? getPda(program.programId, 'sale', publicKey) : null,
+        hashRegistryPda: hash ? getHashPda(program.programId, hash) : null,
     }
+}
+
+const getHashPda = (programId, hash) => {
+    const hashOfHash = crypto.createHash('sha256').update(hash).digest()
+    const shortHashBuffer = hashOfHash.slice(0, 28)
+    return PublicKey.findProgramAddressSync(
+        [Buffer.from('hash'), shortHashBuffer],
+        programId,
+    )[0]
 }
 
 const mint = async ({
@@ -44,26 +57,29 @@ const mint = async ({
         }
 
         const mint = Keypair.generate()
-        const { program, metadataPda, salePda } = getSevensToken(mint.publicKey)
+        const { program, metadataPda, salePda, hashRegistryPda } = getSevensToken(mint.publicKey, hash)
 
         const payerPublicKey = new PublicKey(walletPublicKey)
         const ownerPublicKey = payerPublicKey
 
+        const accounts = {
+            mint: mint.publicKey,
+            metadata: metadataPda,
+            sale: salePda,
+            tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, ownerPublicKey, false, CORRECT_TOKEN_PROGRAM_ID),
+            hashRegistry: hashRegistryPda,
+            payer: payerPublicKey,
+            tokenProgram: CORRECT_TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        }
+
         const ix = await program.methods
             .mintToken(author, hash, description, tokenName, canBeBurned)
-            .accounts({
-                mint: mint.publicKey,
-                metadata: metadataPda,
-                sale: salePda,
-                tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, ownerPublicKey),
-                mintAuthority: ownerPublicKey,
-                payer: payerPublicKey,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: SystemProgram.programId,
-                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            })
+            .accounts(accounts)
             .instruction()
+
 
         const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(commitment)
         const tx = new Transaction()
@@ -84,6 +100,19 @@ const mint = async ({
     }
 }
 
+const getTokenByHash = async (hash) => {
+    try {
+        const { program } = getSevensToken(null, hash)
+        const hashRegistryPda = getHashPda(program.programId, hash)
+        const hashRegistry = await program.account.hashRegistry.fetch(hashRegistryPda)
+        const mintPublicKey = hashRegistry.mintKey.toString()
+
+        return await getData(mintPublicKey)
+    } catch (error) {
+        throw new Error(getAnchorErrorText(error))
+    }
+}
+
 const getData = async (tokenPublicKey) => {
     try {
         const publicKey = new PublicKey(tokenPublicKey)
@@ -91,20 +120,8 @@ const getData = async (tokenPublicKey) => {
             program,
             metadataPda,
             salePda,
+            hashRegistryPda,
         } = getSevensToken(publicKey)
-
-
-
-
-        console.log({publicKey})
-        console.log({
-            program,
-            metadataPda,
-            salePda,
-        })
-
-
-
 
         const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
         const sale = await program.account.tokenSaleData.fetch(salePda)
@@ -115,6 +132,7 @@ const getData = async (tokenPublicKey) => {
         return {
             tokenPublicKey,
             mintingTime: new Date(metadata.timestamp.toNumber() * 1000).toISOString(),
+            hashRegistry: hashRegistryPda,
             metadata,
             sale,
         }
@@ -126,31 +144,42 @@ const getData = async (tokenPublicKey) => {
 /**
  * @returns {Promise<string>} txSignature
  */
-const burn = async (tokenPublicKey) => {
+const burn = async (tokenPublicKey, walletPublicKey) => {
     try {
         const mint = new PublicKey(tokenPublicKey)
+        const tokenData = await getData(tokenPublicKey)
+        const hash = tokenData.metadata.hash
+
         const {
             program,
             metadataPda,
             salePda,
-        } = getSevensToken(mint)
+            hashRegistryPda,
+        } = getSevensToken(mint, hash)
 
-        const payer = provider().wallet
-        const tokenAccount = getAssociatedTokenAddressSync(mint, payer.publicKey)
+        const payerPublicKey = new PublicKey(walletPublicKey)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, payerPublicKey, false, CORRECT_TOKEN_PROGRAM_ID)
 
-        return await program.methods
+        const ix = await program.methods
             .burnToken()
             .accounts({
                 mint,
                 tokenAccount,
                 metadata: metadataPda,
                 sale: salePda,
-                payer: payer.publicKey,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: SystemProgram.programId,
-                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+                hashRegistry: hashRegistryPda,
+                payer: payerPublicKey,
+                tokenProgram: CORRECT_TOKEN_PROGRAM_ID,
             })
-            .rpc()
+            .instruction()
+
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(commitment)
+        const tx = new Transaction()
+        tx.add(ix)
+        tx.feePayer = payerPublicKey
+        tx.recentBlockhash = blockhash
+
+        return { tx }
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
     }
@@ -168,7 +197,7 @@ const setSale = async ({ tokenPublicKey, onSale, price }) => {
         } = getSevensToken(mint)
 
         const owner = provider().wallet.publicKey
-        const tokenAccount = getAssociatedTokenAddressSync(mint, owner)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, CORRECT_TOKEN_PROGRAM_ID)
 
         return await program.methods
             .setSale(onSale, new BN(price))
@@ -178,7 +207,7 @@ const setSale = async ({ tokenPublicKey, onSale, price }) => {
                 tokenAccount,
                 sale: salePda,
                 saleAuthority: salePda,
-                tokenProgram: TOKEN_PROGRAM_ID,
+                tokenProgram: CORRECT_TOKEN_PROGRAM_ID,
             })
             .rpc()
     } catch (error) {
@@ -197,10 +226,10 @@ const buy = async ({ tokenPublicKey, lamports }) => {
             salePda,
         } = getSevensToken(mint)
 
-        const owner = await getTokenOwner(mint)
+        const owner = await getTokenOwner(mint)  // TODO - RTEMOVE OWNER !!!
         const ownerToken = owner.tokenAccount
         const buyer = provider().wallet
-        const buyerToken = getAssociatedTokenAddressSync(mint, buyer.publicKey)
+        const buyerToken = getAssociatedTokenAddressSync(mint, buyer.publicKey, false, CORRECT_TOKEN_PROGRAM_ID)
 
         return await program.methods
             .buyToken(new BN(lamports))
@@ -212,7 +241,7 @@ const buy = async ({ tokenPublicKey, lamports }) => {
                 mint,
                 sale: salePda,
                 saleAuthority: salePda,
-                tokenProgram: TOKEN_PROGRAM_ID,
+                tokenProgram: CORRECT_TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             })
@@ -222,4 +251,19 @@ const buy = async ({ tokenPublicKey, lamports }) => {
     }
 }
 
-export { provider, connection, mint, burn, buy, getData, setSale, sevensIdl }
+const getTokenOwner = async (tokenPublicKey) => {
+    const largestAccounts = await connection.getTokenLargestAccounts(tokenPublicKey)
+    const largestAccountInfo = largestAccounts.value[0]
+    if (!largestAccountInfo) {
+        throw new Error('No token accounts found for this mint.')
+    }
+    const parsedAccount = await connection.getParsedAccountInfo(largestAccountInfo.address)
+    const owner = new PublicKey(parsedAccount.value.data.parsed.info.owner)
+
+    return {
+        tokenAccount: largestAccounts?.value[0]?.address,
+        publicKey: owner,
+    }
+}
+
+export { provider, connection, mint, burn, buy, getData, getTokenByHash, setSale, sevensIdl }

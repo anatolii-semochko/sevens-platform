@@ -65,7 +65,7 @@ export const SelectContainerFile = ({container, onSelectContainer}) => {
 
     return (
         <div className="my-4">
-            <button onClick={() => fileInputRef.current?.click()} className="btn btn-primary w-100 p-3">
+            <button onClick={() => fileInputRef.current?.click()} className="btn btn-primary fs-4 w-100 p-3">
                 Select container file (Token_Container.zip)
             </button>
             <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />

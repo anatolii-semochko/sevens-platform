@@ -289,10 +289,9 @@ export async function simulateAndSummarize(connection, txOrVtx, opts = {}) {
         });
     }
 
-    // 9) Підсумковий об’єкт для UI
     return {
         ok: !simErr,
-        error: simErr, // якщо симуляція впала — покажи користувачу причину
+        error: simErr ? JSON.stringify(simErr) : null, // конвертуємо error в string для React
         payer,
         recentBlockhash: v0Message.recentBlockhash,
         fee: {

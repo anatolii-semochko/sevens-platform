@@ -55,10 +55,16 @@ config.resolve.fallback = {
     ...(config.resolve.fallback || {}),
     stream: require.resolve('stream-browserify'),
     crypto: require.resolve('crypto-browserify'),
+    vm: false,
+    process: require.resolve('process/browser'),
 }
 config.plugins.push(
     new webpack.DefinePlugin({
         'process.env.ANCHOR_PROVIDER_URL': JSON.stringify(process.env.ANCHOR_PROVIDER_URL),
+    }),
+    new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'],
+        process: 'process/browser',
     })
 )
 
