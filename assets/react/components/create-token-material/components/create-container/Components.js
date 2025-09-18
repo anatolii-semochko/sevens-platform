@@ -43,9 +43,8 @@ export const SelectFiles = ({addFiles, disabled}) => {
     )
 }
 
-// Simple file selector for checking tokens (no extraction)
-export const SelectContainerFileForCheck = ({container, onSelectContainer}) => {
-    if (container?.files) return null
+export const SelectContainerFile = ({container, onSelectContainer, needsExtraction = false}) => {
+    if (container) return null
 
     const fileInputRef = useRef(null)
 
@@ -54,68 +53,11 @@ export const SelectContainerFileForCheck = ({container, onSelectContainer}) => {
         if (files.length > 0) {
             const file = files[0]
             if (file.name.toLowerCase().endsWith('.zip')) {
-                onSelectContainer(file)
-            } else {
-                alert('Please select a ZIP container file')
-            }
-        }
-        // Reset input value to allow selecting the same file again
-        e.target.value = ''
-    }
-
-    const handleButtonClick = async () => {
-        // Use modern File System Access API if available
-        if (window.showOpenFilePicker) {
-            try {
-                const fileHandles = await window.showOpenFilePicker({
-                    types: [{
-                        description: 'ZIP files',
-                        accept: { 'application/zip': ['.zip'] }
-                    }],
-                    multiple: false
-                })
-                
-                if (fileHandles && fileHandles[0]) {
-                    const file = await fileHandles[0].getFile()
+                if (needsExtraction) {
+                    onSelectContainer(file, null)
+                } else {
                     onSelectContainer(file)
-                    return
                 }
-            } catch (error) {
-                if (error.name === 'AbortError') {
-                    return // User cancelled
-                }
-                console.warn('File picker failed, falling back to input:', error)
-            }
-        }
-        
-        // Fallback to traditional file input
-        if (fileInputRef.current) {
-            fileInputRef.current.click()
-        }
-    }
-
-    return (
-        <div className="my-4">
-            <button onClick={handleButtonClick} className="btn btn-primary fs-4 w-100 p-3">
-                Select container file (Token_Container.zip)
-            </button>
-            <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />
-        </div>
-    )
-}
-
-// Full file selector for creating tokens (with extraction)
-export const SelectContainerFile = ({container, onSelectContainer}) => {
-    if (container?.files) return null
-
-    const fileInputRef = useRef(null)
-
-    const onPickContainer = (e) => {
-        const files = e.target.files
-        if (files.length > 0) {
-            const file = files[0]
-            if (file.name.toLowerCase().endsWith('.zip')) {
-                onSelectContainer(file, null)
             } else {
                 alert('Please select a ZIP container file')
             }
@@ -139,22 +81,25 @@ export const SelectContainerFile = ({container, onSelectContainer}) => {
                 if (fileHandles && fileHandles[0]) {
                     const file = await fileHandles[0].getFile()
 
-                    // Now try to get Downloads folder for extraction
-                    let downloadsHandle = null
-                    try {
-                        downloadsHandle = await window.showDirectoryPicker({
-                            startIn: 'downloads',
-                            mode: 'readwrite'
-                        })
-                    } catch (dirError) {
-                        if (dirError.name === 'AbortError') {
-                            return // User cancelled directory selection
+                    if (needsExtraction) {
+                        // Try to get Downloads folder for extraction
+                        let downloadsHandle = null
+                        try {
+                            downloadsHandle = await window.showDirectoryPicker({
+                                startIn: 'downloads',
+                                mode: 'readwrite'
+                            })
+                        } catch (dirError) {
+                            if (dirError.name === 'AbortError') {
+                                return // User cancelled directory selection
+                            }
+                            // Continue without handle - will show error asking user to select folder
                         }
-                        // Continue without handle - will show error asking user to select folder
+                        onSelectContainer(file, downloadsHandle)
+                    } else {
+                        // Just return the file without extraction
+                        onSelectContainer(file)
                     }
-
-                    // Process the selected file
-                    onSelectContainer(file, downloadsHandle)
                     return
                 }
             } catch (error) {
@@ -172,14 +117,15 @@ export const SelectContainerFile = ({container, onSelectContainer}) => {
     }
 
     return (
-        <div className="my-4">
+        <div className="mb-4">
             <button onClick={handleButtonClick} className="btn btn-primary fs-4 w-100 p-3">
-                Select container file (Token_Container.zip)
+                Select container file
             </button>
             <input ref={fileInputRef} type="file" accept=".zip" className="d-none" onChange={onPickContainer} />
         </div>
     )
 }
+
 
 export const DropZone = ({addFiles, disabled}) => {
     if (disabled) return null
@@ -256,7 +202,7 @@ export const SummaryActions = ({tokenFiles, clearAll, disabled}) => {
         <div className="d-flex flex-wrap align-items-center gap-2">
             Selected: <span className="fw-semibold">{totalSelected}</span> files · Total size: {prettyBytes(totalSize)}
             <div className="ms-auto d-flex gap-2">
-                {!disabled && (
+                {!disabled && clearAll && (
                     <button type="button" onClick={clearAll} disabled={!tokenFiles.length || anyCompressing} className="btn btn-outline-secondary">
                         Clear all
                     </button>
@@ -345,7 +291,7 @@ export const FilesList = ({tokenFiles, removeOne, clearAll, disabled}) => {
 
     return (
         <>
-            <SummaryActions tokenFiles={tokenFiles} clearAll={clearAll} disabled={disabled}/>
+            <SummaryActions {...{tokenFiles, clearAll, disabled}} />
             <ul className="list-group list-group-flush border rounded overflow-hidden">
                 {tokenFiles.map((it) => (
                     <li
@@ -356,7 +302,7 @@ export const FilesList = ({tokenFiles, removeOne, clearAll, disabled}) => {
                         <ImagePreview it={it} width={160} height={90} />
                         <ImageInfo it={it} />
                         <div className="d-flex align-items-center gap-2">
-                            {!disabled && (
+                            {!disabled && removeOne && (
                                 <button
                                     type="button"
                                     onClick={() => removeOne(it.id)}
@@ -407,11 +353,9 @@ export const CompressingStatus = ({container, overallCompressing}) => container?
     <StatusBar label={'Adding files to container'} processStatus={overallCompressing} />
 )
 
-export const DecompressingStatus = ({container, overallDecompressing}) => {
-    return container?.isDecompressing && (
-        <StatusBar label={'Retrieving files from container'} processStatus={overallDecompressing} />
-    )
-}
+export const DecompressingStatus = ({container, overallDecompressing}) => container?.isDecompressing && (
+    <StatusBar label={'Retrieving files from container'} processStatus={overallDecompressing} />
+)
 
 export const HashingStatus = ({container, overallHashing}) => (container?.isCompressing || container?.isHashing) && (
     <StatusBar label={'Calculating container hash'} processStatus={overallHashing} className={'bg-success'} />
@@ -432,18 +376,13 @@ export const MintedInfo = ({minted}) => minted && (
         <h4 className="text-center">Congratulations !</h4>
         <p className="text-center">Your token has been successfully minted.</p>
         <div className="d-flex justify-content-center">
-            <table className="table-sm w-auto text-start">
-                <tbody>
-                <tr>
-                    <td><strong>Token public key:</strong></td>
-                    <td className="ps-3">{minted.mint}</td>
-                </tr>
-                <tr>
-                    <td><strong>Transaction signature:</strong></td>
-                    <td className="ps-3">{minted.signature}</td>
-                </tr>
-                </tbody>
-            </table>
+            <InnerTable data={[{
+                title: 'Token public key',
+                value: minted.mint,
+            }, {
+                title: 'Transaction signature',
+                value: minted.signature,
+            }]} />
         </div>
     </div>
 )
@@ -459,203 +398,62 @@ export const TryMoreOptions = ({minted, doMaterial, handlerClear}) => minted && 
     </div>
 )
 
-export const ContainerPublicKey = ({container, setContainer, tokenPublicKey, setTokenPublicKey}) => {
-    if (!container?.file) return null
+export const ShowTokenValidity = ({container, tokenData}) => {
+    if (!tokenData) return
 
-    const [isManualEdit, setIsManualEdit] = useState(false)
-    const [tempValue, setTempValue] = useState('')
-    const [validationError, setValidationError] = useState('')
-
-    const autoDetectedKey = container?.publicKey
-
-    useEffect(() => {
-        // Initialize tokenPublicKey from container.publicKey when container changes
-        if (autoDetectedKey && !tokenPublicKey) {
-            console.log('Setting tokenPublicKey from container.publicKey:', autoDetectedKey)
-            setTokenPublicKey(autoDetectedKey)
-            setIsManualEdit(false)
-        } else if (!autoDetectedKey && !tokenPublicKey) {
-            // If no auto-detected key found, start in manual edit mode
-            setIsManualEdit(true)
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [container?.publicKey]) // Depend on container.publicKey changes
-
-    const showAutoDetected = container?.publicKey && tokenPublicKey === container.publicKey && !isManualEdit
-
-    const handleEditManually = useCallback(() => {
-        setIsManualEdit(true)
-        setTempValue(tokenPublicKey || '')
-        setValidationError('')
-    }, [tokenPublicKey])
-
-    const handleCancel = useCallback(() => {
-        setValidationError('')
-        setTempValue('')
-
-        if (container?.publicKey) {
-            // If there's a container public key, restore it and exit manual mode
-            setTokenPublicKey(container.publicKey)
-            setIsManualEdit(false)
-        } else {
-            // If no container public key, clear the field and stay in manual mode
-            setTokenPublicKey('')
-        }
-    }, [container?.publicKey, setTokenPublicKey])
-
-    const handleSave = useCallback(() => {
-        console.log('Save clicked:', { isManualEdit, tempValue, tokenPublicKey })
-
-        if (!tempValue?.trim()) {
-            setValidationError('Public key is required')
-            return
-        }
-
-        if (!isValidSolanaAddress(tempValue.trim())) {
-            setValidationError('Invalid Solana public key. Must be base58 encoded, 32-44 characters long.')
-            return
-        }
-
-        console.log('Validation passed, saving:', tempValue.trim())
-        const trimmedKey = tempValue.trim()
-        setTokenPublicKey(trimmedKey)
-
-        // Update container.publicKey to match the saved value
-        setContainer(prev => prev ? { ...prev, publicKey: trimmedKey } : prev)
-
-        setIsManualEdit(false)
-        setTempValue('')
-        setValidationError('')
-    }, [isManualEdit, tempValue, setTokenPublicKey, setContainer])
-
-    const handleTempValueChange = useCallback((value) => {
-        setTempValue(value)
-        if (validationError) {
-            setValidationError('')
-        }
-    }, [validationError])
-
-    return (
-        <div className="mb-3">
-            <label className="form-label">Token Public Key:</label>
-            {showAutoDetected ? (
-                <div className="p-2 bg-light border rounded">
-                    <div className="d-flex align-items-center gap-2">
-                        <span className="text-success">✓</span>
-                        <span className="fw-semibold text-break">{tokenPublicKey}</span>
-                        <small className="text-muted">(auto-detected from container name)</small>
-                    </div>
-                    <button
-                        type="button"
-                        className="btn btn-outline-secondary btn-sm mt-2"
-                        onClick={handleEditManually}
-                    >
-                        Edit manually
-                    </button>
-                </div>
-            ) : (
-                <div>
-                    <div className="input-group">
-                        <Input
-                            value={isManualEdit ? tempValue : (tokenPublicKey || '')}
-                            onChange={isManualEdit ? handleTempValueChange : setTokenPublicKey}
-                            placeHolder="Enter token public key (base58 encoded, 32-44 characters)"
-                            className={validationError ? 'is-invalid' : ''}
-                        />
-                        {!showAutoDetected && (
-                            <>
-                                <button
-                                    type="button"
-                                    className="btn btn-danger"
-                                    onClick={handleCancel}
-                                    title="Cancel changes"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-success"
-                                    onClick={handleSave}
-                                    title="Save public key"
-                                >
-                                    Save
-                                </button>
-                            </>
-                        )}
-                    </div>
-
-                    {validationError && (
-                        <ErrorMessageBlock message={validationError} className="mt-2 mb-0" />
-                    )}
-
-                    <div className="form-text">
-                        Enter the public key of the token associated with this container
-                    </div>
-                </div>
-            )}
+    return tokenData.error ? (
+        <div className="alert-danger alert text-center text-break p-4">
+            <h4>Token not found for this files container.</h4>
+            <InnerTable data={[{
+                title: 'File',
+                value: container.file.name,
+            }, {
+                title: 'Hash',
+                value: container.hash,
+            }]} />
+        </div>
+    ) : (
+        <div className="alert-success alert text-center text-break p-4">
+            <h4>Your container has been successfully checked in blockchain.</h4>
+            <div className="d-flex justify-content-center">
+                <InnerTable data={[{
+                    title: 'Container file',
+                    value: container.file.name,
+                }, {
+                    title: 'Container hash',
+                    value: tokenData.metadata.hash,
+                }, {
+                    title: 'Token public key',
+                    value: tokenData.tokenPublicKey,
+                }, {
+                    title: 'Token name',
+                    value: tokenData.metadata.tokenName,
+                }, {
+                    title: 'Token author',
+                    value: tokenData.metadata.author,
+                }, {
+                    title: 'Token description',
+                    value: tokenData.metadata.description,
+                }, {
+                    title: 'Token can be burned',
+                    value: tokenData.metadata.canBeBurned ? 'Yes' : 'No',
+                }]} />
+            </div>
         </div>
     )
 }
 
-export const CheckTokenValidity = ({container, tokenPublicKey, tokenData, setTokenData, tokenVerified, setTokenVerified}) => {
-    const [checkError, setCheckError] = useState(null)
-
-    useEffect(() => {
-        setTokenData(null)
-        setCheckError(null)
-        setTokenVerified(false)
-        if (container?.hash && tokenPublicKey) {
-            getTokenData(tokenPublicKey).then()
-        }
-    }, [container?.hash, tokenPublicKey])
-
-    const getTokenData = async () => {
-        try {
-            setCheckError(null)
-            const token = await getAndCheckTokenData(tokenPublicKey, container?.hash)
-            setTokenData(token)
-
-
-            // TODO - CONTINUE HERE !!!
-            console.log('---------------------')
-
-
-            setTokenVerified(true)
-        } catch (error) {
-            console.log({error})
-            setTokenData(null)
-            setCheckError(error.message)
-        }
-    }
-
-    return (tokenData || checkError) && (
-        <div>
-            {tokenVerified && (
-                <div className="alert-success alert text-break p-4" role="alert">
-                    <p className="text-center">
-                        Your container has been successfully checked in blockchain. It matches active token.
-                    </p>
-                    <div className="d-flex justify-content-center">
-                        <table className=" table-sm w-auto text-start">
-                            <tbody>
-                            <tr>
-                                <td><strong>Token public key:</strong></td>
-                                <td className="ps-3">{tokenData.tokenPublicKey}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Token hash:</strong></td>
-                                <td className="ps-3">{tokenData.metadata.hash}</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )}
-            {!!checkError && (
-                <div className="alert-danger alert text-break d-flex justify-content-center p-3" role="alert">
-                    Container check fail: {checkError}. Check if you token public key matches you container.
-                </div>
-            )}
-        </div>
-    )
-}
+export const InnerTable = ({data}) => (
+    <div className="d-flex justify-content-center">
+        <table className="table-sm w-auto text-start">
+            <tbody>
+            {data.map((row, key) => (
+                <tr key={key}>
+                    <td className="text-nowrap">{row.title}:</td>
+                    <td className="ps-3 fw-bold text-break">{row.value || '-'}</td>
+                </tr>
+            ))}
+            </tbody>
+        </table>
+    </div>
+)

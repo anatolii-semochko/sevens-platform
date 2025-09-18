@@ -1,30 +1,61 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { getTokenByHash } from '@js/blockchain/sevens-token'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { getFileHash, removeExtractedFilesFolder } from './components/create-container/utils'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
-import { removeExtractedFilesFolder} from './components/create-container/utils'
 import { MaterialForm } from './components/MaterialForm'
-import { DecompressContainer } from './components/DecompressContainer'
-import {CheckTokenValidity, ContainerPublicKey} from './components/create-container/Components'
+import {
+    ButtonClearPickContainer,
+    ButtonSelectDecompressionFolder,
+    Decompressing,
+} from './components/DecompressContainer'
+import {
+    DecompressingStatus,
+    HashingStatus,
+    SelectContainerFile,
+    ShowTokenValidity
+} from './components/create-container/Components'
 
 export const CreateMaterialFromToken = () => {
     const wallet = useWallet()
-    const targetRef = useRef(null)
-    const [tokenFiles, setTokenFiles] = useState([])
     const [container, setContainer] = useState(null)
-    const [tokenPublicKey, setTokenPublicKey] = useState(null)
+    const [overallHashing, setOverallHashing] = useState(0)
+    const [tokenFiles, setTokenFiles] = useState([])
     const [tokenData, setTokenData] = useState(null)
-    const [tokenVerified, setTokenVerified] = useState(false)
     const [materialData, setMaterialData] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
+    const [decompressionFunction, setDecompressionFunction] = useState(null)
+
+    const onSelectContainer = async (file, providedDownloadsHandle = null) => {
+        setContainer({
+            file,
+            name: file.name,
+            downloadsHandle: providedDownloadsHandle,
+            isHashing: true
+        })
+        setTokenFiles([])
+        setTokenData(null)
+        setErrorMessage(null)
+    }
 
     const handlerClear = async () => {
         await removeExtractedFilesFolder(container, tokenFiles)
-        setContainer(null)
         setTokenFiles([])
+        setContainer(null)
+        setOverallHashing(0)
         setTokenData(null)
-        setTokenPublicKey(null)
+        setMaterialData(null)
+        setDecompressionFunction(null)
     }
+
+    const handleStartDecompression = () => {
+        if (decompressionFunction) {
+            decompressionFunction()
+        }
+    }
+
+    const onStartDecompression = (startDecompressionFn) => setDecompressionFunction(() => startDecompressionFn)
 
 
     // TODO - Check if it is needed (not now, it is for me)
@@ -44,29 +75,53 @@ export const CreateMaterialFromToken = () => {
         }
     }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
 
-    // Cleanup extracted files on component unmount
+    // // Cleanup extracted files on component unmount
+    // useEffect(() => {
+    //     return () => {
+    //         if (container?.folderHandle) {
+    //             removeExtractedFilesFolder().catch(console.warn)
+    //         }
+    //     }
+    // }, [container?.folderHandle])
+
+    const calculateHash = async () => { // TODO - Duplicate - MOVE TO UTILS !!!
+        setErrorMessage(null)
+        const hash = await getFileHash(container.file, setOverallHashing)
+        setContainer(prev => ({...prev, hash, isHashing: false}))
+    }
+
+    const deriveTokenData = async () => getTokenByHash(container.hash)  // TODO - Duplicate - MOVE TO UTILS !!!
+        .then(setTokenData)
+        .catch(() => setTokenData({error: 'Token not found'}))
+
+
     useEffect(() => {
-        return () => {
-            if (container?.folderHandle) {
-                removeExtractedFilesFolder().catch(console.warn)
-            }
+        if (container && !container.hash) {
+            calculateHash().catch(error => setErrorMessage(error.message))
         }
-    }, [container?.folderHandle])
+    }, [container?.file])
+
+    useEffect(() => {
+        if (container?.hash) {
+            deriveTokenData().catch(error => setErrorMessage(error.message))
+        }
+    }, [container?.hash])
+
+    if (!container?.file) return (
+        <SelectContainerFile container={container} onSelectContainer={onSelectContainer} needsExtraction={false} />
+    )
 
     return (
         <div>
-            <DecompressContainer {...{tokenFiles, setTokenFiles, container, setContainer}} />
-            <ContainerPublicKey key={container?.file?.name} {...{container, setContainer, tokenPublicKey, setTokenPublicKey}} />
-            <CheckTokenValidity {...{container, tokenPublicKey, tokenData, setTokenData, tokenVerified, setTokenVerified}} />
-            {container && !container.isDecompressing && !tokenVerified && (
-                <>
-                    <MessagesBlock error={errorMessage} />
-                    <div className="d-flex justify-content-end gap-2">
-                        <button className="btn btn-outline-primary" onClick={handlerClear}>Clear and pick different container file</button>
-                        <WalletMultiButton />
-                    </div>
-                </>
+            <HashingStatus {...{container, overallHashing}} />
+            <ShowTokenValidity {...{container, tokenData}} />
+            <ButtonSelectDecompressionFolder {...{tokenData, container, handleStartDecompression}} />
+            <Decompressing {...{tokenFiles, setTokenFiles, container, setContainer, onStartDecompression}} />
+            {tokenData && !tokenData.error && !!tokenFiles.length && (
+                <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}}/>
             )}
+            <MessagesBlock error={errorMessage} />
+            <ButtonClearPickContainer {...{container, handlerClear}} />
         </div>
     )
 }

@@ -1,173 +1,124 @@
-import React, { useCallback, useState, useRef } from 'react'
-import { FilesList, SelectContainerFile, DecompressingStatus, HashingStatus } from './create-container/Components'
-import { decompressContainer, getPublicKeyFromContainerName, getFileHash } from './create-container/utils'
+import React, { useCallback, useState, useRef, useEffect } from 'react'
+import { DecompressingStatus } from './create-container/Components'
+import {decompressContainer, removeExtractedFilesFolder} from './create-container/utils'
 
-const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, setOverallHashing}) => {
-    const [overallDecompressing, setOverallDecompressing] = useState(0)
+export const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, onStartDecompression}) => {
     const cancelFlagRef = useRef(false)
+    const [overallDecompressing, setOverallDecompressing] = useState(0)
 
-    const onSelectContainer = async (file, providedDownloadsHandle = null) => {
-        // Extract public key from container name if possible
-        const publicKey = getPublicKeyFromContainerName(file.name)
-        
-        const newContainer = { 
-            file, 
-            name: file.name, 
-            downloadsHandle: providedDownloadsHandle,
-            publicKey: publicKey
-        }
-        setContainer(newContainer)
-        setTokenFiles([])
-        await startDecompression(newContainer)
-    }
 
     const startDecompression = useCallback(async (containerToUse = container) => {
-        console.log('Starting decompression with container:', containerToUse)
         if (!containerToUse?.file || containerToUse?.isDecompressing) return
 
-        console.log('Setting container isDecompressing: true')
-        setContainer(prev => {
-            const updated = { ...prev, isDecompressing: true }
-            console.log('Container after setting isDecompressing:', updated)
-            return updated
-        })
+        // Get directory picker for extraction if not already selected
+        let downloadsHandle = containerToUse.downloadsHandle
+        if (!downloadsHandle) {
+            try {
+                if (window.showDirectoryPicker) {
+                    downloadsHandle = await window.showDirectoryPicker({
+                        startIn: 'downloads',
+                        mode: 'readwrite'
+                    })
+                    setContainer(prev => ({ ...prev, downloadsHandle }))
+                } else {
+                    throw new Error('Directory picker not supported')
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    return // User cancelled
+                }
+                alert('Please select a folder for file extraction')
+                return
+            }
+        }
+
+        setContainer(prev => ({ ...prev, isDecompressing: true }))
         setOverallDecompressing(0)
         cancelFlagRef.current = false
 
-        // Small delay to ensure UI updates with status bar
-        await new Promise(resolve => setTimeout(resolve, 100))
-
         try {
-            const result = await decompressContainer(containerToUse.file, setOverallDecompressing, setTokenFiles, containerToUse.downloadsHandle)
+            const result = await decompressContainer(containerToUse.file, setOverallDecompressing, setTokenFiles, downloadsHandle, cancelFlagRef)
             if (!cancelFlagRef.current) {
-                const updatedContainer = {
-                    ...containerToUse,
+                setContainer(prev => ({
+                    ...prev,
                     files: result.files || result,
                     extractionPath: result.extractionPath,
                     folderHandle: result.folderHandle,
-                    isDecompressing: false
-                }
-                setContainer(updatedContainer)
-
-                // Start hashing the original container file after successful decompression
-                await startHashingOriginalContainer(updatedContainer)
+                    isDecompressing: false,
+                }))
             }
         } catch (error) {
             console.error('Decompression failed:', error)
             if (!cancelFlagRef.current) {
                 setContainer(prev => ({ ...prev, isDecompressing: false }))
                 alert(`Decompression failed: ${error.message}`)
-            }
-        }
-    }, [setContainer, setTokenFiles])
-
-    const startHashingOriginalContainer = useCallback(async (containerToUse) => {
-        console.log('Starting hash calculation for original container file')
-
-        try {
-            setContainer(prev => ({ ...prev, isHashing: true }))
-            setOverallHashing(0)
-
-            // Calculate hash using proper method from utils.js
-            const hash = await getFileHash(containerToUse.file, setOverallHashing)
-
-            if (!cancelFlagRef.current) {
+            } else if (error.extractionFolderHandle) {
                 setContainer(prev => ({
                     ...prev,
-                    hash: hash,
-                    isHashing: false
+                    isDecompressing: false,
+                    folderHandle: error.extractionFolderHandle,
+                    extractionPath: error.folderName
                 }))
-            }
-
-        } catch (error) {
-            console.error('Hash calculation failed:', error)
-            if (!cancelFlagRef.current) {
-                setContainer(prev => ({ ...prev, isHashing: false }))
+                try {
+                    await error.extractionFolderHandle.remove({ recursive: true })
+                    console.log('Successfully removed cancelled extraction folder')
+                } catch (cleanupError) {
+                    console.warn('Could not immediately remove cancelled folder:', cleanupError.message)
+                }
             }
         }
-    }, [setContainer])
+    }, [setContainer, setTokenFiles, setOverallDecompressing])
 
-
-    const cancelDecompression = useCallback(() => {
+    const cancelDecompression = useCallback(async () => {
         cancelFlagRef.current = true
-        setContainer(prev => ({ ...prev, isDecompressing: false }))
+        await removeExtractedFilesFolder(container, tokenFiles)
+        setTokenFiles([])
+        setContainer(prev => ({
+            ...prev,
+            isDecompressing: false,
+            files: null,
+            extractionPath: null,
+            folderHandle: null
+        }))
         setOverallDecompressing(0)
-    }, [setContainer])
+    }, [setContainer, setOverallDecompressing, setTokenFiles, container, tokenFiles])
 
-    if (!container?.file) return (
+    // Pass startDecompression function to parent
+    useEffect(() => {
+        if (onStartDecompression) {
+            onStartDecompression(startDecompression)
+        }
+    }, [onStartDecompression, startDecompression])
+
+    if (!container?.file) return null
+
+    return container.isDecompressing && (
         <div>
-            <p>To publish material we need to extract files to your device and pick main one witch represents publication</p>
-            <SelectContainerFile container={container} onSelectContainer={onSelectContainer} />
-        </div>
-    )
-
-    return (
-        <>
             <DecompressingStatus container={container} overallDecompressing={overallDecompressing} />
-            <div className="d-flex gap-2 align-items-center">
-                {container.isDecompressing && (
-                    <span>
-                        Extracting files from container...
-                        <button className="btn btn-outline-danger ms-3" onClick={cancelDecompression}>Cancel</button>
-                    </span>
-                )}
-                {container.files && (
-                    <div className="text-muted small">
-                        <div className="mb-2">
-                            Extracted {tokenFiles.length} files from <span className="fw-semibold">{container.file.name}</span>
-                        </div>
-                        {container.extractionPath && (
-                            <div>Saved to: <span className="fw-semibold">{container.extractionPath}</span></div>
-                        )}
-                    </div>
-                )}
-            </div>
-        </>
-    )
-}
-
-export const DecompressContainer = ({tokenFiles, setTokenFiles, container, setContainer}) => {
-    const [overallHashing, setOverallHashing] = useState(0)
-    const removeOne = (id) => {
-        setTokenFiles((prev) => {
-            const next = prev.filter(x => x.id !== id)
-            // Clean up preview URLs for removed files
-            prev.forEach(x => {
-                if (x.id === id && x.previewUrl) {
-                    URL.revokeObjectURL(x.previewUrl)
-                }
-            })
-            return next
-        })
-    }
-
-    const clearAll = () => {
-        setTokenFiles((prev) => {
-            // Clean up all preview URLs
-            prev.forEach(x => {
-                if (x.previewUrl) {
-                    URL.revokeObjectURL(x.previewUrl)
-                }
-            })
-            return []
-        })
-        setContainer(null)
-    }
-
-    return (
-        <div className="row g-3">
-            <div className="d-flex flex-column gap-3 mb-3">
-                <Decompressing {...{tokenFiles, setTokenFiles, container, setContainer, setOverallHashing}} />
-                {tokenFiles.length > 0 && (
-                    <FilesList {...{tokenFiles, removeOne, clearAll, disabled: true}} />
-                )}
-                <HashingStatus {...{container, overallHashing}} />
-                {container?.hash && (
-                    <div className="text-muted small">
-                        Container hash: <span className="fw-semibold">{container.hash}</span>
-                    </div>
-                )}
-            </div>
+            <button className="btn btn-outline-danger w-100 mt-2 p-2" onClick={cancelDecompression}>
+                Cancel extracting container files to disk
+            </button>
         </div>
     )
 }
+
+export const ButtonSelectDecompressionFolder = ({
+    tokenData,
+    container,
+    handleStartDecompression,
+}) => tokenData && !tokenData.error && !container?.files && !container?.isDecompressing && (
+    <button className="btn btn-success w-100 fs-5 p-3 mb-3" onClick={handleStartDecompression}>
+        Select folder and extract files to continue
+    </button>
+)
+
+export const ButtonClearPickContainer = ({
+    container,
+    handlerClear,
+}) => container && !container.isHashing && !container.isDecompressing &&(
+    <div className="d-flex justify-content-end gap-2">
+        <button className="btn btn-primary fs-5 w-100 p-3" onClick={handlerClear}>
+            Clear and pick different container file
+        </button>
+    </div>
+)

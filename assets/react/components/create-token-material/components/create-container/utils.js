@@ -327,12 +327,17 @@ export const clearTargetRef = (targetRef) => {
     }
 }
 
-export const decompressContainer = async (containerFile, setOverallDecompressing, setTokenFiles, downloadsHandle = null) => {
+export const decompressContainer = async (containerFile, setOverallDecompressing, setTokenFiles, downloadsHandle = null, cancelFlagRef = null) => {
     const { unzip } = await import('fflate')
 
     try {
         setOverallDecompressing(0)
         console.log('Starting disk-based decompression of:', containerFile.name)
+
+        // Check for cancellation
+        if (cancelFlagRef?.current) {
+            throw new Error('Decompression cancelled')
+        }
 
         // Check if File System Access API is supported
         if (!downloadsHandle && !window.showDirectoryPicker) {
@@ -369,6 +374,15 @@ export const decompressContainer = async (containerFile, setOverallDecompressing
             throw new Error(`Cannot create folder "${folderName}". Please ensure you have write permissions to the selected directory.`)
         }
 
+        // Check for cancellation after folder creation
+        if (cancelFlagRef?.current) {
+            // Include folderHandle in error for cleanup
+            const error = new Error('Decompression cancelled')
+            error.extractionFolderHandle = extractionFolderHandle
+            error.folderName = folderName
+            throw error
+        }
+
         const arrayBuffer = await containerFile.arrayBuffer()
         const uint8Array = new Uint8Array(arrayBuffer)
 
@@ -396,6 +410,15 @@ export const decompressContainer = async (containerFile, setOverallDecompressing
 
                 try {
                     for (let i = 0; i < entries.length; i++) {
+                        // Check for cancellation before processing each file
+                        if (cancelFlagRef?.current) {
+                            const error = new Error('Decompression cancelled')
+                            error.extractionFolderHandle = extractionFolderHandle
+                            error.folderName = folderName
+                            reject(error)
+                            return
+                        }
+
                         const [fileName, fileData] = entries[i]
                         const pathParts = fileName.split('/')
                         const actualFileName = pathParts.pop() || fileName
@@ -427,6 +450,16 @@ export const decompressContainer = async (containerFile, setOverallDecompressing
                             // Write file data in chunks for large files - streaming approach
                             const chunkSize = 64 * 1024 // 64KB chunks
                             for (let offset = 0; offset < fileData.length; offset += chunkSize) {
+                                // Check for cancellation during file write
+                                if (cancelFlagRef?.current) {
+                                    await writable.close()
+                                    const error = new Error('Decompression cancelled')
+                                    error.extractionFolderHandle = extractionFolderHandle
+                                    error.folderName = folderName
+                                    reject(error)
+                                    return
+                                }
+
                                 const chunk = fileData.slice(offset, offset + chunkSize)
                                 await writable.write(chunk)
 
@@ -434,7 +467,7 @@ export const decompressContainer = async (containerFile, setOverallDecompressing
                                 if (fileData.length > 1024 * 1024) { // Files > 1MB
                                     const fileProgress = Math.floor((offset / fileData.length) * 100)
                                     if (fileProgress % 10 === 0) { // Update every 10%
-                                        console.log(`Writing ${actualFileName}: ${fileProgress}%`)
+                                        // console.log(`Writing ${actualFileName}: ${fileProgress}%`)
                                     }
                                     // Small delay for very large files to prevent UI blocking
                                     if (offset > 0) {
@@ -491,6 +524,15 @@ export const decompressContainer = async (containerFile, setOverallDecompressing
                         } else {
                             await new Promise(resolve => setTimeout(resolve, 10))
                         }
+                    }
+
+                    // Final check for cancellation before setting files
+                    if (cancelFlagRef?.current) {
+                        const error = new Error('Decompression cancelled')
+                        error.extractionFolderHandle = extractionFolderHandle
+                        error.folderName = folderName
+                        reject(error)
+                        return
                     }
 
                     console.log(`Decompression completed, ${files.length} files saved to ${folderName}`)

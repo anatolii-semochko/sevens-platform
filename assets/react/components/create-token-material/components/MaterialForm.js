@@ -36,8 +36,8 @@ const Description = ({description, setDescription, error, setErrorMessage}) => (
 )
 
 const Preview = ({mainFile}) => {
-    const width = 350
-    const height = 200
+    const width = 450
+    const height = 270
 
     return (
         <>
@@ -51,7 +51,6 @@ const Preview = ({mainFile}) => {
                     <span className="small text-muted">No main file selected</span>
                 </div>
             )}
-            <div className="small text-muted text-center p-2">You can pick the main image from the files list</div>
         </>
     )
 }
@@ -68,7 +67,6 @@ export const ImageSelectMain = ({tokenFiles, setTokenFiles}) => {
 
     return (
         <div className="mt-3">
-            <label className="form-label">Select main file:</label>
             <div className="row g-2">
                 {tokenFiles.map((file) => (
                     <div key={file.id} className="col-6 col-sm-4 col-md-3 col-lg-4 col-xl-3 mb-2">
@@ -155,7 +153,7 @@ export const MaterialForm = ({materialData, setMaterialData, setErrorMessage, to
                 </div>
             </div>
             <div className="d-flex justify-content-end gap-2">
-                <button className="btn btn-success fs-4 w-100 p-3">Save</button>
+                <button className="btn btn-success fs-4 w-100 p-3">Publish</button>
             </div>
         </div>
     )

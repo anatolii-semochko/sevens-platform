@@ -1,15 +1,21 @@
 <div class="main-content row justify-content-center mt-3 mb-3">
     <div class="col-12 col-lg-6">
-        <h1 class="text-center mb-4">Create Token and publish material</h1>
+        <h1 class="text-center mb-4">Publish Material From Your Token</h1>
         {% include 'pages/create-token-material/templates/create-type-selector.html.twig' %}
         <h5 class="text-justify ti-4 lh-base">
             Publish your digital data from the already created token and data container.
+            We need to extract files from your container to your device and pick main one witch represents
+            publication and check if you are the owner of token to avoid the scam publication activity.
+            You need to sign message to prove your ownership.
+            This operation does not require the coin spending and does not push transactions to blockchain.
+        </h5>
+        <h5 class="text-justify ti-4 lh-base">
             The data will be accessible to anyone,
             but you will be able to prove your intellectual property rights to it using the token in your wallet.
             Keep the file container and the private key of the token safe.
             They are a single entity that proves your right to own the digital data.
             Losing one of them means losing this proof.
         </h5>
-        <div id="create-token-material" data-type="material-from-token"></div>
+        <div class="pt-3" id="create-token-material" data-type="material-from-token"></div>
     </div>
 </div>

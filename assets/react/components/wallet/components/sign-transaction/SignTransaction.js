@@ -114,10 +114,10 @@ const SignTransaction = ({ transaction, onSign, onCancel }) => {
                     {/* Transaction Summary */}
                     <div className="card">
                         <div className="card-header">
-                            <h6 className="mb-0">Transaction Summary</h6>
+                            <div className="text-center">Transaction Summary</div>
                         </div>
                         <div className="card-body">
-                            <div className="row">
+                            <div className="row mb-2">
                                 <div className="col-sm-4"><strong>Status:</strong></div>
                                 <div className="col-sm-8">
                                     <span className={`badge ${simulationData.ok ? 'bg-success' : 'bg-danger'}`}>
@@ -125,30 +125,22 @@ const SignTransaction = ({ transaction, onSign, onCancel }) => {
                                     </span>
                                 </div>
                             </div>
-                            <div className="row">
-                                <div className="col-sm-4"><strong>Fee Payer:</strong></div>
+                            <div className="row mb-2">
+                                <div className="col-sm-4"><strong>Fee:</strong></div>
                                 <div className="col-sm-8">
-                                    <code className="small">{simulationData.payer}</code>
-                                </div>
-                            </div>
-                            <div className="row">
-                                <div className="col-sm-4"><strong>Estimated Fee:</strong></div>
-                                <div className="col-sm-8">
-                                    {formatLamports(simulationData.fee?.estimatedTotalLamports)} SOL
-                                    <small className="text-muted ms-1">
+                                    <div>
+                                        {formatLamports(simulationData.fee?.estimatedTotalLamports)}
+                                        <span className="fst-italic ps-1">$SEV</span>
+                                    </div>
+                                    <small className="text-muted">
                                         ({simulationData.fee?.estimatedTotalLamports || 0} lamports)
                                     </small>
                                 </div>
                             </div>
                             <div className="row">
-                                <div className="col-sm-4"><strong>Compute Units:</strong></div>
+                                <div className="col-sm-4"><strong>Payer:</strong></div>
                                 <div className="col-sm-8">
-                                    {simulationData.compute?.unitsConsumed || 'N/A'}
-                                    {simulationData.compute?.cuLimit && (
-                                        <small className="text-muted ms-1">
-                                            / {simulationData.compute.cuLimit} limit
-                                        </small>
-                                    )}
+                                    <code className="small">{simulationData.payer}</code>
                                 </div>
                             </div>
                         </div>
