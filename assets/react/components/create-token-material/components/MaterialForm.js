@@ -155,7 +155,7 @@ export const MaterialForm = ({materialData, setMaterialData, setErrorMessage, to
                 </div>
             </div>
             <div className="d-flex justify-content-end gap-2">
-                <button className="btn btn-success w-100">Save</button>
+                <button className="btn btn-success fs-4 w-100 p-3">Save</button>
             </div>
         </div>
     )

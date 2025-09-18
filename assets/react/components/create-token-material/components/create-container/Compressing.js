@@ -184,13 +184,8 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
                 canBeRenamed: isFileRenamingSupported() && target.kind === 'savePicker',
                 isRenaming: false,
                 isRenamed: false,
-                overallRenaming: 0,
                 fileName: zipName,
                 targetRef: targetRef,
-                renameContainerFile: async (mintPubkey) => {
-                    const { renameContainerFile } = await import('./utils')
-                    return await renameContainerFile(containerObj.targetRef, mintPubkey, containerObj, setContainer)
-                }
             }
 
             setContainer(containerObj)

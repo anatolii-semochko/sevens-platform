@@ -1,8 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import { getData } from '@js/blockchain/sevens-token'
 import {
-    getExt, isImage, isVideo, isAudio, isPdf, prettyBytes, classNames, getTokenContainerName, renameContainerFile,
-    getPublicKeyFromContainerName, getAndCheckTokenData,
+    getExt, isImage, isVideo, isAudio, isPdf, prettyBytes, classNames, getAndCheckTokenData,
 } from './utils'
 import { isValidSolanaAddress } from '@js/blockchain/sevens'
 import { StatusBar } from '@react/components/form-elements/Charts'
@@ -305,12 +304,6 @@ export const DecompressingStatus = ({container, overallDecompressing}) => {
     )
 }
 
-export const RenamingStatus = ({overallRenaming}) => (
-    <div className="mt-3">
-        <StatusBar label={'Renaming files container'} processStatus={overallRenaming} className={'bg-success'} />
-    </div>
-)
-
 export const HashingStatus = ({container, overallHashing}) => (container?.isCompressing || container?.isHashing) && (
     <StatusBar label={'Calculating container hash'} processStatus={overallHashing} className={'bg-success'} />
 )
@@ -343,63 +336,6 @@ export const MintedInfo = ({minted}) => minted && (
                 </tbody>
             </table>
         </div>
-    </div>
-)
-
-const RenameButton = ({container, minted, setContainer}) => {
-    const handleRename = async () => {
-        try {
-            const newName = getTokenContainerName(minted.mint)
-
-            // Call showSaveFilePicker directly in user gesture context
-            const savePickerOptions = {
-                suggestedName: newName,
-                types: [{ description: 'ZIP archive', accept: { 'application/zip': ['.zip'] } }],
-            }
-
-            savePickerOptions.startIn = 'downloads'
-
-            const newHandle = await window.showSaveFilePicker(savePickerOptions)
-
-            // Now call the utils function with the handle
-            await renameContainerFile(null, minted.mint, container, setContainer, newHandle)
-
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                console.error('Error in rename button:', error)
-            }
-        }
-    }
-
-    return (
-        <button
-            className="btn btn-primary w-100 mt-3"
-            onClick={handleRename}
-        >
-            Перейменувати токент контейнер на Token_Container_{minted.mint}.zip
-        </button>
-    )
-}
-
-export const RenameContainerFile = ({container, minted, setContainer}) => !!minted && (
-    <div className="alert-info alert text-break p-4" role="alert">
-        <h5 className="text-center">
-            Save and keep the container file in a safe place! It is an integral part of the token !
-        </h5>
-        <div className="text-center w-100 pb-2">
-            Container file: <span className="text-primary fw-bold">{container.fileName}</span>
-        </div>
-        <p className="text-justify ti-4 mb-0">
-            If you lose the container, the token loses its value!
-            Also we recommend to rename the token container (to add a public key of the token to the name of the file)
-            for future comfortability, to understand which token it belongs to, or to leave the current name.
-        </p>
-        {container.canBeRenamed && !container.isRenamed && !container.isRenaming && (
-            <RenameButton container={container} minted={minted} setContainer={setContainer} />
-        )}
-        {container.isRenaming && (
-            <RenamingStatus overallRenaming={container.overallRenaming} />
-        )}
     </div>
 )
 

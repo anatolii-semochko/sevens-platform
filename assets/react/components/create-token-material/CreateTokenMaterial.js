@@ -4,9 +4,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { CreateContainer } from './components/CreateContainer'
 import { removeContainer } from './components/create-container/utils'
-import {
-    SelectedPublicKey, MintedInfo, TryMoreOptions, RenameContainerFile,
-} from './components/create-container/Components'
+import { SelectedPublicKey, MintedInfo, TryMoreOptions } from './components/create-container/Components'
 import { ButtonCreateToken } from './components/ButtonCreateToken'
 import { TokenForm } from './components/TokenForm'
 import { MaterialForm } from './components/MaterialForm'
@@ -72,7 +70,6 @@ export const CreateTokenMaterial = ({doMaterial}) => {
                 </>
             )}
             <MintedInfo minted={minted} />
-            <RenameContainerFile {...{container, minted, setContainer}} />
             <TryMoreOptions {...{minted, doMaterial, handlerClear}} />
             {minted && doMaterial && (
                 <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}} />
