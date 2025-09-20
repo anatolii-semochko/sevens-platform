@@ -1,18 +1,15 @@
 import React from 'react'
 import { getDateTimeFromDate } from '@js/utils/time'
-import { InnerTable } from '@react/components/create-token-material/components/create-container/Components'
+import { InnerTable } from '../../create-token-material/components/create-container/Components'
 
 export const ContainerFileInfo = ({container}) => !!container && (
     <div className="mb-3">
         <div className="alert-success bg-light alert border rounded">
             <h3 className="text-center">Files container</h3>
-            <InnerTable data={[{
-                title: 'File name',
-                value: container?.file?.name,
-            }, {
-                title: 'File hash',
-                value: container?.hash,
-            }]} />
+            <InnerTable data={[
+                ['File name', container?.file?.name],
+                ['File hash', container?.hash],
+             ]} />
         </div>
     </div>
 )
@@ -38,25 +35,14 @@ export const ContainerCheckMessage = ({tokenData}) => !!tokenData && (
                     It is saved in blockchain and represented by token:
                 </p>
                 <div className="d-flex justify-content-center">
-                    <InnerTable data={[{
-                        title: 'Token name',
-                        value: tokenData.metadata?.tokenName,
-                    }, {
-                        title: 'Author',
-                        value: tokenData.metadata?.author,
-                    }, {
-                        title: 'Description',
-                        value: tokenData.metadata?.description,
-                    }, {
-                        title: 'Token public key',
-                        value: tokenData.tokenPublicKey?.toString(),
-                    }, {
-                        title: 'Token hash',
-                        value: tokenData.metadata?.hash,
-                    }, {
-                        title: 'Minting time',
-                        value: getDateTimeFromDate(tokenData.mintingTime),
-                    }]} />
+                    <InnerTable data={[
+                        ['Token name', tokenData.metadata?.tokenName],
+                        ['Author', tokenData.metadata?.author],
+                        ['Description', tokenData.metadata?.description],
+                        ['Token public key', tokenData.tokenPublicKey?.toString()],
+                        ['Token hash', tokenData.metadata?.hash],
+                        ['Minting time', getDateTimeFromDate(tokenData.mintingTime)],
+                     ]} />
                 </div>
             </div>
         )}

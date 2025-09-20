@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react'
-import { SelectFiles, FilesList, DropZone, IsNotReady } from './create-container/Components'
-import { createItem, checkSwAvailability } from './create-container/utils'
-import { Compressing } from './create-container/Compressing'
+import { SelectFiles, FilesList, DropZone, IsNotReady } from '.././create-container/Components'
+import { createItem, checkSwAvailability } from '.././create-container/utils'
+import { Compressing } from '.././create-container/Compressing'
 
 export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
     const [ssReady, setSsReady] = useState(false)

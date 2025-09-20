@@ -376,13 +376,10 @@ export const MintedInfo = ({minted}) => minted && (
         <h4 className="text-center">Congratulations !</h4>
         <p className="text-center">Your token has been successfully minted.</p>
         <div className="d-flex justify-content-center">
-            <InnerTable data={[{
-                title: 'Token public key',
-                value: minted.mint,
-            }, {
-                title: 'Transaction signature',
-                value: minted.signature,
-            }]} />
+            <InnerTable data={[
+                ['Token public key', minted.mint],
+                ['Transaction signature', minted.signature],
+             ]} />
         </div>
     </div>
 )
@@ -404,40 +401,24 @@ export const ShowTokenValidity = ({container, tokenData}) => {
     return tokenData.error ? (
         <div className="alert-danger alert text-center text-break p-4">
             <h4>Token not found for this files container.</h4>
-            <InnerTable data={[{
-                title: 'File',
-                value: container.file.name,
-            }, {
-                title: 'Hash',
-                value: container.hash,
-            }]} />
+            <InnerTable data={[
+                ['File', container.file.name],
+                ['Hash', container.hash],
+            ]} />
         </div>
     ) : (
         <div className="alert-success alert text-center text-break p-4">
             <h4>Your container has been successfully checked in blockchain.</h4>
             <div className="d-flex justify-content-center">
-                <InnerTable data={[{
-                    title: 'Container file',
-                    value: container.file.name,
-                }, {
-                    title: 'Container hash',
-                    value: tokenData.metadata.hash,
-                }, {
-                    title: 'Token public key',
-                    value: tokenData.tokenPublicKey,
-                }, {
-                    title: 'Token name',
-                    value: tokenData.metadata.tokenName,
-                }, {
-                    title: 'Token author',
-                    value: tokenData.metadata.author,
-                }, {
-                    title: 'Token description',
-                    value: tokenData.metadata.description,
-                }, {
-                    title: 'Token can be burned',
-                    value: tokenData.metadata.canBeBurned ? 'Yes' : 'No',
-                }]} />
+                <InnerTable data={[
+                    ['Container file', container.file.name],
+                    ['Container hash', tokenData.metadata.hash],
+                    ['Token public key', tokenData.tokenPublicKey],
+                    ['Token name', tokenData.metadata.tokenName],
+                    ['Token author', tokenData.metadata.author],
+                    ['Token description', tokenData.metadata.description],
+                    ['Token can be burned', tokenData.metadata.canBeBurned ? 'Yes' : 'No'],
+                ]} />
             </div>
         </div>
     )
@@ -449,8 +430,8 @@ export const InnerTable = ({data}) => (
             <tbody>
             {data.map((row, key) => (
                 <tr key={key}>
-                    <td className="text-nowrap">{row.title}:</td>
-                    <td className="ps-3 fw-bold text-break">{row.value || '-'}</td>
+                    <td className="text-nowrap">{row[0]}:</td>
+                    <td className="ps-3 fw-bold text-break">{row[1] || '-'}</td>
                 </tr>
             ))}
             </tbody>

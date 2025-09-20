@@ -5,8 +5,6 @@ import { PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL } from
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { connection, commitment, getPda, getAnchorErrorText } from './sevens'
 
-const CORRECT_TOKEN_PROGRAM_ID = TOKEN_PROGRAM_ID
-
 const sevensIdlPath = '/storage/files/sevens_token.json'
 
 const dummyWallet = {
@@ -66,10 +64,10 @@ const mint = async ({
             mint: mint.publicKey,
             metadata: metadataPda,
             sale: salePda,
-            tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, ownerPublicKey, false, CORRECT_TOKEN_PROGRAM_ID),
+            tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, ownerPublicKey, false, TOKEN_PROGRAM_ID),
             hashRegistry: hashRegistryPda,
             payer: payerPublicKey,
-            tokenProgram: CORRECT_TOKEN_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
@@ -107,7 +105,18 @@ const getTokenByHash = async (hash) => {
         const hashRegistry = await program.account.hashRegistry.fetch(hashRegistryPda)
         const mintPublicKey = hashRegistry.mintKey.toString()
 
-        return await getData(mintPublicKey)
+        // Check if the SPL token mint still exists
+        const mintPublicKeyObj = new PublicKey(mintPublicKey)
+        const mintAccountInfo = await connection.getAccountInfo(mintPublicKeyObj)
+
+        const tokenData = await getData(mintPublicKey)
+
+        if (!mintAccountInfo) {
+            // Token mint was burned/closed, but metadata still exists
+            //tokenData.error = "The token was burned and is no longer accessible. However, the burn was partial (as standard SPL token) — the metadata representing the hash of this container is still present on the blockchain."
+        }
+
+        return tokenData
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
     }
@@ -158,7 +167,7 @@ const burn = async (tokenPublicKey, walletPublicKey) => {
         } = getSevensToken(mint, hash)
 
         const payerPublicKey = new PublicKey(walletPublicKey)
-        const tokenAccount = getAssociatedTokenAddressSync(mint, payerPublicKey, false, CORRECT_TOKEN_PROGRAM_ID)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, payerPublicKey, false, TOKEN_PROGRAM_ID)
 
         const ix = await program.methods
             .burnToken()
@@ -169,7 +178,7 @@ const burn = async (tokenPublicKey, walletPublicKey) => {
                 sale: salePda,
                 hashRegistry: hashRegistryPda,
                 payer: payerPublicKey,
-                tokenProgram: CORRECT_TOKEN_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
             })
             .instruction()
 
@@ -197,7 +206,7 @@ const setSale = async ({ tokenPublicKey, onSale, price }) => {
         } = getSevensToken(mint)
 
         const owner = provider().wallet.publicKey
-        const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, CORRECT_TOKEN_PROGRAM_ID)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID)
 
         return await program.methods
             .setSale(onSale, new BN(price))
@@ -207,7 +216,7 @@ const setSale = async ({ tokenPublicKey, onSale, price }) => {
                 tokenAccount,
                 sale: salePda,
                 saleAuthority: salePda,
-                tokenProgram: CORRECT_TOKEN_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
             })
             .rpc()
     } catch (error) {
@@ -229,7 +238,7 @@ const buy = async ({ tokenPublicKey, lamports }) => {
         const owner = await getTokenOwner(mint)  // TODO - RTEMOVE OWNER !!!
         const ownerToken = owner.tokenAccount
         const buyer = provider().wallet
-        const buyerToken = getAssociatedTokenAddressSync(mint, buyer.publicKey, false, CORRECT_TOKEN_PROGRAM_ID)
+        const buyerToken = getAssociatedTokenAddressSync(mint, buyer.publicKey, false, TOKEN_PROGRAM_ID)
 
         return await program.methods
             .buyToken(new BN(lamports))
@@ -241,7 +250,7 @@ const buy = async ({ tokenPublicKey, lamports }) => {
                 mint,
                 sale: salePda,
                 saleAuthority: salePda,
-                tokenProgram: CORRECT_TOKEN_PROGRAM_ID,
+                tokenProgram: TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             })

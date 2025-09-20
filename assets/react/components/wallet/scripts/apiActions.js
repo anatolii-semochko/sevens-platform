@@ -1,4 +1,5 @@
 import config from '@react/components/wallet/config.json'
+import crypto from 'crypto'
 import CryptoJS from 'crypto-js'
 import { readEncryptedWallets, writeEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
@@ -7,16 +8,19 @@ import nacl from 'tweetnacl'
 import { t } from '@react/components/wallet/translations/translations'
 import {
     getAssociatedTokenAddress,
+    getAssociatedTokenAddressSync,
     createAssociatedTokenAccountInstruction,
     createTransferInstruction,
     createBurnInstruction,
     TOKEN_PROGRAM_ID,
 } from '@solana/spl-token'
 
+const commitment = 'confirmed'
+
 let providerUrl = ''
 export const setProviderUrl = (url) => providerUrl = url
 
-export const connection = () => new Connection(providerUrl, 'confirmed')
+export const connection = () => new Connection(providerUrl, commitment)
 
 let sevensIdl = {}
 fetch(config.SEVENS_TOKEN_IDL_PATH)
@@ -233,17 +237,18 @@ const getWalletTokens = async (walletPublicKey) => {
     }
 }
 
-const getSevensToken = (publicKey) => {
+const getSevensToken = (publicKey, hash = null) => {
     const program = new anchor.Program(
         sevensIdl,
         sevensIdl.metadata.address,
-        new anchor.AnchorProvider(connection(), dummyWallet, { commitment: 'confirmed' })
+        new anchor.AnchorProvider(connection(), dummyWallet, { commitment })
     )
     return {
         sevensIdl,
         program,
         metadataPda: publicKey ? getPda(program.programId, 'metadata', publicKey) : null,
         salePda: publicKey ? getPda(program.programId, 'sale', publicKey) : null,
+        hashRegistryPda: hash ? getHashPda(program.programId, hash) : null,
     }
 }
 
@@ -311,7 +316,7 @@ export const transferToken = async (tokenPublicKey, toPublicKey, wallet, amount 
     }
 }
 
-export const burnToken = async (tokenPublicKey, wallet, amount = 1) => {
+export const burnSPLToken = async (tokenPublicKey, wallet, amount = 1) => {
     try {
         const mint = new PublicKey(tokenPublicKey)
         const owner = wallet.publicKey
@@ -327,6 +332,49 @@ export const burnToken = async (tokenPublicKey, wallet, amount = 1) => {
         const tx = new Transaction().add(burnIx)
         tx.feePayer = owner
         tx.recentBlockhash = (await connection().getLatestBlockhash()).blockhash
+
+        await wallet.signTransaction(tx)
+        const sig = await connection().sendRawTransaction(tx.serialize())
+        await connection().confirmTransaction(sig)
+
+        return sig
+    } catch (error) {
+        throw new Error(getAnchorErrorText(error))
+    }
+}
+
+export const burnSevensToken = async (tokenPublicKey, wallet) => {
+    try {
+        const mint = new PublicKey(tokenPublicKey)
+        const tokenData = await getSevensTokenData(tokenPublicKey)
+        const hash = tokenData.metadata.hash
+
+        const {
+            program,
+            metadataPda,
+            salePda,
+            hashRegistryPda,
+        } = getSevensToken(mint, hash)
+
+        const payerPublicKey = new PublicKey(wallet.publicKey)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, payerPublicKey, false, TOKEN_PROGRAM_ID)
+
+        const burnIx = await program.methods
+            .burnToken()
+            .accounts({
+                mint,
+                tokenAccount,
+                metadata: metadataPda,
+                sale: salePda,
+                hashRegistry: hashRegistryPda,
+                payer: payerPublicKey,
+                tokenProgram: TOKEN_PROGRAM_ID,
+            })
+            .instruction()
+
+        const tx = new Transaction().add(burnIx)
+        tx.feePayer = payerPublicKey
+        tx.recentBlockhash = (await connection().getLatestBlockhash(commitment)).blockhash
 
         await wallet.signTransaction(tx)
         const sig = await connection().sendRawTransaction(tx.serialize())
@@ -365,6 +413,15 @@ const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSy
     [Buffer.from(pdaName), publicKey.toBuffer()],
     programId,
 )[0]
+
+const getHashPda = (programId, hash) => {
+    const hashOfHash = crypto.createHash('sha256').update(hash).digest()
+    const shortHashBuffer = hashOfHash.slice(0, 28)
+    return PublicKey.findProgramAddressSync(
+        [Buffer.from('hash'), shortHashBuffer],
+        programId,
+    )[0]
+}
 
 const getAnchorErrorText = (error) => {
     let message = error?.message || t('unknownError')

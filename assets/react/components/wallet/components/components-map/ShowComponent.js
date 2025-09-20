@@ -30,7 +30,7 @@ const ShowComponent = () => {
     const props = showComponent.props || {}
 
     return (
-        <div className="d-grid gap-3">
+        <div className="d-grid gap-3 mb-3">
             {ComponentToRender ? <ComponentToRender {...props} /> : null}
         </div>
     )

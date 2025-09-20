@@ -9,7 +9,7 @@ import {
     ButtonClearPickContainer,
     ButtonSelectDecompressionFolder,
     Decompressing,
-} from './components/DecompressContainer'
+} from './components/container/DecompressContainer'
 import {
     DecompressingStatus,
     HashingStatus,

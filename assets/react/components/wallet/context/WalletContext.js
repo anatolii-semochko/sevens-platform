@@ -78,7 +78,7 @@ const WalletContextProvider = ({ children }) => {
                 setHideBalancesState(hide)
             }
         }
-        loadState().catch(() => {})
+        loadState().catch()
     }, [])
 
     useEffect(() => {
@@ -236,7 +236,7 @@ const WalletContextProvider = ({ children }) => {
                         for (let i = 1; i <= 3; i++) {
                             console.log(`🔄 [Context] Wallet reload attempt ${i}/3`)
                             await walletReload()
-                            
+
                             // Wait 1 second between reloads (except after the last one)
                             if (i < 3) {
                                 await new Promise(resolve => setTimeout(resolve, 1000))
@@ -247,10 +247,10 @@ const WalletContextProvider = ({ children }) => {
                         console.error('❌ [Context] Wallet reload failed:', error)
                     }
                 }
-                
+
                 // Start the reload sequence after a short initial delay
                 setTimeout(() => {
-                    performReloads()
+                    performReloads().catch()
                 }, 500)
             }
         }

@@ -1,6 +1,6 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react'
-import { DecompressingStatus } from './create-container/Components'
-import {decompressContainer, removeExtractedFilesFolder} from './create-container/utils'
+import { decompressContainer, removeExtractedFilesFolder } from '.././create-container/utils'
+import { DecompressingStatus } from '.././create-container/Components'
 
 export const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, onStartDecompression}) => {
     const cancelFlagRef = useRef(false)

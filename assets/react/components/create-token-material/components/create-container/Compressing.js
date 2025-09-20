@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import streamSaver from 'streamsaver'
 import { Zip, AsyncZipDeflate, ZipPassThrough } from 'fflate'
-import { getExt, getContainerName, getContainerHash, clearTargetRef, isFileRenamingSupported, getTokenContainerName } from './utils'
+import { getExt, getContainerName, getContainerHash, clearTargetRef, isFileRenamingSupported } from './utils'
 import { CompressingActions, CompressingStatus, HashingStatus } from './Components'
 
 // --- налаштування backpressure та тротлінгу ---
