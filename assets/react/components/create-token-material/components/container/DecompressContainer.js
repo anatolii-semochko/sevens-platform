@@ -1,11 +1,11 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react'
-import { decompressContainer, removeExtractedFilesFolder } from '.././create-container/utils'
+import { decompressContainer } from '../../utils/files'
+import { DecompressionCancellationToken, isCancellationError } from './DecompressionCancellationToken'
 import { DecompressingStatus } from '.././create-container/Components'
 
 export const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, onStartDecompression}) => {
-    const cancelFlagRef = useRef(false)
+    const cancellationTokenRef = useRef(null)
     const [overallDecompressing, setOverallDecompressing] = useState(0)
-
 
     const startDecompression = useCallback(async (containerToUse = container) => {
         if (!containerToUse?.file || containerToUse?.isDecompressing) return
@@ -25,53 +25,46 @@ export const Decompressing = ({tokenFiles, setTokenFiles, container, setContaine
                 }
             } catch (error) {
                 if (error.name === 'AbortError') {
-                    return // User cancelled
+                    return // User cancelled directory selection
                 }
-                alert('Please select a folder for file extraction')
                 return
             }
         }
 
+        // Create cancellation token and start decompression
+        cancellationTokenRef.current = new DecompressionCancellationToken()
         setContainer(prev => ({ ...prev, isDecompressing: true }))
         setOverallDecompressing(0)
-        cancelFlagRef.current = false
 
         try {
-            const result = await decompressContainer(containerToUse.file, setOverallDecompressing, setTokenFiles, downloadsHandle, cancelFlagRef)
-            if (!cancelFlagRef.current) {
-                setContainer(prev => ({
-                    ...prev,
-                    files: result.files || result,
-                    extractionPath: result.extractionPath,
-                    folderHandle: result.folderHandle,
-                    isDecompressing: false,
-                }))
-            }
+            const result = await decompressContainer(
+                containerToUse.file,
+                setOverallDecompressing,
+                downloadsHandle,
+                cancellationTokenRef.current
+            )
+
+            // Update UI with extracted files
+            setTokenFiles(result.files)
+            setContainer(prev => ({
+                ...prev,
+                files: result.files,
+                extractionPath: result.extractionPath,
+                folderHandle: result.folderHandle,
+                isDecompressing: false,
+            }))
+
         } catch (error) {
-            console.error('Decompression failed:', error)
-            if (!cancelFlagRef.current) {
+            if (isCancellationError(error)) {
+                await cleanupAfterCancellation(error.folderHandle)
+            } else {
+                console.error('Decompression failed:', error)
                 setContainer(prev => ({ ...prev, isDecompressing: false }))
-                alert(`Decompression failed: ${error.message}`)
-            } else if (error.extractionFolderHandle) {
-                setContainer(prev => ({
-                    ...prev,
-                    isDecompressing: false,
-                    folderHandle: error.extractionFolderHandle,
-                    extractionPath: error.folderName
-                }))
-                try {
-                    await error.extractionFolderHandle.remove({ recursive: true })
-                    console.log('Successfully removed cancelled extraction folder')
-                } catch (cleanupError) {
-                    console.warn('Could not immediately remove cancelled folder:', cleanupError.message)
-                }
             }
         }
-    }, [setContainer, setTokenFiles, setOverallDecompressing])
+    }, [setContainer, setTokenFiles])
 
-    const cancelDecompression = useCallback(async () => {
-        cancelFlagRef.current = true
-        await removeExtractedFilesFolder(container, tokenFiles)
+    const cleanupAfterCancellation = useCallback(async (folderHandleFromError = null) => {
         setTokenFiles([])
         setContainer(prev => ({
             ...prev,
@@ -81,7 +74,21 @@ export const Decompressing = ({tokenFiles, setTokenFiles, container, setContaine
             folderHandle: null
         }))
         setOverallDecompressing(0)
-    }, [setContainer, setOverallDecompressing, setTokenFiles, container, tokenFiles])
+
+        if (folderHandleFromError) {
+            try {
+                await folderHandleFromError.remove({ recursive: true })
+            } catch (cleanupError) {
+                console.warn('Could not remove extraction folder:', cleanupError.message)
+            }
+        }
+    }, [setTokenFiles, setContainer])
+
+    const cancelDecompression = useCallback(() => {
+        if (cancellationTokenRef.current) {
+            cancellationTokenRef.current.cancel('User cancelled decompression')
+        }
+    }, [])
 
     // Pass startDecompression function to parent
     useEffect(() => {

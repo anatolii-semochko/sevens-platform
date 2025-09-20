@@ -1,8 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react'
-import { getData } from '@js/blockchain/sevens-token'
-import {
-    getExt, isImage, isVideo, isAudio, isPdf, prettyBytes, classNames, getAndCheckTokenData,
-} from './utils'
+import React, { useMemo, useRef, useState } from 'react'
+import { getExt, prettyBytes, isImage, isVideo, isAudio, isPdf } from '@js/utils/file'
+
 import { isValidSolanaAddress } from '@js/blockchain/sevens'
 import { StatusBar } from '@react/components/form-elements/Charts'
 import { Input } from '@react/components/form-elements/Inputs'
@@ -177,6 +175,8 @@ export const DropZone = ({addFiles, disabled}) => {
         addFiles(dt.files)
     }
 
+    const classNames = (...xs) => xs.filter(Boolean).join(' ')
+
     return (
         <div
             className={classNames("w-100 p-4 text-center border border-2 rounded", dragOver && "bg-light", disabled && "opacity-50")}
@@ -212,8 +212,8 @@ export const SummaryActions = ({tokenFiles, clearAll, disabled}) => {
     )
 }
 
-export const ImagePreview = ({it, width, height}) => {
-    const f = it.file || it
+export const ImagePreview = ({file, width, height}) => {
+    const f = file.file || file
     const _isV = isVideo(f)
     const _isI = isImage(f)
     const _isA = isAudio(f)
@@ -226,59 +226,59 @@ export const ImagePreview = ({it, width, height}) => {
             className="bg-light rounded d-flex align-items-center justify-content-center"
             style={{ width: width, height: height, overflow: "hidden", minWidth: width }}
         >
-            {_isI && it.previewUrl && (
-                <img src={it.previewUrl} alt={it.name} className="img-fluid" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            {_isI && file.previewUrl && (
+                <img src={file.previewUrl} alt={file.name} className="img-fluid" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             )}
-            {_isV && it.previewUrl && (
-                <video controls preload="metadata" style={{ width: "100%", height: "100%" }}>
-                    <source src={it.previewUrl} type={it.type || undefined} />
+            {_isV && file.previewUrl && (
+                <video key={file.previewUrl} controls preload="metadata" style={{ width: "100%", height: "100%" }}>
+                    <source src={file.previewUrl} type={file.type || undefined} />
                 </video>
             )}
-            {_isA && it.previewUrl && <audio src={it.previewUrl} controls className="w-100" />}
-            {_isP && it.previewUrl && <embed src={it.previewUrl} type="application/pdf" style={{ width: "100%", height: "100%" }} />}
-            {!it.previewUrl && (
+            {_isA && file.previewUrl && <audio src={file.previewUrl} controls className="w-100" />}
+            {_isP && file.previewUrl && <embed src={file.previewUrl} type="application/pdf" style={{ width: "100%", height: "100%" }} />}
+            {!file.previewUrl && (
                 <span className="small text-muted text-center p-1">
-                    {it.diskPath ? "💾" : ""} {it.type || (getExt(it.name) ? `.${getExt(it.name)}` : "file")}
+                    {file.diskPath ? "💾" : ""} {file.type || (getExt(file.name) ? `.${getExt(file.name)}` : "file")}
                 </span>
             )}
         </div>
     )
 }
 
-export const ImageInfo = ({it}) => (
+export const ImageInfo = ({file}) => (
     <div className="flex-grow-1 min-w-0">
         <div className="d-flex align-items-center gap-2">
-            <div className="text-truncate fw-semibold" title={it.name}>{it.name}</div>
+            <div className="text-truncate fw-semibold" title={file.name}>{file.name}</div>
         </div>
         <div className="small text-muted">
-            {prettyBytes(it.size)} · {it.type || 'unknown'}
-            {it.diskPath && (
-                <div>📁 {it.diskPath}</div>
+            {prettyBytes(file.size)} · {file.type || 'unknown'}
+            {file.diskPath && (
+                <div>📁 {file.diskPath}</div>
             )}
         </div>
 
-        {!it.previewUrl && it.type?.startsWith?.('text/') && (
+        {!file.previewUrl && file.type?.startsWith?.('text/') && (
             <div className="mt-2 p-2 bg-light border rounded small" style={{ maxHeight: 96, overflow: 'auto' }}>
-                <pre className="m-0">{it.file ? it.file.name : 'Preview not available'}</pre>
+                <pre className="m-0">{file.file ? file.file.name : 'Preview not available'}</pre>
             </div>
         )}
 
         <div className="mt-2">
-            {it.status === "compressing" && (
+            {file.status === "compressing" && (
                 <>
                     <div className="progress" role="progressbar" aria-label="compression progress">
-                        <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${it.progress || 0}%` }} />
+                        <div className="progress-bar progress-bar-striped progress-bar-animated" style={{ width: `${file.progress || 0}%` }} />
                     </div>
-                    <div className="small text-muted mt-1">Compressing… {it.progress || 0}%</div>
+                    <div className="small text-muted mt-1">Compressing… {file.progress || 0}%</div>
                 </>
             )}
-            {it.status === 'done' && (
+            {file.status === 'done' && (
                 <div className="small text-success">
-                    {it.isOnDisk ? 'Extracted to disk' : 'Compressed'}
+                    {file.isOnDisk ? 'Extracted to disk' : 'Compressed'}
                 </div>
             )}
-            {it.status === 'error' && (
-                <div className="small text-danger">Error: {it.error}</div>
+            {file.status === 'error' && (
+                <div className="small text-danger">Error: {file.error}</div>
             )}
         </div>
     </div>
@@ -299,8 +299,8 @@ export const FilesList = ({tokenFiles, removeOne, clearAll, disabled}) => {
                         className="list-group-item d-flex align-items-start gap-3"
                         style={{background: it.main ? 'aliceblue' : ''}}
                     >
-                        <ImagePreview it={it} width={160} height={90} />
-                        <ImageInfo it={it} />
+                        <ImagePreview file={it} width={160} height={90} />
+                        <ImageInfo file={it} />
                         <div className="d-flex align-items-center gap-2">
                             {!disabled && removeOne && (
                                 <button

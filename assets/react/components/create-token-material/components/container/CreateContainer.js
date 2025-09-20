@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react'
 import { SelectFiles, FilesList, DropZone, IsNotReady } from '.././create-container/Components'
-import { createItem, checkSwAvailability } from '.././create-container/utils'
+import { checkSwAvailability } from '.././create-container/utils'
+import { createFileData } from '../../utils/files'
 import { Compressing } from '.././create-container/Compressing'
 
 export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
@@ -19,7 +20,7 @@ export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContai
             const add = []
             for (const f of files) {
                 const k = `${f.name}|${f.size}|${f.lastModified}`
-                if (!existingKeys.has(k)) add.push(createItem(f))
+                if (!existingKeys.has(k)) add.push(createFileData(f))
             }
             return [...prev, ...add]
         })

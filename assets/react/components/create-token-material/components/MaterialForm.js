@@ -44,7 +44,7 @@ const Preview = ({mainFile}) => {
             <label htmlFor="tokenDescription" className="form-label text-center w-100">Main publication image:</label>
             {mainFile ? (
                 <div className="d-flex justify-content-center">
-                    <ImagePreview {...{it: mainFile, width, height}} />
+                    <ImagePreview key={mainFile.id} {...{file: mainFile, width, height}} />
                 </div>
             ) : (
                 <div className="bg-light rounded d-flex align-items-center justify-content-center" style={{width, height}}>
@@ -100,7 +100,7 @@ export const ImageSelectMain = ({tokenFiles, setTokenFiles}) => {
                             )}
                             <div style={{ height: '80px', overflow: 'hidden' }} className="d-flex align-items-center justify-content-center">
                                 <ImagePreview
-                                    it={file}
+                                    file={file}
                                     width="100%"
                                     height="80px"
                                 />

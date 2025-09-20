@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import streamSaver from 'streamsaver'
 import { Zip, AsyncZipDeflate, ZipPassThrough } from 'fflate'
-import { getExt, getContainerName, getContainerHash, clearTargetRef, isFileRenamingSupported } from './utils'
+import { clearTargetRef } from '../../utils/files'
+import { getExt } from '@js/utils/file'
 import { CompressingActions, CompressingStatus, HashingStatus } from './Components'
+import { getContainerName, getFileHash } from '../../utils/files'
 
 // --- налаштування backpressure та тротлінгу ---
 const MAX_BUFFERED_BYTES = 64 * 1024 * 1024; // 64MB максимум незаписаних даних
@@ -181,7 +183,6 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
                 where: target.kind,
                 isCompressing: true,
                 isHashing: false,
-                canBeRenamed: isFileRenamingSupported() && target.kind === 'savePicker',
                 isRenaming: false,
                 isRenamed: false,
                 fileName: zipName,
@@ -313,7 +314,11 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
                         // Longer delay to ensure file is fully written to disk
                         await new Promise(resolve => setTimeout(resolve, 500))
                         setContainer(prev => prev ? { ...prev, isHashing: true } : null)
-                        const hash = await getContainerHash(targetRef.current, setOverallHashing)
+                        const fileHandle = targetRef.current
+                        const hash = await getFileHash(
+                            await fileHandle.handle.getFile(),
+                            setOverallHashing,
+                        )
                         setContainer(prev => prev ? { ...prev, hash, isHashing: false } : null)
                     } catch (hashError) {
                         console.warn('Could not calculate container hash:', hashError)

@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { removeReferenceFile } from './utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { CreateContainer } from './components/container/CreateContainer'
-import { removeContainer } from './components/create-container/utils'
 import { SelectedPublicKey, MintedInfo, TryMoreOptions } from './components/create-container/Components'
 import { ButtonCreateToken } from './components/create-token/ButtonCreateToken'
 import { TokenForm } from './components/create-token/TokenForm'
@@ -20,8 +20,15 @@ export const CreateTokenMaterial = ({doMaterial}) => {
     const [errorMessage, setErrorMessage] = useState(null)
 
     const handlerChangeFiles = () => {
+        setContainer(null)
+        setTokenFiles(prev => prev.map(item => ({
+            ...item,
+            status: 'queued',
+            progress: 0,
+            error: null,
+        })))
         if (!minted) {
-            removeContainer(container, targetRef, setTokenFiles, setContainer).catch(e => setErrorMessage(e.message))
+            removeReferenceFile(targetRef).catch(e => setErrorMessage(e.message))
         }
     }
 
@@ -31,7 +38,6 @@ export const CreateTokenMaterial = ({doMaterial}) => {
         setTokenData(null)
         setMinted(null)
     }
-
 
     // TODO - Check if it is needed
     // Force connection check for Sevens Wallet
