@@ -1,18 +1,20 @@
-<section class="main-content not-found-wrapper">
+<section class="main-content not-found-wrapper not-found">
     <h1 class="not-found-title">404</h1>
     <p class="not-found-message">
         {{ "Sorry, we can’t find that page"|trans({}, '404') }} :(
     </p>
     <form action="{{ path('home_page', {'_locale': app.request.locale}) }}">
-        <div class="search-wrapper-404">
-            <i class="bi bi-search"></i>
-            <input type="text" id="search-404" name="search" class="form-control search-input" placeholder="{{ 'Search'|trans({}, '404') }}...">
+        <div class="search-wrapper-404 not-found__search">
+            <i class="bi bi-search not-found__icon"></i>
+            <input type="text" id="search-404" name="search"
+                   class="form-control search-input not-found__search-input"
+                   placeholder="{{ 'Search'|trans({}, '404') }}...">
         </div>
         <div class="home-button-wrapper">
-            <button type="submit" class="create-btn" id="go-home-404">
+            <button type="submit" class="create-btn not-found__action" id="go-home-404">
                 {{ 'Go to Home Page'|trans({}, '404') }}
             </button>
-            <button type="submit" class="create-btn" id="go-search-404" style="display: none">
+            <button type="submit" class="create-btn not-found__action" id="go-search-404" style="display: none">
                 {{ 'Search'|trans({}, '404') }}
             </button>
         </div>
