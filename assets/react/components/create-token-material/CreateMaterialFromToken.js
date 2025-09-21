@@ -117,12 +117,12 @@ export const CreateMaterialFromToken = () => {
             <HashingStatus {...{container, overallHashing}} />
             <ShowTokenValidity {...{container, tokenData}} />
             <ButtonSelectDecompressionFolder {...{tokenData, container, handleStartDecompression}} />
-            <Decompressing {...{tokenFiles, setTokenFiles, container, setContainer, onStartDecompression}} />
+            <Decompressing {...{tokenFiles, setTokenFiles, container, setContainer, onStartDecompression, tokenData}} />
             {tokenData && !tokenData.error && !!tokenFiles.length && (
                 <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}}/>
             )}
             <MessagesBlock error={errorMessage} />
-            <ButtonClearPickContainer {...{container, handlerClear}} />
+            <ButtonClearPickContainer {...{container, tokenFiles, tokenData, handlerClear}} />
         </div>
     )
 }

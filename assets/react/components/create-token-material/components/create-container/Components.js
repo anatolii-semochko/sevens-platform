@@ -353,9 +353,15 @@ export const CompressingStatus = ({container, overallCompressing}) => container?
     <StatusBar label={'Adding files to container'} processStatus={overallCompressing} />
 )
 
-export const DecompressingStatus = ({container, overallDecompressing}) => container?.isDecompressing && (
-    <StatusBar label={'Retrieving files from container'} processStatus={overallDecompressing} />
-)
+export const DecompressingStatus = ({container, overallDecompressing}) => {
+    if (!container?.isDecompressing) return null
+    
+    const label = container?.usedMemory 
+        ? 'Extracting files to memory...'
+        : 'Extracting files to disk...'
+        
+    return <StatusBar label={label} processStatus={overallDecompressing} />
+}
 
 export const HashingStatus = ({container, overallHashing}) => (container?.isCompressing || container?.isHashing) && (
     <StatusBar label={'Calculating container hash'} processStatus={overallHashing} className={'bg-success'} />

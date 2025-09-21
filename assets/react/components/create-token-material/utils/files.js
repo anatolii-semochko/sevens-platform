@@ -42,6 +42,127 @@ export const clearTargetRef = (targetRef) => {
     }
 }
 
+/**
+ * Decompresses a ZIP container file to memory (BLOB objects) for small files
+ * @param {File} containerFile - The ZIP file to decompress
+ * @param {Function} progressCallback - Called with progress percentage (0-100)
+ * @param {CancellationToken} cancellationToken - Token to check for cancellation
+ * @returns {Promise<{files: Array}>}
+ */
+export const decompressContainerToMemory = async (
+    containerFile,
+    progressCallback,
+    cancellationToken = null
+) => {
+    progressCallback?.(0)
+
+    cancellationToken?.throwIfCancelled()
+
+    // Read and decompress ZIP data
+    const arrayBuffer = await containerFile.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
+
+    return new Promise((resolve, reject) => {
+        const files = []
+        let processedEntries = 0
+        let totalEntries = 0
+
+        unzip(uint8Array, async (err, data) => {
+            if (err) {
+                reject(new Error(`Failed to decompress ZIP file: ${err.message}`))
+                return
+            }
+
+            try {
+                cancellationToken?.throwIfCancelled()
+
+                totalEntries = Object.keys(data).length
+
+                if (totalEntries === 0) {
+                    resolve({ files: [] })
+                    return
+                }
+
+                const entries = Object.entries(data)
+
+                for (let i = 0; i < entries.length; i++) {
+                    cancellationToken?.throwIfCancelled()
+
+                    const [fileName, fileData] = entries[i]
+
+                    try {
+                        const fileInfo = createMemoryFileInfo(fileName, fileData)
+                        files.push(fileInfo)
+
+                        processedEntries++
+                        const progress = Math.floor((processedEntries / totalEntries) * 100)
+                        progressCallback?.(progress)
+
+                        // Yield control for UI updates
+                        if (i % 5 === 0) {
+                            await new Promise(resolve => setTimeout(resolve, 10))
+                        }
+                    } catch (fileError) {
+                        if (cancellationToken?.isCancelled || fileError.name === 'CancellationError') {
+                            reject(fileError)
+                            return
+                        }
+                        console.warn(`Failed to process file ${fileName}:`, fileError.message)
+                        // Continue with other files
+                    }
+                }
+
+                cancellationToken?.throwIfCancelled()
+                progressCallback?.(100)
+
+                resolve({ files })
+            } catch (error) {
+                reject(error)
+            }
+        })
+    })
+}
+
+/**
+ * Creates file info for in-memory decompressed file
+ */
+const createMemoryFileInfo = (fileName, fileData) => {
+    const pathParts = fileName.split('/')
+    const actualFileName = pathParts.pop() || fileName
+
+    // Create blob from file data
+    const blob = new Blob([fileData], { type: getFileType(fileName) })
+
+    // Create file object from blob
+    const file = new File([blob], actualFileName, {
+        type: getFileType(fileName),
+        lastModified: Date.now()
+    })
+
+    const fileInfo = {
+        id: generateUniqueId(),
+        file,
+        name: actualFileName,
+        size: fileData.length,
+        type: getFileType(fileName),
+        relativePath: fileName,
+        status: 'done',
+        isOnDisk: false
+    }
+
+    // Generate preview for media files
+    try {
+        const fileType = getFileType(fileName)
+        if (fileType && (fileType.startsWith('image/') || fileType.startsWith('video/') || fileType.startsWith('audio/'))) {
+            fileInfo.previewUrl = URL.createObjectURL(file)
+        }
+    } catch (previewError) {
+        console.warn('Could not create preview for', fileName, previewError)
+    }
+
+    return fileInfo
+}
+
 export const getFileHash = async (file, setOverallHashing) => {
     if (!file) {
         throw new Error('Cannot calculate hash: no file provided')
@@ -106,7 +227,51 @@ export const getFileHash = async (file, setOverallHashing) => {
  * @param {CancellationToken} cancellationToken - Token to check for cancellation
  * @returns {Promise<{files: Array, extractionPath: string, folderHandle: DirectoryHandle}>}
  */
-export const decompressContainer = async (
+/**
+ * Chooses decompression method based on file size and decompresses container
+ * @param {File} containerFile - The ZIP file to decompress
+ * @param {Function} progressCallback - Called with progress percentage (0-100)
+ * @param {DirectoryHandle|null} downloadsHandle - Directory where to extract files (required for disk mode)
+ * @param {CancellationToken} cancellationToken - Token to check for cancellation
+ * @param {number} memoryLimit - File size limit for memory decompression (bytes)
+ * @returns {Promise<{files: Array, extractionPath?: string, folderHandle?: DirectoryHandle, usedMemory: boolean}>}
+ */
+export const decompressContainerSmart = async (
+    containerFile,
+    progressCallback,
+    downloadsHandle = null,
+    cancellationToken = null,
+    memoryLimit = 1024 * 1024 * 100 // 100MB default
+) => {
+    const useMemory = containerFile.size <= memoryLimit
+
+    if (useMemory) {
+        // Use memory decompression for small files
+        const result = await decompressContainerToMemory(
+            containerFile,
+            progressCallback,
+            cancellationToken
+        )
+        return {
+            ...result,
+            usedMemory: true
+        }
+    } else {
+        // Use disk decompression for large files
+        const result = await decompressContainerToDisk(
+            containerFile,
+            progressCallback,
+            downloadsHandle,
+            cancellationToken
+        )
+        return {
+            ...result,
+            usedMemory: false
+        }
+    }
+}
+
+export const decompressContainerToDisk = async (
     containerFile,
     progressCallback,
     downloadsHandle,
@@ -333,4 +498,19 @@ export const removeExtractedFilesFolder = async (container, tokenFiles) => {
         // Remove the entire extraction folder
         await container.folderHandle.remove({ recursive: true })
     } catch (error) {}
+}
+
+/**
+ * Cleans up memory-based files by revoking blob URLs
+ */
+export const cleanupMemoryFiles = (tokenFiles) => {
+    if (!tokenFiles || !Array.isArray(tokenFiles)) {
+        return
+    }
+
+    tokenFiles.forEach(file => {
+        if (file.previewUrl) {
+            URL.revokeObjectURL(file.previewUrl)
+        }
+    })
 }
