@@ -1,12 +1,12 @@
 <div class="main-content main-gallery-section flex-grow-1">
-    <div class="main-gallery-wrapper gallery__grid" id="gallery">
+    <div class="main-gallery-wrapper gallery-grid" id="gallery">
         {% for material in data.materials %}
-            <a class="sevens-card sevens-card-hover-transform gallery__item"
+            <a class="sevens-card sevens-card-hover-transform gallery-item"
                href="{{ path('material_page', {'_locale': app.request.locale, token: material.getToken()}) }}">
                 <img src="{{ global.path.materials }}/{{ material.getLogo() }}" alt="${item.title}">
                 <div class="sevens-card-body sevens-card__body">
-                    <div class="sevens-card-title gallery__item-title">{{ material.getTitle() }}</div>
-                    <div class="sevens-card-description gallery__item-desc">{{ material.getDescription() }}</div>
+                    <div class="sevens-card-title gallery-item-title">{{ material.getTitle() }}</div>
+                    <div class="sevens-card-description gallery-item-desc">{{ material.getDescription() }}</div>
                 </div>
             </a>
         {% endfor %}

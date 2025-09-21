@@ -3,14 +3,14 @@
         <li class="mb-0">
             <a href="{{ path('home_page', {'_locale': app.request.locale}) }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
                 <i class="bi bi-house"></i>
-                <strong class="text-uppercase text-decoration-none sidebar__label">{{ 'Home'|trans }}</strong>
+                <strong class="text-uppercase text-decoration-none sidebar-label">{{ 'Home'|trans }}</strong>
             </a>
         </li>
 
         <li class="mb-3">
             <a href="{{ path('help_index', {'_locale': app.request.locale}) }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
                 <i class="bi bi-question-lg"></i>
-                <strong class="text-uppercase text-decoration-none sidebar__label">{{ 'Help'|trans }}</strong>
+                <strong class="text-uppercase text-decoration-none sidebar-label">{{ 'Help'|trans }}</strong>
             </a>
         </li>
 
@@ -19,7 +19,7 @@
         <li class="mb-3">
             <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
                 <i class="bi bi-grid"></i>
-                <strong class="text-uppercase text-decoration-none sidebar__label">Domain</strong>
+                <strong class="text-uppercase text-decoration-none sidebar-label">Domain</strong>
             </a>
             <ul class="list-unstyled ms-4 mt-2">
                 {% for category in global.categories %}

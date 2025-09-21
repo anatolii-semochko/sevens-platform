@@ -4,10 +4,10 @@
         {{ "Sorry, we can’t find that page"|trans({}, '404') }} :(
     </p>
     <form action="{{ path('home_page', {'_locale': app.request.locale}) }}">
-        <div class="search-wrapper-404 not-found__search">
+        <div class="search-wrapper-404 not-found-search">
             <i class="bi bi-search not-found__icon"></i>
             <input type="text" id="search-404" name="search"
-                   class="form-control search-input not-found__search-input"
+                   class="form-control search-input not-found-search-input"
                    placeholder="{{ 'Search'|trans({}, '404') }}...">
         </div>
         <div class="home-button-wrapper">
