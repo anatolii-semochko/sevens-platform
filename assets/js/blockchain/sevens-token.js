@@ -66,7 +66,7 @@ const mint = async ({
             sale: salePda,
             tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, ownerPublicKey, false, TOKEN_PROGRAM_ID),
             hashRegistry: hashRegistryPda,
-            payer: payerPublicKey,
+            payerAccount: payerPublicKey,
             tokenProgram: TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
@@ -177,7 +177,7 @@ const burn = async (tokenPublicKey, walletPublicKey) => {
                 metadata: metadataPda,
                 sale: salePda,
                 hashRegistry: hashRegistryPda,
-                payer: payerPublicKey,
+                payerAccount: payerPublicKey,
                 tokenProgram: TOKEN_PROGRAM_ID,
             })
             .instruction()
@@ -211,7 +211,7 @@ const setSale = async ({ tokenPublicKey, onSale, price }) => {
         return await program.methods
             .setSale(onSale, new BN(price))
             .accounts({
-                owner,
+                ownerAccount: owner,
                 mint,
                 tokenAccount,
                 sale: salePda,
@@ -243,10 +243,10 @@ const buy = async ({ tokenPublicKey, lamports }) => {
         return await program.methods
             .buyToken(new BN(lamports))
             .accounts({
-                buyer: buyer.publicKey,
-                owner: owner.publicKey,
-                buyerToken,
-                ownerToken,
+                buyerAccount: buyer.publicKey,
+                ownerAccount: owner.publicKey,
+                buyerTokenAccount: buyerToken,
+                ownerTokenAccount: ownerToken,
                 mint,
                 sale: salePda,
                 saleAuthority: salePda,

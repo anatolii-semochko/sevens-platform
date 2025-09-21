@@ -1,7 +1,7 @@
 /**
  * Simple cancellation token for async operations
  */
-export class DecompressionCancellationToken {
+export class DecompressCancellationToken {
     constructor() {
         this.cancelled = false
         this.reason = null

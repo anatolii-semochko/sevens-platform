@@ -1,18 +1,6 @@
 import React from 'react'
 import { getDateTimeFromDate } from '@js/utils/time'
-import { InnerTable } from '../../create-token-material/components/create-container/Components'
-
-export const ContainerFileInfo = ({container}) => !!container && (
-    <div className="mb-3">
-        <div className="alert-success bg-light alert border rounded">
-            <h3 className="text-center">Files container</h3>
-            <InnerTable data={[
-                ['File name', container?.file?.name],
-                ['File hash', container?.hash],
-             ]} />
-        </div>
-    </div>
-)
+import { InnerTable } from '../../create-token-material/components/container/Components'
 
 export const ContainerCheckMessage = ({tokenData}) => !!tokenData && (
     <div>

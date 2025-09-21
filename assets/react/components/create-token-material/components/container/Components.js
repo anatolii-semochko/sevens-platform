@@ -1,11 +1,6 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useMemo, useRef, useState, useEffect } from 'react'
 import { getExt, prettyBytes, isImage, isVideo, isAudio, isPdf } from '@js/utils/file'
-
-import { isValidSolanaAddress } from '@js/blockchain/sevens'
 import { StatusBar } from '@react/components/form-elements/Charts'
-import { Input } from '@react/components/form-elements/Inputs'
-import { ErrorMessageBlock } from '@react/components/form-elements/Messages'
-import clsx from 'clsx'
 
 export const IsNotReady = ({ssError}) => (
     <div className="alert alert-warning py-2 my-0">
@@ -123,7 +118,6 @@ export const SelectContainerFile = ({container, onSelectContainer, needsExtracti
         </div>
     )
 }
-
 
 export const DropZone = ({addFiles, disabled}) => {
     if (disabled) return null
@@ -338,14 +332,6 @@ export const CompressingActions = ({
                 <button className="btn btn-outline-danger ms-3" onClick={cancelCompression}>Cancel</button>
             </span>
         )}
-        {container && !container.isCompressing && (
-            <div className="text-muted small">
-                <div className="mb-2">Saved as <span className="fw-semibold">{container.name}</span></div>
-                {container.hash && (
-                    <div>Container hash: <span className="fw-semibold">{container.hash}</span></div>
-                )}
-            </div>
-        )}
     </div>
 )
 
@@ -355,17 +341,52 @@ export const CompressingStatus = ({container, overallCompressing}) => container?
 
 export const DecompressingStatus = ({container, overallDecompressing}) => {
     if (!container?.isDecompressing) return null
-    
-    const label = container?.usedMemory 
+
+    const label = container?.usedMemory
         ? 'Extracting files to memory...'
         : 'Extracting files to disk...'
-        
+
     return <StatusBar label={label} processStatus={overallDecompressing} />
 }
 
 export const HashingStatus = ({container, overallHashing}) => (container?.isCompressing || container?.isHashing) && (
     <StatusBar label={'Calculating container hash'} processStatus={overallHashing} className={'bg-success'} />
 )
+
+export const ContainerFileInfo = ({container, setErrorContainer}) => {
+    if (!container?.hash) return
+
+    const emptyHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+    const errorReasons = "It's possible that some files cannot be added to the container."
+    let isSizeInvalid = () => setErrorContainer && !container.file.size
+    let isHashInvalid = () => setErrorContainer && container.hash === emptyHash
+
+    useEffect(() => {
+        if (!setErrorContainer) {
+            return
+        }
+        if (!container.file.size) {
+            setErrorContainer('Error creating file container - file size 0 bytes. ' + errorReasons)
+            return
+        }
+        if (container.hash === emptyHash) {
+            setErrorContainer('The file container hash was calculated incorrectly. ' + errorReasons)
+        }
+    }, [])
+
+    return (
+        <div className="mb-4">
+            <div className="alert-success bg-light alert border rounded">
+                <h3 className="text-center">Files Container</h3>
+                <InnerTable data={[
+                    ['File name', container.file?.name],
+                    ['File size', [prettyBytes(container.file.size), isSizeInvalid() ? 'text-danger' : '']],
+                    ['File hash', [container.hash, isHashInvalid() ? 'text-danger' : '']],
+                ]} />
+            </div>
+        </div>
+    )
+}
 
 export const SelectedPublicKey = ({wallet}) => (
     <div className="text-muted small mb-3">
@@ -430,17 +451,26 @@ export const ShowTokenValidity = ({container, tokenData}) => {
     )
 }
 
-export const InnerTable = ({data}) => (
-    <div className="d-flex justify-content-center">
-        <table className="table-sm w-auto text-start">
-            <tbody>
-            {data.map((row, key) => (
-                <tr key={key}>
-                    <td className="text-nowrap">{row[0]}:</td>
-                    <td className="ps-3 fw-bold text-break">{row[1] || '-'}</td>
-                </tr>
-            ))}
-            </tbody>
-        </table>
-    </div>
-)
+export const InnerTable = ({data}) => {
+    const getValue = (value) => {
+        if (Array.isArray(value) && value[1]) {
+            return <span className={value[1]}>{value[0] || '-'}</span>
+        }
+        return value || '-'
+    }
+
+    return (
+        <div className="d-flex justify-content-center">
+            <table className="table-sm w-auto text-start">
+                <tbody>
+                {data.map((row, key) => (
+                    <tr key={key}>
+                        <td className="text-nowrap">{row[0]}:</td>
+                        <td className="ps-3 fw-bold text-break">{getValue(row[1])}</td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    )
+}

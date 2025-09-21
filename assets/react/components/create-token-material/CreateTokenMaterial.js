@@ -4,10 +4,10 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { removeReferenceFile } from './utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { CreateContainer } from './components/container/CreateContainer'
-import { SelectedPublicKey, MintedInfo, TryMoreOptions } from './components/create-container/Components'
-import { ButtonCreateToken } from './components/create-token/ButtonCreateToken'
-import { TokenForm } from './components/create-token/TokenForm'
-import { MaterialForm } from './components/MaterialForm'
+import { SelectedPublicKey, MintedInfo, TryMoreOptions, ContainerFileInfo } from './components/container/Components'
+import { ButtonCreateToken } from '@react/components/create-token-material/components/token/ButtonCreateToken'
+import { TokenForm } from '@react/components/create-token-material/components/token/TokenForm'
+import { MaterialForm } from './components/material/MaterialForm'
 
 export const CreateTokenMaterial = ({doMaterial}) => {
     const wallet = useWallet()
@@ -17,10 +17,13 @@ export const CreateTokenMaterial = ({doMaterial}) => {
     const [tokenData, setTokenData] = useState(null)
     const [minted, setMinted] = useState(null)
     const [materialData, setMaterialData] = useState(null)
+    const [errorContainer, setErrorContainer] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
 
     const handlerChangeFiles = () => {
         setContainer(null)
+        setErrorContainer(null)
+        setErrorMessage(null)
         setTokenFiles(prev => prev.map(item => ({
             ...item,
             status: 'queued',
@@ -34,6 +37,8 @@ export const CreateTokenMaterial = ({doMaterial}) => {
 
     const handlerClear = () => {
         handlerChangeFiles()
+        setErrorContainer(null)
+        setErrorMessage(null)
         setTokenFiles([])
         setTokenData(null)
         setMinted(null)
@@ -62,16 +67,26 @@ export const CreateTokenMaterial = ({doMaterial}) => {
             {(!doMaterial || !minted) && (
                 <CreateContainer {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
             )}
+            <ContainerFileInfo {...{container, setErrorContainer}} />
+            <MessagesBlock error={errorContainer} />
             {container && !container.isCompressing && !minted && (
                 <>
-                    <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />
-                    <SelectedPublicKey wallet={wallet} />
+                    {!errorContainer && (
+                        <>
+                            <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />
+                            <SelectedPublicKey wallet={wallet} />
+                        </>
+                    )}
                     <MessagesBlock error={errorMessage} />
                     <div className="d-flex justify-content-end gap-2">
                         <button className="btn btn-outline-primary" onClick={handlerChangeFiles}>Change files</button>
                         <button className="btn btn-outline-primary" onClick={handlerClear}>Clear</button>
-                        <WalletMultiButton />
-                        <ButtonCreateToken {...{tokenData, container, wallet, setMinted, setErrorMessage, targetRef, setContainer}} />
+                        {!errorContainer && (
+                            <>
+                                <WalletMultiButton />
+                                <ButtonCreateToken {...{tokenData, container, wallet, setMinted, setErrorMessage, targetRef, setContainer}} />
+                            </>
+                        )}
                     </div>
                 </>
             )}

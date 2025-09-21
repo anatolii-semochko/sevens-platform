@@ -75,6 +75,16 @@ const tokenTransfer = async ({ wallet, tokenPublicKey, targetAddressPublicKey })
     }
 }
 
+const buildMessage = (address, date, nonce) => {
+    return `Підтвердження власності гаманця
+
+Адреса: ${address}
+Дата: ${date}
+Nonce: ${nonce}
+
+Я підтверджую, що цей гаманець належить мені.`;
+}
+
 const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSync(
     [Buffer.from(pdaName), publicKey.toBuffer()],
     programId,
@@ -93,7 +103,7 @@ const isValidSolanaAddress = (input) => {
     }
 }
 
-/** Valid Wallet Address (ed25519 public key на кривій). PDA — false */
+/** Valid Wallet Address (ed25519 public key on curve). PDA — false */
 const isValidWalletAddress = (input) => {
     try {
         const pk = new PublicKey(String(input).trim())
@@ -116,6 +126,7 @@ const getAnchorErrorText = (error) => {
 }
 
 export {
-    connection, commitment, getWalletTokens, tokenTransfer, getPda, getAnchorErrorText,
+    connection, commitment,
+    getWalletTokens, tokenTransfer, getPda, getAnchorErrorText, buildMessage,
     isValidSolanaAddress, isValidWalletAddress,
 }

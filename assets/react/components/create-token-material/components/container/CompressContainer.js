@@ -18,7 +18,7 @@ const STORE_EXTS = new Set([
     'pdf','zip','7z','gz','bz2','xz'
 ]);
 
-export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
+export const CompressContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
     const [overallCompressing, setOverallCompressing] = useState(0)
     const [overallHashing, setOverallHashing] = useState(0)
 
@@ -185,7 +185,10 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
                 isHashing: false,
                 isRenaming: false,
                 isRenamed: false,
-                fileName: zipName,
+                file: {
+                    name: zipName,
+                    size: 0
+                },
                 targetRef: targetRef,
             }
 
@@ -315,11 +318,20 @@ export const Compressing = ({tokenFiles, setTokenFiles, container, setContainer,
                         await new Promise(resolve => setTimeout(resolve, 500))
                         setContainer(prev => prev ? { ...prev, isHashing: true } : null)
                         const fileHandle = targetRef.current
+                        const file = await fileHandle.handle.getFile()
                         const hash = await getFileHash(
-                            await fileHandle.handle.getFile(),
+                            file,
                             setOverallHashing,
                         )
-                        setContainer(prev => prev ? { ...prev, hash, isHashing: false } : null)
+                        setContainer(prev => prev ? { 
+                            ...prev, 
+                            hash, 
+                            isHashing: false,
+                            file: {
+                                ...prev?.file,
+                                size: file.size
+                            }
+                        } : null)
                     } catch (hashError) {
                         console.warn('Could not calculate container hash:', hashError)
                         setContainer(prev => prev ? { ...prev, isHashing: false } : null)

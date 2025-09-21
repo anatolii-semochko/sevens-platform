@@ -1,8 +1,8 @@
 import React, { useCallback, useState, useEffect } from 'react'
-import { SelectFiles, FilesList, DropZone, IsNotReady } from '.././create-container/Components'
-import { checkSwAvailability } from '.././create-container/utils'
+import { SelectFiles, FilesList, DropZone, IsNotReady } from '../container/Components'
+import { checkSwAvailability } from '../../utils/files'
 import { createFileData } from '../../utils/files'
-import { Compressing } from '.././create-container/Compressing'
+import { CompressContainer } from '../container/CompressContainer'
 
 export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
     const [ssReady, setSsReady] = useState(false)
@@ -26,15 +26,6 @@ export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContai
         })
     }, [])
 
-    const setAsMain = (id) => {
-        setTokenFiles((prev) => {
-            return prev.map((x) => ({
-                ...x,
-                main: x.id === id
-            }))
-        })
-    }
-
     const removeOne = (id) => {
         setTokenFiles((prev) => {
             const next = prev.filter((x) => x.id !== id)
@@ -56,11 +47,11 @@ export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContai
 
     return (
         <div className="row g-3">
-            <div className="d-flex flex-column gap-3 mb-3">
+            <div className="d-flex flex-column gap-3 mb-1">
                 <SelectFiles addFiles={addFiles} disabled={!!container} />
                 <DropZone addFiles={addFiles} disabled={!!container} />
                 <FilesList {...{tokenFiles, removeOne, clearAll, disabled: !!container}} />
-                <Compressing {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
+                <CompressContainer {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
             </div>
         </div>
     )

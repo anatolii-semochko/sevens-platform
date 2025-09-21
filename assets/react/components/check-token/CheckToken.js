@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { getTokenByHash } from '@js/blockchain/sevens-token'
 import { getFileHash } from '../create-token-material/utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
-import { HashingStatus, SelectContainerFile } from '../create-token-material/components/create-container/Components'
-import { ActionButtons, ContainerCheckMessage, ContainerFileInfo } from '..//check-token/components/Components'
+import { ActionButtons, ContainerCheckMessage } from '../check-token/components/Components'
+import {
+    HashingStatus,
+    SelectContainerFile,
+    ContainerFileInfo,
+} from '../create-token-material/components/container/Components'
 
 export const CheckToken = () =>  {
     const [container, setContainer] = useState(null)

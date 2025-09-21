@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { TextArea } from '@react/components/form-elements/Inputs'
-import { ImagePreview } from './create-container/Components'
-import clsx from "clsx";
+import { ImagePreview } from '../container/Components'
 
 const ShortDescription = ({shortDescription, setShortDescription, error, setErrorMessage}) => (
     <div className="col-12">

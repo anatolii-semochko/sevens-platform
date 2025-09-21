@@ -367,7 +367,7 @@ export const burnSevensToken = async (tokenPublicKey, wallet) => {
                 metadata: metadataPda,
                 sale: salePda,
                 hashRegistry: hashRegistryPda,
-                payer: payerPublicKey,
+                payerAccount: payerPublicKey,
                 tokenProgram: TOKEN_PROGRAM_ID,
             })
             .instruction()

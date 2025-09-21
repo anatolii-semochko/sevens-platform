@@ -49,7 +49,7 @@ export const ButtonCreateToken = ({tokenData, container, wallet, setMinted, setE
                 preflightCommitment: 'confirmed',
             })
 
-            // 4) Підтвердження
+            // 4) Confirm
             const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
             await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed')
 

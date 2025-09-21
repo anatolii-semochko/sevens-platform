@@ -1,7 +1,8 @@
 import React, { useCallback, useState, useRef, useEffect } from 'react'
+import { prettyBytes } from '@js/utils/file'
 import { decompressContainerSmart, removeExtractedFilesFolder, cleanupMemoryFiles } from '../../utils/files'
-import { DecompressionCancellationToken, isCancellationError } from './DecompressionCancellationToken'
-import { DecompressingStatus } from '.././create-container/Components'
+import { DecompressCancellationToken, isCancellationError } from './DecompressCancellationToken'
+import { DecompressingStatus } from '../container/Components'
 import { FILE_MEMORY_DECOMPRESSION_LIMIT } from '../../constants'
 
 export const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, onStartDecompression, tokenData}) => {
@@ -35,7 +36,7 @@ export const Decompressing = ({tokenFiles, setTokenFiles, container, setContaine
         }
 
         // Create cancellation token and start decompression
-        cancellationTokenRef.current = new DecompressionCancellationToken()
+        cancellationTokenRef.current = new DecompressCancellationToken()
         setContainer(prev => ({ ...prev, isDecompressing: true }))
         setOverallDecompressing(0)
 
@@ -142,7 +143,10 @@ export const ButtonSelectDecompressionFolder = ({tokenData, container, handleSta
 
     return (
         <div>
-            <p>XXXXXXXXX XXXXXXXXXX XXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXX</p>
+            <p>
+                Since the container file size is large ({prettyBytes(container?.file.size)}), we need
+                to extract the files to disk in order to see them and select the main one for publication.
+            </p>
             <button className="btn btn-success w-100 fs-5 p-3 mb-3" onClick={handleStartDecompression}>
                 Select folder and extract files to disk
             </button>

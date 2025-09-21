@@ -42,6 +42,46 @@ export const clearTargetRef = (targetRef) => {
     }
 }
 
+export const checkSwAvailability = (setSsReady, setSsError) => {
+    let cancelled = false
+
+    const setupStreamSaver = async () => {
+        setSsError(null)
+        if (!('serviceWorker' in navigator)) {
+            setSsReady(false)
+            return
+        }
+        try {
+            const streamSaver = (await import('streamsaver')).default
+            streamSaver.WritableStream = streamSaver.WritableStream || window.WritableStream
+            if (navigator.serviceWorker.controller) {
+                if (!cancelled) setSsReady(true)
+                return
+            }
+            await navigator.serviceWorker.register('/streamsaver-sw.js', { scope: '/' })
+            await new Promise((resolve, reject) => {
+                const t = setTimeout(() => reject(new Error('Service Worker did not take control in time')), 5000)
+                function onCtrl() {
+                    clearTimeout(t)
+                    navigator.serviceWorker.removeEventListener('controllerchange', onCtrl)
+                    resolve()
+                }
+                navigator.serviceWorker.addEventListener('controllerchange', onCtrl)
+                if (navigator.serviceWorker.controller) onCtrl()
+            })
+            if (!cancelled) setSsReady(true)
+        } catch (e) {
+            if (!cancelled) {
+                setSsReady(false)
+                setSsError(e?.message || String(e))
+            }
+        }
+    }
+
+    setupStreamSaver().catch()
+    return () => { cancelled = true }
+}
+
 /**
  * Decompresses a ZIP container file to memory (BLOB objects) for small files
  * @param {File} containerFile - The ZIP file to decompress
@@ -219,14 +259,6 @@ export const getFileHash = async (file, setOverallHashing) => {
     }
 }
 
-/**
- * Decompresses a ZIP container file to disk with cancellation support
- * @param {File} containerFile - The ZIP file to decompress
- * @param {Function} progressCallback - Called with progress percentage (0-100)
- * @param {DirectoryHandle} downloadsHandle - Directory where to extract files
- * @param {CancellationToken} cancellationToken - Token to check for cancellation
- * @returns {Promise<{files: Array, extractionPath: string, folderHandle: DirectoryHandle}>}
- */
 /**
  * Chooses decompression method based on file size and decompresses container
  * @param {File} containerFile - The ZIP file to decompress

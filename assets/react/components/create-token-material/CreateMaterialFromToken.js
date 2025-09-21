@@ -5,18 +5,17 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { removeExtractedFilesFolder } from './utils/files'
 import { getFileHash } from './utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
-import { MaterialForm } from './components/MaterialForm'
+import { MaterialForm } from './components/material/MaterialForm'
 import {
     ButtonClearPickContainer,
     ButtonSelectDecompressionFolder,
     Decompressing,
 } from './components/container/DecompressContainer'
 import {
-    DecompressingStatus,
     HashingStatus,
     SelectContainerFile,
     ShowTokenValidity
-} from './components/create-container/Components'
+} from './components/container/Components'
 
 export const CreateMaterialFromToken = () => {
     const wallet = useWallet()

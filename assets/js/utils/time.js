@@ -6,3 +6,8 @@ export const getDateTimeFromDate = (text) => {
         String(date.getHours()).padStart(2, '0') + ':' +
         String(date.getMinutes()).padStart(2, '0')
 }
+
+export const nowUtc = () => {
+    const iso = new Date().toISOString()
+    return  iso.replace('T', ' ').replace(/\.\d+Z$/, ' UTC')
+}
