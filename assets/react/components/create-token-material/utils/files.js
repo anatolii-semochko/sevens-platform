@@ -203,6 +203,16 @@ const createMemoryFileInfo = (fileName, fileData) => {
     return fileInfo
 }
 
+export const calculateContainerHash = async (container, setContainer, setOverallHashing, setErrorMessage) => {
+    setErrorMessage(null)
+    try {
+        const hash = await getFileHash(container.file, setOverallHashing)
+        setContainer(prev => ({...prev, hash, isHashing: false}))
+    } catch (error) {
+        setErrorMessage(error.message)
+    }
+}
+
 export const getFileHash = async (file, setOverallHashing) => {
     if (!file) {
         throw new Error('Cannot calculate hash: no file provided')

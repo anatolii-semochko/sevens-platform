@@ -43,34 +43,34 @@ export const CreateTokenMaterial = ({doMaterial}) => {
         setMinted(null)
     }
 
+    const showCreateContainer = () => !doMaterial || !minted
+    const showCreateToken = () => container && !container.isCompressing && !minted
+    const showTokenForm = () => showCreateToken() && !errorContainer
+    const showActions = () => showCreateToken()
+    const showMaterialForm = () => minted && doMaterial
+
     return (
         <div>
-            {(!doMaterial || !minted) && (
+            {showCreateContainer() && (
                 <CreateContainer {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
             )}
             <ContainerFileInfo {...{container, setErrorContainer}} />
             <MessagesBlock error={errorContainer} />
-            {container && !container.isCompressing && !minted && (
-                <>
+            {showTokenForm() && <WalletForm />}
+            {showTokenForm() && <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />}
+            {showActions() && <MessagesBlock error={errorMessage} />}
+            {showActions() && (
+                <div className="d-flex justify-content-end gap-2 mb-2">
+                    <button className="btn btn-outline-primary px-5 py-2" onClick={handlerChangeFiles}>Change files</button>
+                    <button className="btn btn-outline-primary px-5 py-2" onClick={handlerClear}>Clear</button>
                     {!errorContainer && (
-                        <>
-                            <WalletForm />
-                            <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />
-                        </>
+                        <ButtonCreateToken {...{tokenData, container, wallet, setMinted, setErrorMessage, targetRef, setContainer}} />
                     )}
-                    <MessagesBlock error={errorMessage} />
-                    <div className="d-flex justify-content-end gap-2 mb-2">
-                        <button className="btn btn-outline-primary px-5 py-2" onClick={handlerChangeFiles}>Change files</button>
-                        <button className="btn btn-outline-primary px-5 py-2" onClick={handlerClear}>Clear</button>
-                        {!errorContainer && (
-                            <ButtonCreateToken {...{tokenData, container, wallet, setMinted, setErrorMessage, targetRef, setContainer}} />
-                        )}
-                    </div>
-                </>
+                </div>
             )}
             <MintedInfo minted={minted} />
             <TryMoreOptions {...{minted, doMaterial, handlerClear}} />
-            {minted && doMaterial && (
+            {showMaterialForm() && (
                 <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}} />
             )}
         </div>

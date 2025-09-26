@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { getTokenByHash } from '@js/blockchain/sevens-token'
-import { getFileHash } from '../create-token-material/utils/files'
+import { deriveTokenData } from '../create-token-material/utils/blockchain'
+import { calculateContainerHash } from '../create-token-material/utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { ActionButtons, ContainerCheckMessage } from '../check-token/components/Components'
 import {
@@ -19,16 +19,6 @@ export const CheckToken = () =>  {
         setContainer({file, isHashing: true})
     }
 
-    const calculateHash = async () => {
-        setErrorMessage(null)
-        const hash = await getFileHash(container.file, setOverallHashing)
-        setContainer(prev => ({...prev, hash, isHashing: false}))
-    }
-
-    const deriveTokenData = async () => getTokenByHash(container.hash)
-        .then(setTokenData)
-        .catch(() => setTokenData({error: 'Token not found'}))
-
     const handlerClear = () => {
         setContainer(false)
         setOverallHashing(0)
@@ -38,10 +28,10 @@ export const CheckToken = () =>  {
 
     useEffect(() => {
         if (container && !container.hash) {
-            calculateHash().catch(error => setErrorMessage(error.message))
+            calculateContainerHash(container, setContainer, setOverallHashing, setErrorMessage).catch()
         }
         if (container?.hash) {
-            deriveTokenData().catch(error => setErrorMessage(error.message))
+            deriveTokenData(container.hash, setTokenData).catch(error => setErrorMessage(error.message))
         }
     }, [container])
 

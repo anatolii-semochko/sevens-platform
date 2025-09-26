@@ -110,7 +110,14 @@ export const ButtonCreateToken = ({tokenData, container, wallet, setMinted, setE
             disabled={!wallet.publicKey || minting}
             onClick={handlerCreateToken}
         >
-            Create Token
+            {minting ? (
+                <>
+                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Waiting...
+                </>
+            ) : (
+                'Create Token'
+            )}
         </button>
     )
 }
