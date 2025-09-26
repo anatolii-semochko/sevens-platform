@@ -30,7 +30,7 @@ const TokensList = ({ tokens }) => {
                             })}
                             style={{ cursor: 'pointer' }}
                         >
-                            <td>{token.data?.metadata?.tokenName}</td>
+                            <td className="text-break">{token.data?.metadata?.tokenName}</td>
                             <td className="text-end">{getBlurredAddress(token.mint)}</td>
                         </tr>
                     );

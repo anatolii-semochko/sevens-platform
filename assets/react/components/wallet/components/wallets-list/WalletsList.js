@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import clsx from 'clsx'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import { t } from '@react/components/wallet/translations/translations'
+import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonWalletAdd, ButtonListActions, ButtonBack } from '@react/components/wallet/components/form-elements/Buttons'
 import AddWallet from '@react/components/wallet/components/wallet-add/AddWallet'
@@ -32,8 +32,8 @@ const WalletsList = () => {
         return <WalletActions walletData={showWalletActions} setShowWalletActions={setShowWalletActions} />
     }
 
-    const handleSetWallet = (walletData) => {
-        setWalletByPublicKey(walletData.publicKey)
+    const handleSetWallet = async (walletData) => {
+        await setWalletByPublicKey(walletData.publicKey)
         setShowComponent(null)
     }
 

@@ -1,5 +1,7 @@
 const Encore = require('@symfony/webpack-encore')
+const webpack = require('webpack')
 const path = require('path')
+const fs = require('fs')
 require('dotenv').config()
 
 Encore
@@ -13,11 +15,6 @@ Encore
         from: './assets/images',
         to: 'images/[path][name].[ext]',
     })
-
-    // .copyFiles({
-    //     from: '../smartcontracts/target/idl/',
-    //     to: '/idl/',
-    // })
 
     .enableReactPreset()
     .enableTypeScriptLoader()
@@ -58,13 +55,22 @@ config.resolve.fallback = {
     ...(config.resolve.fallback || {}),
     stream: require.resolve('stream-browserify'),
     crypto: require.resolve('crypto-browserify'),
+    vm: false,
+    process: require.resolve('process/browser'),
 }
-
-const webpack = require('webpack')
 config.plugins.push(
     new webpack.DefinePlugin({
         'process.env.ANCHOR_PROVIDER_URL': JSON.stringify(process.env.ANCHOR_PROVIDER_URL),
+    }),
+    new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'],
+        process: 'process/browser',
     })
 )
 
 module.exports = config
+
+const src = require.resolve('streamsaver/sw.js')
+const dst = path.resolve(__dirname, 'public/build/streamsaver-sw.js')
+fs.mkdirSync(path.dirname(dst), { recursive: true })
+fs.copyFileSync(src, dst)

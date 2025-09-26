@@ -9,6 +9,7 @@ import Settings from '@react/components/wallet/components/settings/Settings'
 import SettingsConnection from '@react/components/wallet/components/settings/components/SettingsConnection'
 import ChangePassword from '@react/components/wallet/components/settings/components/ChangePassword'
 import WalletClear from '@react/components/wallet/components/settings/components/WalletClear'
+import SignTransaction from '@react/components/wallet/components/sign-transaction/SignTransaction'
 
 const componentsMap = {
     WalletsList,
@@ -20,6 +21,7 @@ const componentsMap = {
     SettingsConnection,
     ChangePassword,
     WalletClear,
+    SignTransaction,
 }
 
 const ShowComponent = () => {
@@ -28,7 +30,7 @@ const ShowComponent = () => {
     const props = showComponent.props || {}
 
     return (
-        <div className="d-grid gap-3">
+        <div className="d-grid gap-3 mb-3">
             {ComponentToRender ? <ComponentToRender {...props} /> : null}
         </div>
     )

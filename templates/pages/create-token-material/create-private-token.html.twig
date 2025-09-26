@@ -1,0 +1,17 @@
+<div class="main-content row justify-content-center mt-3 mb-3">
+    <div class="col-12 col-lg-6">
+        <h1 class="text-center mb-4">Create Private Token</h1>
+        {% include 'pages/create-token-material/templates/create-type-selector.html.twig' %}
+        <h5 class="text-justify ti-4 lh-base">
+            Create a private token and a data container.
+            This operation is safe: your files will not be sent anywhere from your device.
+            The data will be accessible only to you and no one else.
+            Only the token minting transaction is sent to the blockchain.
+            You can publish materials based on this token and the created file container at any time.
+            Keep the file container and the private key of the token safe.
+            They are a single entity that confirms your right to own digital data.
+            Losing one of them means losing this confirmation.
+        </h5>
+        <div id="create-token-material" data-type="private-token"></div>
+    </div>
+</div>
