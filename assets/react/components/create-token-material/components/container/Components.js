@@ -354,34 +354,32 @@ export const HashingStatus = ({container, overallHashing}) => (container?.isComp
 )
 
 export const ContainerFileInfo = ({container, setErrorContainer}) => {
-    if (!container?.hash) return
-
-    const emptyHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
-    const errorReasons = "It's possible that some files cannot be added to the container."
-    let isSizeInvalid = () => setErrorContainer && !container.file.size
-    let isHashInvalid = () => setErrorContainer && container.hash === emptyHash
+    const EMPTY_HASH = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+    const ERROR_REASONS = "It's possible that some files cannot be added to the container."
+    const isSizeInvalid = setErrorContainer && container?.file && !container.file.size
+    const isHashInvalid = setErrorContainer && container?.hash === EMPTY_HASH
 
     useEffect(() => {
-        if (!setErrorContainer) {
+        if (!setErrorContainer || !container?.hash) {
             return
         }
         if (!container.file.size) {
-            setErrorContainer('Error creating file container - file size 0 bytes. ' + errorReasons)
+            setErrorContainer('Error creating file container - file size 0 bytes. ' + ERROR_REASONS)
             return
         }
-        if (container.hash === emptyHash) {
-            setErrorContainer('The file container hash was calculated incorrectly. ' + errorReasons)
+        if (container.hash === EMPTY_HASH) {
+            setErrorContainer('The file container hash was calculated incorrectly. ' + ERROR_REASONS)
         }
-    }, [])
+    }, [container?.file?.size, container?.hash, setErrorContainer])
 
-    return (
+    return !!container?.hash && (
         <div className="mb-4">
             <div className="alert-success bg-light alert border rounded">
                 <h3 className="text-center">Files Container</h3>
                 <InnerTable data={[
                     ['File name', container.file?.name],
-                    ['File size', [prettyBytes(container.file.size), isSizeInvalid() ? 'text-danger' : '']],
-                    ['File hash', [container.hash, isHashInvalid() ? 'text-danger' : '']],
+                    ['File size', [prettyBytes(container.file.size), isSizeInvalid ? 'text-danger' : '']],
+                    ['File hash', [container.hash, isHashInvalid ? 'text-danger' : '']],
                 ]} />
             </div>
         </div>
