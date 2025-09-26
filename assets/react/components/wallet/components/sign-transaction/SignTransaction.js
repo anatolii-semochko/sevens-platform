@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import { t } from '@react/components/wallet/translations/translations'
-import { connection } from '@js/blockchain/sevens' // TODO - Use Wallet Current Connection (apiActions.js)
-import { getWallet } from '@react/components/wallet/scripts/apiActions'
+import { connection, getWallet } from '@react/components/wallet/scripts/apiActions'
 import { simulateAndSummarize } from '@react/components/wallet/scripts/simulate'
 import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonSignTransaction } from '@react/components/wallet/components/form-elements/Buttons'
@@ -26,13 +25,15 @@ const SignTransaction = ({ transaction, onSign, onCancel }) => {
             setIsSimulating(true)
             setSimulationError(null)
 
+            console.log('=========================================================')
             console.log('Transaction to simulate:', transaction)
             console.log('Transaction type:', transaction.constructor.name)
             console.log('Has feePayer:', !!transaction.feePayer)
             console.log('Has recentBlockHash:', !!transaction.recentBlockhash)
             console.log('Instructions count:', transaction.instructions?.length)
+            console.log('=========================================================')
 
-            const result = await simulateAndSummarize(connection, transaction)
+            const result = await simulateAndSummarize(connection(), transaction)
             setSimulationData(result)
 
             if (!result.ok) {
