@@ -1,32 +1,47 @@
 import React, { useState } from 'react'
 import { mint } from '@js/blockchain/sevens-token'
-import { connection } from '@js/blockchain/sevens'
+import { connection, getAnchorErrorText } from '@js/blockchain/sevens'
+import { SendTransactionError } from '@solana/web3.js'
 
 export const ButtonCreateToken = ({tokenData, container, wallet, setMinted, setErrorMessage}) => {
     const [minting, setMinting] = useState(false)
+
+
+
+
+
+    // TODO - FIX THIS METHOD LATER !
+    const checkCreateToken = () => {
+        // if (!connected || !publicKey) {
+        //     await connect()
+        //     if (!publicKey) {
+        //         setErrorMessage('Failed to connect wallet')
+        //         return
+        //     }
+        // }
+
+        if (!wallet.connected) {
+            throw new Error('Wallet is not connected')
+        }
+        if (!wallet.publicKey?.toString()) {
+            throw new Error('Public key is not set')
+        }
+        if (!wallet.signTransaction || !wallet.signAllTransactions) {
+            throw new Error('Wallet does not support transaction signing')
+        }
+        // if (!tokenData.tokenName) {
+        //     throw new Error("Token name can't be empty")
+        // }
+    }
+
+
+
 
     const handlerCreateToken = async () => {
         setErrorMessage(null)
         setMinting(true)
         try {
-
-            // if (!connected || !publicKey) {
-            //     await connect()
-            //     if (!publicKey) {
-            //         setErrorMessage('Failed to connect wallet')
-            //         return
-            //     }
-            // }
-
-            if (!wallet.connected) {
-                new Error('Wallet is not connected')
-            }
-            if (!wallet.publicKey?.toString()) {
-                new Error('Public key is not set')
-            }
-            if (!wallet.signTransaction || !wallet.signAllTransactions) {
-                new Error('Wallet does not support transaction signing')
-            }
+            checkCreateToken()
 
             const { tx, mint: mintKeypair, publicKey: mintPubkey } = await mint({
                 tokenName: tokenData.name,
@@ -37,19 +52,44 @@ export const ButtonCreateToken = ({tokenData, container, wallet, setMinted, setE
                 walletPublicKey: wallet.publicKey.toString(),
             })
 
-            const signedByWallet = await wallet.signTransaction(tx)
+            let signedByWallet
+            try {
+                signedByWallet = await wallet.signTransaction(tx)
+            } catch (signError) {
+                throw new Error(getAnchorErrorText(signError))
+            }
 
             // Add mint keypair signature if needed (it should already be there from partialSign)
             if (signedByWallet.signatures.some(s => !s.signature && s.publicKey.equals(mintKeypair.publicKey))) {
                 signedByWallet.partialSign(mintKeypair)
             }
 
-            const sig = await connection.sendRawTransaction(signedByWallet.serialize(), {
-                skipPreflight: false,
-                preflightCommitment: 'confirmed',
-            })
+            let sig
+            try {
+                sig = await connection.sendRawTransaction(signedByWallet.serialize(), {
+                    skipPreflight: false,
+                    preflightCommitment: 'confirmed',
+                })
+            } catch (sendError) {
+                // Handle SendTransactionError and extract logs
+                if (sendError instanceof SendTransactionError) {
+                    const logs = sendError.getLogs()
+                    console.error('Transaction logs:', logs)
 
-            // 4) Confirm
+                    // Create error object with logs for getAnchorErrorText to process
+                    const errorWithLogs = {
+                        ...sendError,
+                        logs: logs,
+                        message: sendError.message
+                    }
+
+                    throw new Error(getAnchorErrorText(errorWithLogs))
+                }
+                console.error('Send transaction error:', sendError)
+                throw new Error(getAnchorErrorText(sendError))
+            }
+
+            // Confirm
             const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed')
             await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed')
 
@@ -58,7 +98,8 @@ export const ButtonCreateToken = ({tokenData, container, wallet, setMinted, setE
                 mint: mintPubkey,
             })
         } catch (error) {
-            setErrorMessage(error.message || 'Failed to create token')
+            console.error('Create token error:', error)
+            setErrorMessage(getAnchorErrorText(error))
         }
         setMinting(false)
     }
