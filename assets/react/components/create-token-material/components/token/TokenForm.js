@@ -100,7 +100,7 @@ export const TokenForm = ({tokenData, setTokenData, setErrorMessage}) => {
     }, [name, author, burnable, description])
 
     return (
-        <div className="mb-3">
+        <div className="mb-4">
             <div className="row g-3 mb-3">
                 <Name {...{name, setName, maxLength: lengths.name, setErrorMessage}} />
                 <Author {...{author, setAuthor, maxLength: lengths.author, setErrorMessage}} />

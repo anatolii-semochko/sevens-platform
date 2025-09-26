@@ -1,10 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { removeReferenceFile } from './utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { CreateContainer } from './components/container/CreateContainer'
-import { SelectedPublicKey, MintedInfo, TryMoreOptions, ContainerFileInfo } from './components/container/Components'
+import { WalletForm, MintedInfo, TryMoreOptions, ContainerFileInfo } from './components/container/Components'
 import { ButtonCreateToken } from '@react/components/create-token-material/components/token/ButtonCreateToken'
 import { TokenForm } from '@react/components/create-token-material/components/token/TokenForm'
 import { MaterialForm } from './components/material/MaterialForm'
@@ -44,24 +43,6 @@ export const CreateTokenMaterial = ({doMaterial}) => {
         setMinted(null)
     }
 
-    // TODO - Check if it is needed
-    // Force connection check for Sevens Wallet
-    useEffect(() => {
-        if (wallet.wallet?.adapter?.name === 'Sevens Wallet' && !wallet.connected && !wallet.connecting) {
-            const adapter = wallet.wallet.adapter
-            console.log('🔍 [CreateMaterial] Sevens Wallet selected but not connected, forcing connection check')
-
-            // Check if adapter has a wallet but React hasn't updated
-            if (adapter._wallet && adapter._publicKey) {
-                console.log('🔄 [CreateMaterial] Adapter has wallet, forcing connect call')
-                setTimeout(() => {
-                    wallet.connect().catch(console.error)
-                }, 100)
-            }
-        }
-    }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
-
-
     return (
         <div>
             {(!doMaterial || !minted) && (
@@ -73,19 +54,16 @@ export const CreateTokenMaterial = ({doMaterial}) => {
                 <>
                     {!errorContainer && (
                         <>
+                            <WalletForm />
                             <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />
-                            <SelectedPublicKey wallet={wallet} />
                         </>
                     )}
                     <MessagesBlock error={errorMessage} />
-                    <div className="d-flex justify-content-end gap-2">
-                        <button className="btn btn-outline-primary" onClick={handlerChangeFiles}>Change files</button>
-                        <button className="btn btn-outline-primary" onClick={handlerClear}>Clear</button>
+                    <div className="d-flex justify-content-end gap-2 mb-2">
+                        <button className="btn btn-outline-primary px-5 py-2" onClick={handlerChangeFiles}>Change files</button>
+                        <button className="btn btn-outline-primary px-5 py-2" onClick={handlerClear}>Clear</button>
                         {!errorContainer && (
-                            <>
-                                <WalletMultiButton />
-                                <ButtonCreateToken {...{tokenData, container, wallet, setMinted, setErrorMessage, targetRef, setContainer}} />
-                            </>
+                            <ButtonCreateToken {...{tokenData, container, wallet, setMinted, setErrorMessage, targetRef, setContainer}} />
                         )}
                     </div>
                 </>

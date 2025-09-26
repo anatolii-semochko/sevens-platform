@@ -105,7 +105,11 @@ export const ButtonCreateToken = ({tokenData, container, wallet, setMinted, setE
     }
 
     return (
-        <button className="btn btn-success" disabled={minting} onClick={handlerCreateToken}>
+        <button
+            className="btn btn-success px-5 py-2"
+            disabled={!wallet.publicKey || minting}
+            onClick={handlerCreateToken}
+        >
             Create Token
         </button>
     )

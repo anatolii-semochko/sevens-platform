@@ -1,5 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react'
 import { getExt, prettyBytes, isImage, isVideo, isAudio, isPdf } from '@js/utils/file'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { StatusBar } from '@react/components/form-elements/Charts'
 
 export const IsNotReady = ({ssError}) => (
@@ -374,7 +376,7 @@ export const ContainerFileInfo = ({container, setErrorContainer}) => {
 
     return !!container?.hash && (
         <div className="mb-4">
-            <div className="alert-success bg-light alert border rounded">
+            <div className="alert-success bg-light alert border">
                 <h3 className="text-center">Files Container</h3>
                 <InnerTable data={[
                     ['File name', container.file?.name],
@@ -386,18 +388,45 @@ export const ContainerFileInfo = ({container, setErrorContainer}) => {
     )
 }
 
-export const SelectedPublicKey = ({wallet}) => (
-    <div className="text-muted small mb-3">
-        {wallet.publicKey ? (
-            <span>Selected wallet for token minting: <span className="fw-semibold">{wallet.publicKey?.toString()}</span></span>
-        ) : (
-            <span className="text-primary fw-semibold">To create and store a token, select and activate your wallet. A positive wallet balance is required to pay the transaction fee.</span>
-        )}
-    </div>
-)
+export const WalletForm = () => {
+    const wallet = useWallet()
+
+    // // TODO - Check if it is needed
+    // Force connection check for Sevens Wallet
+    useEffect(() => {
+        if (wallet.wallet?.adapter?.name === 'Sevens Wallet' && !wallet.connected && !wallet.connecting) {
+            const adapter = wallet.wallet.adapter
+            console.log('🔍 [CreateMaterial] Sevens Wallet selected but not connected, forcing connection check')
+
+            // TODO - Check if adapter has a wallet but React hasn't updated
+            if (adapter._wallet && adapter._publicKey) {
+                console.log('🔄 [CreateMaterial] Adapter has wallet, forcing connect call')
+                setTimeout(() => {
+                    wallet.connect().catch(console.error)
+                }, 100)
+            }
+        }
+    }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
+
+    return (
+        <div className="alert-success bg-light alert border text-center">
+            <h4>Wallet</h4>
+            <h6 className="mb-3">
+                Creating a token requires using a wallet to store it and pay the transaction fee.
+                Select and activate a wallet to mint the token.
+            </h6>
+            {wallet.publicKey ? (
+                <p className="text-success fw-semibold">{wallet.publicKey?.toString()}</p>
+            ) : (
+                <p className="text-danger">Wallet is not activated.</p>
+            )}
+            <WalletMultiButton />
+        </div>
+    )
+}
 
 export const MintedInfo = ({minted}) => minted && (
-    <div className="alert-success alert text-break p-4" role="alert">
+    <div className="alert-success alert text-break p-4">
         <h4 className="text-center">Congratulations !</h4>
         <p className="text-center">Your token has been successfully minted.</p>
         <div className="d-flex justify-content-center">
