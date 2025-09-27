@@ -1,0 +1,60 @@
+const tokenService = require('../services/sevensTokenService')
+
+class SevensTokenController {
+    static async getTokens(req, res) {
+        try {
+            const { publicKey, hash } = req.query
+
+            if (publicKey) {
+                return await SevensTokenController.getByPublicKey(publicKey, res)
+            }
+
+            if (hash) {
+                return await SevensTokenController.getByHash(hash, res)
+            }
+
+            res.status(400).json({
+                error: 'Bad Request',
+                message: 'Either publicKey or hash query parameter is required',
+            })
+        } catch (error) {
+            console.error('Error in getTokens:', error)
+            res.status(500).json({
+                error: 'Internal Server Error',
+                message: 'Failed to retrieve token data',
+            })
+        }
+    }
+
+    static async getByPublicKey(publicKey, res) {
+        try {
+            res.json({
+                success: true,
+                data: await tokenService.getTokenByPublicKey(publicKey),
+            })
+        } catch (error) {
+            console.error('Error getting token by public key:', error)
+            res.status(404).json({
+                error: 'Not Found',
+                message: 'Token not found',
+            })
+        }
+    }
+
+    static async getByHash(hash, res) {
+        try {
+            res.json({
+                success: true,
+                data: await tokenService.getTokenByHash(hash),
+            })
+        } catch (error) {
+            console.error('Error getting token by hash:', error)
+            res.status(404).json({
+                error: 'Not Found',
+                message: 'Token not found',
+            })
+        }
+    }
+}
+
+module.exports = SevensTokenController
