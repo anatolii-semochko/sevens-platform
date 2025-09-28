@@ -5,8 +5,6 @@ import { PublicKey, Keypair, Transaction, SystemProgram, LAMPORTS_PER_SOL } from
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { connection, commitment, getPda, getAnchorErrorText } from './sevens'
 
-const sevensIdlPath = '/storage/files/sevens_token.json'
-
 const dummyWallet = {
     publicKey: PublicKey.default,
     signAllTransactions: async (txs) => txs,
@@ -16,7 +14,7 @@ const dummyWallet = {
 const provider = () => new anchor.AnchorProvider(connection, dummyWallet, {});
 
 let sevensIdl
-fetch(sevensIdlPath)
+fetch(process.env.SEVENS_TOKEN_IDL_PATH)
     .then(response => response.json())
     .then(idl => sevensIdl = idl)
     .catch(error => console.error(error))

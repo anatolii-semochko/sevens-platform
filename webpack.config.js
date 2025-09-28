@@ -61,6 +61,7 @@ config.resolve.fallback = {
 config.plugins.push(
     new webpack.DefinePlugin({
         'process.env.ANCHOR_PROVIDER_URL': JSON.stringify(process.env.ANCHOR_PROVIDER_URL),
+        'process.env.SEVENS_TOKEN_IDL_PATH': JSON.stringify(process.env.SEVENS_TOKEN_IDL_PATH),
     }),
     new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
