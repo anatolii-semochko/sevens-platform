@@ -13,7 +13,10 @@
     "helmet": "^8.0.0",
     "@coral-xyz/anchor": "^0.29.0",
     "@solana/web3.js": "^1.98.4",
-    "@solana/spl-token": "^0.4.13"
+    "@solana/spl-token": "^0.4.13",
+    "mysql2": "^3.11.4",
+    "tweetnacl": "^1.0.3",
+    "bs58": "^6.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
