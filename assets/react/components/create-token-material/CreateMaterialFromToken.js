@@ -4,16 +4,13 @@ import { deriveTokenData } from './utils/blockchain'
 import { calculateContainerHash, removeExtractedFilesFolder } from './utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { MaterialForm } from './components/material/MaterialForm'
+import { ShowTokenValidity } from './components/token/Components'
+import { HashingStatus, SelectContainerFile } from './components/container/Components'
 import {
     ButtonClearPickContainer,
     ButtonSelectDecompressionFolder,
     Decompressing,
 } from './components/container/DecompressContainer'
-import {
-    HashingStatus,
-    SelectContainerFile,
-    ShowTokenValidity
-} from './components/container/Components'
 
 export const CreateMaterialFromToken = () => {
     const wallet = useWallet()
