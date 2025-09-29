@@ -75,16 +75,6 @@ const tokenTransfer = async ({ wallet, tokenPublicKey, targetAddressPublicKey })
     }
 }
 
-const buildMessage = (address, date, nonce) => {
-    return `Підтвердження власності гаманця
-
-Адреса: ${address}
-Дата: ${date}
-Nonce: ${nonce}
-
-Я підтверджую, що цей гаманець належить мені.`;
-}
-
 const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSync(
     [Buffer.from(pdaName), publicKey.toBuffer()],
     programId,
@@ -265,6 +255,6 @@ const getAnchorErrorText = (error) => {
 
 export {
     connection, commitment,
-    getWalletTokens, tokenTransfer, getPda, getAnchorErrorText, buildMessage,
+    getWalletTokens, tokenTransfer, getPda, getAnchorErrorText,
     isValidSolanaAddress, isValidWalletAddress,
 }

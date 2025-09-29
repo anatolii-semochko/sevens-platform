@@ -341,10 +341,10 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
 
             // Open SignTransaction page and wait for user decision
             const signedTransaction = await this._showSignTransactionDialog(transaction)
-            
+
             // Reload wallet data after successful transaction signing
             this._eventBus.emit('sevens-wallet-reload-request')
-            
+
             return signedTransaction
 
         } catch (error) {
@@ -384,10 +384,10 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
 
             // Use the signAllTransactions method from getWalletFromKeypair
             const signedTransactions = await wallet.signAllTransactions(transactions)
-            
+
             // Reload wallet data after successful transaction signing
             this._eventBus.emit('sevens-wallet-reload-request')
-            
+
             return signedTransactions
 
         } catch (error) {
@@ -402,17 +402,34 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             if (!wallet) throw new WalletNotConnectedError()
 
             console.log('signMessage', message)
-            // TODO - simulate transaction in assets/react/components/wallet/scripts/simulate.js
-            // TODO - open page by setShowComponent({component: 'SignTransaction'})
-            // TODO - show simulated data in SignTransaction
 
-            // Use the signMessage method from getWalletFromKeypair
-            const signature = await wallet.signMessage(message)
+            // Show SignMessage dialog and wait for user decision
+            const signature = await this._showSignMessageDialog(message)
+            
             return signature
 
         } catch (error) {
             this.emit('error', error)
             throw new WalletSignTransactionError(error?.message, error)
         }
+    }
+
+    _showSignMessageDialog(message) {
+        return new Promise((resolve, reject) => {
+            // Dispatch event to show SignMessage page
+            const eventDetail = {
+                message,
+                onSign: (signature) => {
+                    this._eventBus.emit('sevens-wallet-close-dialog')
+                    resolve(signature)
+                },
+                onCancel: () => {
+                    this._eventBus.emit('sevens-wallet-close-dialog')
+                    reject(new WalletSignTransactionError('User rejected message signing'))
+                }
+            }
+
+            this._eventBus.emit('sevens-wallet-show-sign-message', eventDetail)
+        })
     }
 }

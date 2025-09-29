@@ -1,5 +1,5 @@
-const crypto = require('crypto')
 const { PublicKey } = require('@solana/web3.js')
+const crypto = require('crypto')
 const nacl = require('tweetnacl')
 const bs58 = require('bs58')
 const db = require('../db/mysql')
@@ -7,7 +7,7 @@ const db = require('../db/mysql')
 class AuthService {
     constructor() {
         this.nonceLength = 32
-        this.nonceExpiration = 15 * 60 * 1000 // 15 minutes
+        this.nonceExpiration = process.env.NONCE_EXPIRATION_MIN * 60 * 1000
     }
 
     generateNonce() {
@@ -27,11 +27,12 @@ class AuthService {
                 is_used: 0,
             })
 
+
             if (existingNonce && !this.isNonceExpired(existingNonce.expires_at)) {
                 return {
                     nonce: existingNonce.nonce,
                     expiresAt: existingNonce.expires_at,
-                    message: this.createSignMessage(existingNonce.nonce, walletAddress),
+                    message: this.createSignMessage(existingNonce.nonce, walletAddress, existingNonce.created_at),
                 }
             }
 
@@ -47,7 +48,7 @@ class AuthService {
                 is_used: 0,
             })
 
-            const message = this.createSignMessage(nonce, walletAddress)
+            const message = this.createSignMessage(nonce, walletAddress, now)
 
             return {
                 id: nonceId,
@@ -85,15 +86,11 @@ class AuthService {
                 throw new Error('Nonce expired')
             }
 
-            const message = this.createSignMessage(nonce, walletAddress)
-            const messageBytes = new TextEncoder().encode(message)
-            const signatureBytes = bs58.decode(signature)
-            const publicKeyBytes = new PublicKey(walletAddress).toBytes()
-
+            const message = this.createSignMessage(nonce, walletAddress, nonceRecord.created_at)
             const isValid = nacl.sign.detached.verify(
-                messageBytes,
-                signatureBytes,
-                publicKeyBytes,
+                new TextEncoder().encode(message),
+                bs58.decode(signature),
+                new PublicKey(walletAddress).toBytes(),
             )
 
             if (!isValid) {
@@ -120,8 +117,12 @@ class AuthService {
         }
     }
 
-    createSignMessage(nonce, walletAddress) {
-        return `Verify wallet ownership for ${walletAddress}\nNonce: ${nonce}\nTimestamp: ${new Date().toISOString()}`
+    createSignMessage(nonce, walletAddress, createdAt) {
+        const timestamp = createdAt instanceof Date ? createdAt.toISOString() : createdAt;
+
+        return `Verify wallet ownership for ${walletAddress}
+Nonce: ${nonce}
+Timestamp: ${timestamp}`
     }
 
     isValidSolanaAddress(address) {
@@ -139,7 +140,8 @@ class AuthService {
 
     async cleanupExpiredNonces() {
         try {
-            const result = await db.query('DELETE FROM nonces WHERE expires_at < NOW()')
+            const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
+            const result = await db.query('DELETE FROM nonces WHERE expires_at < ?', [now])
 
             if (result.affectedRows > 0) {
                 console.log(`Cleaned up ${result.affectedRows} expired nonces`)

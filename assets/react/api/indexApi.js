@@ -2,6 +2,8 @@ import axios from 'axios'
 import store from '@react/store/index'
 import { toast } from 'react-hot-toast'
 
+// TODO - CHECK USES FOR THIS FILE !!! If no uses - remove it !
+
 const api = axios.create({
   baseURL: `/${store.getState().currentLocale}/api`,
   withCredentials: true, // якщо використовуєш cookie-based автентифікацію

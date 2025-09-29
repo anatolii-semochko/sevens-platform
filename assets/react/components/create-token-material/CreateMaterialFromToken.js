@@ -4,7 +4,7 @@ import { deriveTokenData } from './utils/blockchain'
 import { calculateContainerHash, removeExtractedFilesFolder } from './utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { MaterialForm } from './components/material/MaterialForm'
-import { ShowTokenValidity } from './components/token/Components'
+import {ShowTokenValidity, WalletForm} from './components/token/Components'
 import { HashingStatus, SelectContainerFile } from './components/container/Components'
 import {
     ButtonClearPickContainer,
@@ -64,6 +64,8 @@ export const CreateMaterialFromToken = () => {
         }
     }, [container?.hash])
 
+    const showMaterialForm = () => tokenData && !tokenData.error && !!tokenFiles.length
+
     if (!container?.file) return (
         <SelectContainerFile container={container} onSelectContainer={onSelectContainer} needsExtraction={false} />
     )
@@ -74,7 +76,8 @@ export const CreateMaterialFromToken = () => {
             <ShowTokenValidity {...{container, tokenData}} />
             <ButtonSelectDecompressionFolder {...{tokenData, container, handleStartDecompression}} />
             <Decompressing {...{tokenFiles, setTokenFiles, container, setContainer, onStartDecompression, tokenData}} />
-            {tokenData && !tokenData.error && !!tokenFiles.length && (
+            {showMaterialForm() && <WalletForm type={'signMessage'} />}
+            {showMaterialForm() && (
                 <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}}/>
             )}
             <MessagesBlock error={errorMessage} />

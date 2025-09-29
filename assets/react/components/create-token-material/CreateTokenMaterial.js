@@ -57,7 +57,7 @@ export const CreateTokenMaterial = ({doMaterial}) => {
             )}
             <ContainerFileInfo {...{container, setErrorContainer}} />
             <MessagesBlock error={errorContainer} />
-            {showTokenForm() && <WalletForm />}
+            {showTokenForm() && <WalletForm type={'createToken'}/>}
             {showTokenForm() && <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />}
             {showActions() && <MessagesBlock error={errorMessage} />}
             {showActions() && (

@@ -25,14 +25,6 @@ const SignTransaction = ({ transaction, onSign, onCancel }) => {
             setIsSimulating(true)
             setSimulationError(null)
 
-            console.log('=========================================================')
-            console.log('Transaction to simulate:', transaction)
-            console.log('Transaction type:', transaction.constructor.name)
-            console.log('Has feePayer:', !!transaction.feePayer)
-            console.log('Has recentBlockHash:', !!transaction.recentBlockhash)
-            console.log('Instructions count:', transaction.instructions?.length)
-            console.log('=========================================================')
-
             const result = await simulateAndSummarize(connection(), transaction)
             setSimulationData(result)
 
@@ -51,11 +43,9 @@ const SignTransaction = ({ transaction, onSign, onCancel }) => {
         try {
             setIsSigning(true)
 
-            // Get wallet instance and sign transaction
             const wallet = getWallet(walletData, password)
             const signedTransaction = await wallet.signTransaction(transaction)
 
-            // Call the callback with signed transaction
             if (onSign) {
                 onSign(signedTransaction)
             }

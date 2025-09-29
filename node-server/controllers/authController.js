@@ -21,7 +21,6 @@ class AuthController {
                 data: {
                     nonce: nonceData.nonce,
                     message: nonceData.message,
-                    expiresAt: nonceData.expiresAt,
                 },
             })
         } catch (error) {

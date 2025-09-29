@@ -1,6 +1,6 @@
 import React from 'react'
 import store from '@react/store/index'
-import { fetchHelps } from '@react/api/help'
+import { fetchHelps } from '@react/api/helpApi'
 
 export default class HelpLink extends React.Component {
     static helpLinksPromise = null
