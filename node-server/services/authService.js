@@ -1,7 +1,8 @@
 const { PublicKey } = require('@solana/web3.js')
 const crypto = require('crypto')
 const nacl = require('tweetnacl')
-const bs58 = require('bs58')
+const bs58Module = require('bs58')
+const bs58 = bs58Module.default || bs58Module
 const db = require('../db/mysql')
 
 class AuthService {
@@ -38,17 +39,19 @@ class AuthService {
 
             const nonce = this.generateNonce()
             const now = new Date()
-            const expiresAt = new Date(now.getTime() + this.nonceExpiration)
+            // Round down to seconds to match MySQL DATETIME precision
+            const nowRounded = new Date(Math.floor(now.getTime() / 1000) * 1000)
+            const expiresAt = new Date(nowRounded.getTime() + this.nonceExpiration)
 
             const nonceId = await db.insert('nonces', {
                 nonce: nonce,
                 wallet_address: walletAddress,
-                created_at: now,
+                created_at: nowRounded,
                 expires_at: expiresAt,
                 is_used: 0,
             })
 
-            const message = this.createSignMessage(nonce, walletAddress, now)
+            const message = this.createSignMessage(nonce, walletAddress, nowRounded)
 
             return {
                 id: nonceId,
@@ -56,7 +59,6 @@ class AuthService {
                 expiresAt,
                 message,
             }
-
         } catch (error) {
             console.error('Error creating nonce:', error)
             throw new Error('Failed to create nonce')
@@ -82,11 +84,13 @@ class AuthService {
                 throw new Error('Nonce already used')
             }
 
+
             if (this.isNonceExpired(nonceRecord.expires_at)) {
                 throw new Error('Nonce expired')
             }
 
             const message = this.createSignMessage(nonce, walletAddress, nonceRecord.created_at)
+
             const isValid = nacl.sign.detached.verify(
                 new TextEncoder().encode(message),
                 bs58.decode(signature),

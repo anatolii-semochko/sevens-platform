@@ -63,6 +63,7 @@ services:
       - NODE_ENV=development
       - SEVENS_TOKEN_IDL_PATH=${SEVENS_TOKEN_IDL_PATH}
       - ANCHOR_PROVIDER_URL=${ANCHOR_PROVIDER_URL}
+      - NONCE_EXPIRATION_MIN=${NONCE_EXPIRATION_MIN}
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
     extra_hosts:
       - "sevenstime.local:host-gateway"
