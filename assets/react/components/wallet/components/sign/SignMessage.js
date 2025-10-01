@@ -68,12 +68,14 @@ const SignMessage = ({ message, onSign, onCancel }) => {
                         <div className="text-center">Message to Sign</div>
                     </div>
                     <div className="card-body card-body alert alert-info mb-0">
-                        <div className="mb-2">
+                        <div className="mb-3">
                             <strong>You are about to sign the following message:</strong>
                         </div>
-                        <pre className="mb-3 text-wrap small">{messageText.replace("\n", '<br/>')}</pre>
+                        {messageText.split("\n").map((phrase, key) => (
+                            <div key={key} className="mb-3 text-wrap small">{phrase}</div>
+                        ))}
                         <div className="text-muted small">
-                            <strong>Note:</strong>
+                            <strong className="me-2">Note:</strong>
                             This operation will not spend any coins. It only proves that you own the wallet address.
                         </div>
                     </div>

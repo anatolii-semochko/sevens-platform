@@ -4,7 +4,8 @@ import { removeReferenceFile } from './utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { CreateContainer } from './components/container/CreateContainer'
 import { ContainerFileInfo } from './components/container/Components'
-import { WalletForm, MintedInfo, TryMoreOptions } from './components/token/Components'
+import { MintedInfo, TryMoreOptions } from './components/token/Components'
+import { WalletMintForm } from './components/Wallet/Components'
 import { ButtonCreateToken } from '@react/components/create-token-material/components/token/ButtonCreateToken'
 import { TokenForm } from '@react/components/create-token-material/components/token/TokenForm'
 import { MaterialForm } from './components/material/MaterialForm'
@@ -57,7 +58,7 @@ export const CreateTokenMaterial = ({doMaterial}) => {
             )}
             <ContainerFileInfo {...{container, setErrorContainer}} />
             <MessagesBlock error={errorContainer} />
-            {showTokenForm() && <WalletForm type={'createToken'}/>}
+            {showTokenForm() && <WalletMintForm />}
             {showTokenForm() && <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />}
             {showActions() && <MessagesBlock error={errorMessage} />}
             {showActions() && (

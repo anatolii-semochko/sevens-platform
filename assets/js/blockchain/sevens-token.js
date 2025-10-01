@@ -136,8 +136,11 @@ const getData = async (tokenPublicKey) => {
         sale.priceLamports = sale.price.toNumber()
         sale.priceSevens = sale.price.toNumber() / LAMPORTS_PER_SOL
 
+        const walletPublicKey = await getWalletPublicKeyByToken(tokenPublicKey)
+
         return {
             tokenPublicKey,
+            walletPublicKey,
             mintingTime: new Date(metadata.timestamp.toNumber() * 1000).toISOString(),
             hashRegistry: hashRegistryPda,
             metadata,
@@ -145,6 +148,29 @@ const getData = async (tokenPublicKey) => {
         }
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
+    }
+}
+
+const getWalletPublicKeyByToken = async (tokenPublicKey) => {
+    let walletPublicKey = null
+    try {
+        const publicKey = new PublicKey(tokenPublicKey)
+        const mintInfo = await connection.getParsedAccountInfo(publicKey)
+        const supply = mintInfo?.value?.data?.parsed?.info?.supply
+
+        if (supply === '1') {
+            // For NFT (supply = 1), find the token account holder
+            const tokenAccounts = await connection.getTokenLargestAccounts(publicKey)
+            if (tokenAccounts?.value?.length > 0) {
+                const largestAccount = tokenAccounts.value[0]
+                const tokenAccountInfo = await connection.getParsedAccountInfo(largestAccount.address)
+                walletPublicKey = tokenAccountInfo?.value?.data?.parsed?.info?.owner
+            }
+        }
+
+        return walletPublicKey
+    } catch (walletError) {
+        throw new Error(getAnchorErrorText(walletError))
     }
 }
 

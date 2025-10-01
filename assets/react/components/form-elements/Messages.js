@@ -1,12 +1,12 @@
 import clsx from 'clsx'
 
-const SuccessMessageBlock = ({ message, className }) => message && (
+const SuccessMessageBlock = ({ message, className }) => !!message && (
     <div className={getMessageBlockClass('success', className)} role="alert">{getFormattedMessage(message)}</div>
 )
-const InfoMessageBlock = ({ message, className }) => message && (
+const InfoMessageBlock = ({ message, className }) => !!message && (
     <div className={getMessageBlockClass('info', className)} role="alert">{getFormattedMessage(message)}</div>
 )
-const ErrorMessageBlock = ({ message, className }) =>  message && (
+const ErrorMessageBlock = ({ message, className }) =>  !!message && (
     <div className={getMessageBlockClass('danger', className)} role="alert">{getFormattedMessage(message)}</div>
 )
 const getMessageBlockClass = (type, className) => clsx(`alert-${type}`, 'alert text-break', className)

@@ -105,6 +105,29 @@ class SevensTokenService {
         }
     }
 
+    async getWalletPublicKeyByToken(tokenPublicKey) {
+        let walletPublicKey = null
+        try {
+            const publicKey = new PublicKey(tokenPublicKey)
+            const mintInfo = await this.connection.getParsedAccountInfo(publicKey)
+            const supply = mintInfo?.value?.data?.parsed?.info?.supply
+
+            if (supply === '1') {
+                // For NFT (supply = 1), find the token account holder
+                const tokenAccounts = await this.connection.getTokenLargestAccounts(publicKey)
+                if (tokenAccounts?.value?.length > 0) {
+                    const largestAccount = tokenAccounts.value[0]
+                    const tokenAccountInfo = await this.connection.getParsedAccountInfo(largestAccount.address)
+                    walletPublicKey = tokenAccountInfo?.value?.data?.parsed?.info?.owner
+                }
+            }
+
+            return walletPublicKey
+        } catch (walletError) {
+            throw new Error(getAnchorErrorText(walletError))
+        }
+    }
+
     async getTokenByPublicKey(tokenPublicKey){
         try {
             const publicKey = new PublicKey(tokenPublicKey)
@@ -120,23 +143,7 @@ class SevensTokenService {
             sale.priceLamports = sale.price.toNumber()
             sale.priceSevens = sale.price.toNumber() / LAMPORTS_PER_SOL
 
-            let walletPublicKey = null
-            try {
-                const mintInfo = await this.connection.getParsedAccountInfo(publicKey)
-                const supply = mintInfo?.value?.data?.parsed?.info?.supply
-
-                if (supply === '1') {
-                    // For NFT (supply = 1), find the token account holder
-                    const tokenAccounts = await this.connection.getTokenLargestAccounts(publicKey)
-                    if (tokenAccounts?.value?.length > 0) {
-                        const largestAccount = tokenAccounts.value[0]
-                        const tokenAccountInfo = await this.connection.getParsedAccountInfo(largestAccount.address)
-                        walletPublicKey = tokenAccountInfo?.value?.data?.parsed?.info?.owner
-                    }
-                }
-            } catch (walletError) {
-                throw new Error(getAnchorErrorText(walletError))
-            }
+            const walletPublicKey = await this.getWalletPublicKeyByToken(tokenPublicKey)
 
             return {
                 tokenPublicKey,
