@@ -156,6 +156,21 @@ deploy-clear:
 rollback:
 	ssh -o StrictHostKeyChecking=no deploy@${HOST} -p ${PORT} 'cd site_${BUILD_NUMBER} && docker stack deploy --compose-file compose.yml ${PROJECT_NAME} --with-registry-auth --prune'
 
+##############
+## Node Server
+##############
+node-server-build:
+	docker compose build node-server --no-cache
+
+node-server-restart:
+	docker compose up node-server --build -d
+
+node-server-logs:
+	docker compose logs -f node-server
+
+node-server-bash:
+	docker compose exec node-server sh
+
 ##########
 ## System
 ##########

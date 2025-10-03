@@ -1,6 +1,6 @@
 import React from 'react'
 import { getDateTimeFromDate } from '@js/utils/time'
-import { InnerTable } from '../../create-token-material/components/container/Components'
+import { InnerTable } from '../../create-token-material/components/token/Components'
 
 export const ContainerCheckMessage = ({tokenData}) => !!tokenData && (
     <div>

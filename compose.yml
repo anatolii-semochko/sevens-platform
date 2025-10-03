@@ -52,6 +52,28 @@ services:
     networks:
       - default
 
+  node-server:
+    build:
+      context: .
+      dockerfile: docker/development/node-server/Dockerfile
+    networks:
+      - default
+      - blockchain.dev
+    environment:
+      - NODE_ENV=development
+      - SEVENS_TOKEN_IDL_PATH=${SEVENS_TOKEN_IDL_PATH}
+      - ANCHOR_PROVIDER_URL=${ANCHOR_PROVIDER_URL}
+      - NONCE_EXPIRATION_MIN=${NONCE_EXPIRATION_MIN}
+      - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+    extra_hosts:
+      - "sevenstime.local:host-gateway"
+      - "localhost:host-gateway"
+    secrets:
+      - db_password
+    depends_on:
+      - mysql
+      - web
+
   mysql:
     image: mysql:9.3
     environment:

@@ -1,6 +1,6 @@
 import React from 'react'
 import store from '@react/store/index'
-import { fetchTranslations } from '@react/api/translations'
+import { fetchTranslations } from '@react/api/translationsApi'
 
 export default class Translation extends React.Component {
     static translationsPromises = {}

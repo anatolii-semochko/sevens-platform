@@ -1,6 +1,21 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { TextArea } from '@react/components/form-elements/Inputs'
+import { Input, TextArea } from '@react/components/form-elements/Inputs'
 import { ImagePreview } from '../container/Components'
+
+const Title = ({title, setTitle, error, setErrorMessage}) => (
+    <div className="col-12">
+        <label htmlFor="tokenTitle" className="form-label">Publication title:</label>
+        <Input
+            id={'tokenTitle'}
+            placeholder={'required'}
+            maxLength={64}
+            value={title}
+            onChange={setTitle}
+            setErrorMessage={setErrorMessage}
+        />
+        {error && <div className="invalid-feedback">Invalid</div>}
+    </div>
+)
 
 const ShortDescription = ({shortDescription, setShortDescription, error, setErrorMessage}) => (
     <div className="col-12">
@@ -119,7 +134,15 @@ export const ImageSelectMain = ({tokenFiles, setTokenFiles}) => {
     )
 }
 
-export const MaterialForm = ({materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}) => {
+export const MaterialForm = ({
+    materialData,
+    setMaterialData,
+    tokenFiles,
+    setTokenFiles,
+    handlerPublish,
+    setErrorMessage,
+}) => {
+    const [title, setTitle] = useState('')
     const [shortDescription, setShortDescription] = useState('')
     const [description, setDescription] = useState('')
 
@@ -128,12 +151,13 @@ export const MaterialForm = ({materialData, setMaterialData, setErrorMessage, to
     }, [tokenFiles])
 
     useEffect(() => {
+        setTitle(materialData?.title || '')
         setShortDescription(materialData?.shortDescription || '')
         setDescription(materialData?.description || '')
     }, [materialData])
 
     useEffect(() => {
-        setMaterialData({shortDescription, description})
+        setMaterialData({title, shortDescription, description})
     }, [shortDescription, description])
 
     return (
@@ -146,13 +170,14 @@ export const MaterialForm = ({materialData, setMaterialData, setErrorMessage, to
                 </div>
                 <div className="col-12 col-lg-7">
                     <div className="row g-3 mb-3">
+                        <Title {...{title, setTitle, setErrorMessage}}/>
                         <ShortDescription {...{shortDescription, setShortDescription, setErrorMessage}} />
                         <Description {...{description, setDescription, setErrorMessage}} />
                     </div>
                 </div>
             </div>
             <div className="d-flex justify-content-end gap-2">
-                <button className="btn btn-success fs-4 w-100 p-3">Publish</button>
+                <button className="btn btn-success fs-4 w-100 p-3" onClick={handlerPublish}>Publish</button>
             </div>
         </div>
     )

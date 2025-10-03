@@ -25,17 +25,23 @@ export const objectToFormData = (obj, form = new FormData(), namespace = '') => 
     }
   }
   return form;
-};
+}
 
-export const fetchErrorMessage = (error) => error?.response?.data?.detail ||
+export const fetchErrorMessage = (error) =>
+  error?.response?.data?.detail ||
   error?.response?.data?.message ||
-  error.message ||
-  'Unknown API error'
+  error?.response?.data?.error ||
+  error?.message ||
+  'Error occurred'
+
+export const throwErrorMessage = (error) => {
+    throw new Error(fetchErrorMessage(error))
+}
 
 export const handleApiError = (error) => {
   const message = fetchErrorMessage(error)
   toast.error(message)
   return message
-};
+}
 
 export default api

@@ -1,10 +1,10 @@
 import config from '@react/components/wallet/config.json'
 import crypto from 'crypto'
 import CryptoJS from 'crypto-js'
+import nacl from 'tweetnacl'
 import { readEncryptedWallets, writeEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
 import * as anchor from '@coral-xyz/anchor'
-import nacl from 'tweetnacl'
 import { t } from '@react/components/wallet/translations/translations'
 import {
     getAssociatedTokenAddress,

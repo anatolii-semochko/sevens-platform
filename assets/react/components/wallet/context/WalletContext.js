@@ -184,6 +184,15 @@ const WalletContextProvider = ({ children }) => {
             })
         }
 
+        const handleShowSignMessage = (event) => {
+            const { message, onSign, onCancel } = event.detail
+            openWallet()
+            setShowComponent({
+                component: 'SignMessage',
+                props: { message, onSign, onCancel }
+            })
+        }
+
         const handleCloseDialog = (event) => {
             console.log('Close dialog request received')
             setShowComponent(null)
@@ -258,6 +267,7 @@ const WalletContextProvider = ({ children }) => {
         eventBus.on('sevens-wallet-connect-request', handleConnectRequest)
         eventBus.on('sevens-wallet-disconnect-request', handleDisconnectRequest)
         eventBus.on('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
+        eventBus.on('sevens-wallet-show-sign-message', handleShowSignMessage)
         eventBus.on('sevens-wallet-close-dialog', handleCloseDialog)
         eventBus.on('sevens-wallet-get-current', handleGetCurrent)
         eventBus.on('sevens-wallet-ping', handlePing)
@@ -267,6 +277,7 @@ const WalletContextProvider = ({ children }) => {
             eventBus.off('sevens-wallet-connect-request', handleConnectRequest)
             eventBus.off('sevens-wallet-disconnect-request', handleDisconnectRequest)
             eventBus.off('sevens-wallet-show-sign-transaction', handleShowSignTransaction)
+            eventBus.off('sevens-wallet-show-sign-message', handleShowSignMessage)
             eventBus.off('sevens-wallet-close-dialog', handleCloseDialog)
             eventBus.off('sevens-wallet-get-current', handleGetCurrent)
             eventBus.off('sevens-wallet-ping', handlePing)

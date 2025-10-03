@@ -56,15 +56,24 @@ config.resolve.fallback = {
     stream: require.resolve('stream-browserify'),
     crypto: require.resolve('crypto-browserify'),
     vm: false,
-    process: require.resolve('process/browser'),
+    process: require.resolve('process'),
+    buffer: require.resolve('buffer'),
+    http: false,
+    https: false,
+    os: false,
+    path: false,
+    fs: false,
 }
 config.plugins.push(
     new webpack.DefinePlugin({
         'process.env.ANCHOR_PROVIDER_URL': JSON.stringify(process.env.ANCHOR_PROVIDER_URL),
+        'process.env.SEVENS_TOKEN_IDL_PATH': JSON.stringify(process.env.SEVENS_TOKEN_IDL_PATH),
+        'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+        'process.env.NONCE_EXPIRATION_MIN': JSON.stringify(process.env.NONCE_EXPIRATION_MIN || 30),
     }),
     new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
-        process: 'process/browser',
+        process: 'process',
     })
 )
 

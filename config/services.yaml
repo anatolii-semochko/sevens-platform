@@ -53,5 +53,9 @@ services:
           categoryLogos: '%path_category_logos%'
           materials: '%path_materials%'
 
+    App\Service\NodeServer\NodeServerApiClient:
+      arguments:
+        $nodeServerBaseUrl: '%env(NODE_SERVER_BASE_URL)%'
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

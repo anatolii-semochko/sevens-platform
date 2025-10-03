@@ -29,6 +29,8 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
         $category = $this->categoryRepository->getByUrl(CategoryConstants::MATERIALS_URL);
         $categories = $this->categoryRepository->fetchCategories($category->getId());
 
+//        dd($categories, $categories[0]->getLogo());
+
         return [
             'current_locale' => $request->getLocale(),
             'global' => [
