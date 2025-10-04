@@ -76,6 +76,7 @@ class MaterialController extends BaseController
                     'token' => $material->getToken(),
                     'title' => $material->getTitle(),
                     'logo' => $material->getLogo(),
+                    'images' => $material->getGalleryImages(),
                     'description' => $material->getDescription(),
                     'createdAt' => $material->getCreatedAt()?->format('c'),
                 ]
