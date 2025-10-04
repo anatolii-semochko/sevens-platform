@@ -26,11 +26,11 @@ class MaterialController extends BaseController
     {
         try {
             $material = $this->materialRepository->get($token);
-            
+
             // Increment view count
             $material->incrementViewCount();
             $this->materialService->save($material);
-            
+
             $this->pageService->init('/material', [
                 'token' => $material->getToken(),
                 'title' => $material->getTitle(),
@@ -49,6 +49,36 @@ class MaterialController extends BaseController
                 'likeCount' => $this->voteRepository->countLikes($material->getToken()),
                 'dislikeCount' => $this->voteRepository->countDislikes($material->getToken()),
                 'isLoggedIn' => $this->getUser() !== null,
+            ],
+        ]);
+    }
+
+    #[Route('/{token}/edit', name: 'material-edit', methods: ['GET'])]
+    public function edit(string $token): Response
+    {
+        try {
+            $this->checkAuthorization($this->getUser());
+            $material = $this->materialRepository->get($token);
+
+            $this->pageService->init('/material/edit', [
+                'token' => $material->getToken(),
+                'title' => $material->getTitle(),
+                'description' => $material->getDescription(),
+            ]);
+        } catch (NotFoundException $e) {
+            return $this->page404($this->pageService, $this->materialService);
+        }
+
+        return $this->render('base.html.twig', [
+            'main_template' => 'pages/material/edit/material-edit.html.twig',
+            'data' => [
+                'material' => [
+                    'token' => $material->getToken(),
+                    'title' => $material->getTitle(),
+                    'logo' => $material->getLogo(),
+                    'description' => $material->getDescription(),
+                    'createdAt' => $material->getCreatedAt()?->format('c'),
+                ]
             ],
         ]);
     }
