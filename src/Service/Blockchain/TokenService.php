@@ -3,6 +3,7 @@
 namespace App\Service\Blockchain;
 
 use App\Entity\Token\SevensToken;
+use App\Entity\User;
 use App\Exception\NotFoundException;
 use App\Service\NodeServer\NodeServerApiClient;
 
@@ -31,5 +32,10 @@ readonly class TokenService
         } catch (\Throwable $e) {
             throw new NotFoundException('The token was not found on the blockchain.');
         }
+    }
+
+    public function checkUserAuthority(User $user, string $tokenPublicKey, array $signature)
+    {
+
     }
 }

@@ -196,9 +196,13 @@ export const SummaryActions = ({tokenFiles, clearAll, disabled}) => {
     return (
         <div className="d-flex flex-wrap align-items-center gap-2">
             Selected: <span className="fw-semibold">{totalSelected}</span> files · Total size: {prettyBytes(totalSize)}
-            <div className="ms-auto d-flex gap-2">
+            <div className="ms-auto d-flex gap-2 mb-3">
                 {!disabled && clearAll && (
-                    <button type="button" onClick={clearAll} disabled={!tokenFiles.length || anyCompressing} className="btn btn-outline-secondary">
+                    <button
+                        className="btn btn-outline-secondary"
+                        onClick={clearAll}
+                        disabled={!tokenFiles.length || anyCompressing}
+                    >
                         Clear all
                     </button>
                 )}
@@ -279,13 +283,13 @@ export const ImageInfo = ({file}) => (
     </div>
 )
 
-export const FilesList = ({tokenFiles, removeOne, clearAll, disabled}) => {
+export const FilesList = ({tokenFiles, removeOne, clearAll, disabled, className}) => {
     if (!tokenFiles.length) return (
         <li className="list-group-item text-center small text-muted">No files selected yet.</li>
     )
 
     return (
-        <>
+        <div className={className}>
             <SummaryActions {...{tokenFiles, clearAll, disabled}} />
             <ul className="list-group list-group-flush border rounded overflow-hidden">
                 {tokenFiles.map((it) => (
@@ -311,7 +315,7 @@ export const FilesList = ({tokenFiles, removeOne, clearAll, disabled}) => {
                     </li>
                 ))}
             </ul>
-        </>
+        </div>
     )
 }
 

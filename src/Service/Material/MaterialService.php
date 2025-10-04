@@ -31,13 +31,10 @@ readonly class MaterialService
 
     public function create(
         User $user,
-        string $title,
-        string $shortDescription,
-        string $description,
+        string $tokenPublicKey,
         string $containerFileName,
         string $containerHash,
-        string $tokenPublicKey,
-        array $walletSignature,
+        ?array $walletSignature,
     ): void {
         // Get token data from blockchain
         $token = $this->tokenService->getByPublicKey($tokenPublicKey);
@@ -71,20 +68,17 @@ readonly class MaterialService
 
 //        Form data - will be removed and used on material edit page
 //        dd([
-//            'title' => $title,
-//            'shortDescription' => $shortDescription,
-//            'description' => $description,
+//            'tokenPublicKey' => $tokenPublicKey,
 //            '$containerFileName' => $containerFileName,
 //            '$containerHash' => $containerHash,
-//            'tokenPublicKey' => $tokenPublicKey,
 //            'walletSignature' => $walletSignature,
 //        ]);
 
         $material = new Material();
         $material->setToken($tokenPublicKey);
-        $material->setTitle($title);
-        $material->setDescription($description);
-        $material->setLogo('logo');
+        $material->setTitle('');
+        $material->setDescription('');
+        $material->setLogo('');
         $material->setCreatedAt(new \DateTime());
         $material->setAuthor($user);
 

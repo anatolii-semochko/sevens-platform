@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { removeReferenceFile } from './utils/files'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
@@ -8,23 +8,27 @@ import { MintedInfo, TryMoreOptions } from './components/token/Components'
 import { WalletMintForm } from './components/Wallet/Components'
 import { ButtonCreateToken } from '@react/components/create-token-material/components/token/ButtonCreateToken'
 import { TokenForm } from '@react/components/create-token-material/components/token/TokenForm'
-import { MaterialForm } from './components/material/MaterialForm'
+import { PublishButton } from '@react/components/create-token-material/components/material/MaterialForm'
+
 
 export const CreateTokenMaterial = ({doMaterial}) => {
     const wallet = useWallet()
     const targetRef = useRef(null)
     const [tokenFiles, setTokenFiles] = useState([])
+    const [allowMaterial, setAllowMaterial] = useState(doMaterial)
     const [container, setContainer] = useState(null)
     const [tokenData, setTokenData] = useState(null)
     const [minted, setMinted] = useState(null)
-    const [materialData, setMaterialData] = useState(null)
     const [errorContainer, setErrorContainer] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
+
+    useEffect(() => setErrorMessage(null), [wallet.publicKey, container, tokenData, tokenFiles])
 
     const handlerChangeFiles = () => {
         setContainer(null)
         setErrorContainer(null)
         setErrorMessage(null)
+        setAllowMaterial(doMaterial)
         setTokenFiles(prev => prev.map(item => ({
             ...item,
             status: 'queued',
@@ -43,13 +47,14 @@ export const CreateTokenMaterial = ({doMaterial}) => {
         setTokenFiles([])
         setTokenData(null)
         setMinted(null)
+        setAllowMaterial(doMaterial)
     }
 
-    const showCreateContainer = () => !doMaterial || !minted
+    const showCreateContainer = () => !allowMaterial || !minted
     const showCreateToken = () => container && !container.isCompressing && !minted
     const showTokenForm = () => showCreateToken() && !errorContainer
     const showActions = () => showCreateToken()
-    const showMaterialForm = () => minted && doMaterial
+    const showCreateMaterial = () => minted && allowMaterial
 
     return (
         <div>
@@ -71,9 +76,9 @@ export const CreateTokenMaterial = ({doMaterial}) => {
                 </div>
             )}
             <MintedInfo minted={minted} />
-            <TryMoreOptions {...{minted, doMaterial, handlerClear}} />
-            {showMaterialForm() && (
-                <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}} />
+            <TryMoreOptions {...{minted, allowMaterial, setAllowMaterial, handlerClear}} />
+            {showCreateMaterial() && (
+                <PublishButton {...{container, tokenData: {tokenPublicKey: minted.mint}, walletSignature: minted}} />
             )}
         </div>
     )

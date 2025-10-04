@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react'
+import { createMaterial } from '@react/api/materialApi'
 import { Input, TextArea } from '@react/components/form-elements/Inputs'
 import { ImagePreview } from '../container/Components'
+import { ButtonLargeWidth } from '@react/components/form-elements/Buttons'
+import { MessagesBlock } from '@react/components/form-elements/Messages'
 
 const Title = ({title, setTitle, error, setErrorMessage}) => (
     <div className="col-12">
@@ -179,6 +182,38 @@ export const MaterialForm = ({
             <div className="d-flex justify-content-end gap-2">
                 <button className="btn btn-success fs-4 w-100 p-3" onClick={handlerPublish}>Publish</button>
             </div>
+        </div>
+    )
+}
+
+export const PublishButton = ({container, tokenData, walletSignature}) => {
+    const [errorMessage, setErrorMessage] = useState(null)
+
+    const handlerPublish = async () => {
+        setErrorMessage(null)
+        try {
+            const response = await createMaterial(
+                container.file.name,
+                container.hash,
+                tokenData.tokenPublicKey,
+                walletSignature,
+            )
+            console.log({response})
+            if (response.link) {
+                window.location.href = response.link
+            }
+            if (response.redirect) {
+                window.location.href = response.redirect
+            }
+        } catch (error) {
+            setErrorMessage(error.message)
+        }
+    }
+
+    return (
+        <div>
+            <MessagesBlock error={errorMessage} />
+            <ButtonLargeWidth className="btn-primary" label={'Publish material'} onClick={handlerPublish}/>
         </div>
     )
 }

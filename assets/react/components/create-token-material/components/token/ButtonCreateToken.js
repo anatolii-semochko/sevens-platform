@@ -96,6 +96,7 @@ export const ButtonCreateToken = ({tokenData, container, wallet, setMinted, setE
             setMinted({
                 signature: sig,
                 mint: mintPubkey,
+                walletPublicKey: wallet.publicKey.toString(),
             })
         } catch (error) {
             console.error('Create token error:', error)
