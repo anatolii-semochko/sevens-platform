@@ -186,6 +186,19 @@ class SevensTokenService {
             hashRegistryPda: hash ? this.getHashPda(program.programId, hash) : null,
         }
     }
+
+    async getAgeMinutes(publicKey) {
+        try {
+            const tokenData = await this.getTokenByPublicKey(publicKey)
+            const mintingTime = new Date(tokenData.mintingTime)
+            const currentTime = new Date()
+            const ageInMilliseconds = currentTime.getTime() - mintingTime.getTime()
+
+            return Math.floor(ageInMilliseconds / (1000 * 60))
+        } catch (error) {
+            throw new Error(`Failed to calculate token age: ${error.message}`)
+        }
+    }
 }
 
 // Export singleton instance
