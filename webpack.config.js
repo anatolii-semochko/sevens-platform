@@ -1,14 +1,14 @@
-const Encore = require('@symfony/webpack-encore')
-const webpack = require('webpack')
-const path = require('path')
-const fs = require('fs')
 require('dotenv').config()
+const FOSJsRoutingPlugin = require('./assets/js/router/webpack-plugin')
+const Encore = require('@symfony/webpack-encore')
+const path = require('path')
+const webpack = require('webpack')
+const fs = require('fs')
 
 Encore
     .setOutputPath('public/build/')
     .setPublicPath('/build')
 
-    // App для звичайних публічних сторінок
     .addEntry('app', './assets/app.js')
 
     .copyFiles({
@@ -64,7 +64,9 @@ config.resolve.fallback = {
     path: false,
     fs: false,
 }
+
 config.plugins.push(
+    new FOSJsRoutingPlugin(),
     new webpack.DefinePlugin({
         'process.env.ANCHOR_PROVIDER_URL': JSON.stringify(process.env.ANCHOR_PROVIDER_URL),
         'process.env.SEVENS_TOKEN_IDL_PATH': JSON.stringify(process.env.SEVENS_TOKEN_IDL_PATH),

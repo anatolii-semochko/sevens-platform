@@ -1,5 +1,4 @@
 import React from 'react'
-import store from '@react/store/index'
 
 export const MintedInfo = ({minted}) => minted && (
     <div className="alert-success alert text-break p-4 mb-4">
@@ -53,7 +52,7 @@ export const TryMoreOptions = ({
     <div className="d-flex flex-column align-items-center gap-2 text-center mb-3">
         <h6>You can try:</h6>
         <div className="d-flex flex-wrap justify-content-center gap-2">
-            <a href={store.getState().currentLocale} className="btn btn-primary">Check your token container</a>
+            <a href={Routing.generate('check_token')} className="btn btn-primary">Check your token container</a>
             <button className="btn btn-primary" onClick={handlerClear}>Mint a new token</button>
             <button className="btn btn-primary" onClick={() => setAllowMaterial(true)}>Publish material on site</button>
         </div>

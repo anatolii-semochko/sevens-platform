@@ -108,3 +108,32 @@ And rename them to correct file names if you see something like this (remove "+4
 sevenstime.local+4.pem -> sevenstime.local.pem
 sevenstime.local+4-key.pem -> sevenstime.local-key.pem
 ```
+
+
+## JS Router
+
+### Import:
+```typescript
+// Main functions
+import { route, routeExists, RoutingWithLocale } from '@js/router/routing-with-locale'
+
+// Simple helpers
+import { route } from '@js/router/routing-with-locale'
+```
+
+### Using examples:
+```typescript
+// 1. Simple (with locale)
+const url = route('check_token')  // /uk/check-token
+
+// 2. With parameters
+const materialUrl = route('material_page', { token: 'abc123' })  // /uk/material/abc123
+
+// 3. Object Routing
+const url = RoutingWithLocale.generate('check_token')  // /uk/check-token
+
+// 4. Check route existance
+if (routeExists('admin_panel')) {
+    // Rouuse exists
+}
+```

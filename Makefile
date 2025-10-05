@@ -123,10 +123,22 @@ push:
 	docker push ${REGISTRY}/${IMAGE_NAME}-php-cli:${IMAGE_TAG}
 	docker push ${REGISTRY}/${IMAGE_NAME}-postgres-backup:${IMAGE_TAG}
 
-app-build:
+app-build: routes
 	docker compose run --rm --user root ${APP_PHP_CLI} composer install
 	docker compose run --rm -w /app web-node npm install
 	docker compose run --rm -w /app web-node yarn build
+
+routes:
+	docker compose exec -T php-fpm php bin/console fos:js-routing:dump --target=public/build/fos_js_routes.json --format=json
+
+routes-check:
+	@echo "Checking routes file..."
+	@if [ -f public/build/fos_js_routes.json ]; then \
+		echo "✅ Routes file exists: public/build/fos_js_routes.json"; \
+		echo "📊 Routes count: $$(jq -r '.routes | length' public/build/fos_js_routes.json 2>/dev/null || echo 'unknown')"; \
+	else \
+		echo "❌ Routes file not found. Run: make routes"; \
+	fi
 
 ##########
 ## Deploy
@@ -186,13 +198,13 @@ node:
 yarn-install:
 	docker compose run --rm -w /app web-node yarn install
 
-yarn-build-development:
+yarn-build-development: routes
 	docker compose run --rm -w /app web-node yarn encore dev
 
-yarn-build-production:
+yarn-build-production: routes
 	docker compose run --rm -w /app web-node yarn build
 
-yarn-watch:
+yarn-watch: routes
 	docker compose run --rm -w /app web-node yarn dev-watch
 
 build-permissions:
