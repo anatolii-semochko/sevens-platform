@@ -82,7 +82,7 @@ export const CreateMaterialFromToken = () => {
             )}
             <MessagesBlock error={errorMessage} />
             {!!walletSignature && (
-                <PublishButton {...{container, tokenData}} />
+                <PublishButton {...{container, tokenData, walletSignature}} />
             )}
             <ButtonClearPickContainer {...{container, tokenFiles, tokenData, handlerClear}} />
         </div>

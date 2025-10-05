@@ -78,7 +78,7 @@ export const CreateTokenMaterial = ({doMaterial}) => {
             <MintedInfo minted={minted} />
             <TryMoreOptions {...{minted, allowMaterial, setAllowMaterial, handlerClear}} />
             {showCreateMaterial() && (
-                <PublishButton {...{container, tokenData: {tokenPublicKey: minted.mint}, walletSignature: minted}} />
+                <PublishButton {...{container, tokenData: {tokenPublicKey: minted.mint}}} />
             )}
         </div>
     )

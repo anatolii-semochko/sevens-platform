@@ -76,8 +76,7 @@ const mint = async ({
             .accounts(accounts)
             .instruction()
 
-
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash(commitment)
+        const { blockhash} = await connection.getLatestBlockhash(commitment)
         const tx = new Transaction()
         tx.add(ix)
         tx.feePayer = payerPublicKey
@@ -86,7 +85,7 @@ const mint = async ({
 
         return {
             tx,
-            mint, // Keypair (потрібен як локальний підписант, не передавай у проді за межі безпечного середовища)
+            mint,
             publicKey: mint.publicKey.toBase58(),
             metadataPublicKey: metadataPda.toBase58(),
             salePublicKey: salePda.toBase58(),

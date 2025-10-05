@@ -6,16 +6,14 @@ use App\Entity\Material\Material;
 use App\Entity\User;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
-use App\Service\Blockchain\WalletService;
+use App\Service\NodeServer\NodeServerApiException;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 
 readonly class MaterialService
 {
     public function __construct(
         private EntityManagerInterface $em,
         private MaterialRepository $repository,
-        private WalletService $walletService,
         private TokenService $tokenService,
     ) {}
 
@@ -29,6 +27,9 @@ readonly class MaterialService
         return $this->repository->findOneBy(['token' => $tokenPublicKey]);
     }
 
+    /**
+     * @throws NodeServerApiException
+     */
     public function create(
         User $user,
         string $tokenPublicKey,
@@ -38,21 +39,10 @@ readonly class MaterialService
     ): void {
         // Get token data from blockchain
         $token = $this->tokenService->getByPublicKey($tokenPublicKey);
+        // Check if user owns the token
+        $this->tokenService->checkUserPermissionToPublishMaterial($token, $walletSignature);
 
-        // Check if wallet possess this token
-        if ($token->getWalletPublicKey() !== $walletSignature['walletPublicKey']) {
-            throw new InvalidArgumentException('Only the token owner can publish materials');
-        }
-
-        // Check wallet signature
-        $this->walletService->verifyWalletSignature(
-            $token->getWalletPublicKey(),
-            $walletSignature['signature'],
-            $walletSignature['nonce'],
-        );
-
-
-//        Token data directly from blockchain
+//        Trust token data
 //        dd([
 //            'title' => $token->getName(),
 //            'tokenName' => $token->getName(),
@@ -66,7 +56,7 @@ readonly class MaterialService
 //            'mintingTime' => $token->getMintingTime(),
 //        ]);
 
-//        Form data - will be removed and used on material edit page
+//        Form data
 //        dd([
 //            'tokenPublicKey' => $tokenPublicKey,
 //            '$containerFileName' => $containerFileName,

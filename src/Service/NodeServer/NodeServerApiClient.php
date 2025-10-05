@@ -64,8 +64,6 @@ readonly class NodeServerApiClient
     }
 
     /**
-     * @param string $tokenPublicKey
-     * @return array
      * @throws NodeServerApiException
      */
     public function getTokenAgeMinutes(string $tokenPublicKey): array
@@ -90,7 +88,7 @@ readonly class NodeServerApiClient
         ];
 
         if ($content) {
-            $this['content'] = $content;
+            $http['content'] = $content;
         }
 
         return stream_context_create([

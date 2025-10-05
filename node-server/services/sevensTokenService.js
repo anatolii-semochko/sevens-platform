@@ -190,11 +190,12 @@ class SevensTokenService {
     async getAgeMinutes(publicKey) {
         try {
             const tokenData = await this.getTokenByPublicKey(publicKey)
-            const mintingTime = new Date(tokenData.mintingTime)
-            const currentTime = new Date()
-            const ageInMilliseconds = currentTime.getTime() - mintingTime.getTime()
+            const blockchainTimestamp = tokenData.metadata.timestamp.toNumber()
+            const currentTimeSeconds = Math.floor(Date.now() / 1000)
+            const ageInSeconds = currentTimeSeconds - blockchainTimestamp
+            const ageInMinutes = Math.floor(ageInSeconds / 60)
 
-            return Math.floor(ageInMilliseconds / (1000 * 60))
+            return Math.max(0, ageInMinutes)
         } catch (error) {
             throw new Error(`Failed to calculate token age: ${error.message}`)
         }

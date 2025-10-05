@@ -192,12 +192,15 @@ export const PublishButton = ({container, tokenData, walletSignature}) => {
     const handlerPublish = async () => {
         setErrorMessage(null)
         try {
+            // TODO - add container size
             const response = await createMaterial(
                 container.file.name,
                 container.hash,
                 tokenData.tokenPublicKey,
-                walletSignature,
+                walletSignature || null,
             )
+
+            // TODO - chow button with link
             console.log({response})
             if (response.link) {
                 window.location.href = response.link
@@ -205,6 +208,9 @@ export const PublishButton = ({container, tokenData, walletSignature}) => {
             if (response.redirect) {
                 window.location.href = response.redirect
             }
+
+            // TODO - add user authentication popup
+
         } catch (error) {
             setErrorMessage(error.message)
         }
