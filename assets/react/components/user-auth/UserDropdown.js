@@ -40,14 +40,14 @@ export default function UserDropdown({ user }) {
 
     return (
         <div className="position-relative" ref={dropdownRef}>
-            <a 
-                href="#" 
-                className="text-dark d-flex align-items-center" 
+            <a
+                href="#"
+                className="text-dark d-flex align-items-center"
                 onClick={toggleDropdown}
             >
                 <i className="bi bi-person fs-4 icon-button"></i>
             </a>
-            
+
             {isOpen && (
                 <div className="dropdown-menu dropdown-menu-end show position-absolute" style={{ top: '100%', right: 0, minWidth: '200px' }}>
                     <div className="dropdown-header">
@@ -60,16 +60,23 @@ export default function UserDropdown({ user }) {
                         </div>
                     </div>
                     <div className="dropdown-divider"></div>
-                    <button 
-                        className="dropdown-item d-flex align-items-center" 
+                    <button
+                        className="dropdown-item d-flex align-items-center"
                         onClick={handlePersonalCabinet}
                     >
                         <i className="bi bi-person-gear me-2"></i>
                         Personal Cabinet
                     </button>
+                    <a
+                        className="dropdown-item d-flex align-items-center"
+                        href={Routing.generate('material_manage')}
+                    >
+                        <i className="bi bi-person-gear me-2"></i>
+                        My materials
+                    </a>
                     <div className="dropdown-divider"></div>
-                    <button 
-                        className="dropdown-item d-flex align-items-center text-danger" 
+                    <button
+                        className="dropdown-item d-flex align-items-center text-danger"
                         onClick={handleLogout}
                     >
                         <i className="bi bi-box-arrow-right me-2"></i>

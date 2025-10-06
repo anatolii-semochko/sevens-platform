@@ -17,6 +17,10 @@ class Material
     #[ORM\Column(type: 'string', length: 44, unique: true)]
     private string $token;
 
+    #[ORM\Column(type: 'boolean')]
+    #[Groups(['material:read'])]
+    private bool $active = true;
+
     #[ORM\Column(type: 'string', length: 64)]
     #[Groups(['material:read'])]
     private string $title;
@@ -63,6 +67,7 @@ class Material
 
     public function __construct()
     {
+        $this->active = false;
         $this->votes = new ArrayCollection();
     }
 

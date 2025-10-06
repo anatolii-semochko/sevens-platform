@@ -22,40 +22,25 @@ class MaterialController extends BaseController
         private readonly MaterialVoteRepository $voteRepository,
     ) {}
 
-    #[Route('/{token}', name: 'page', methods: ['GET'])]
-    public function get(string $token): Response
+    #[Route('/manage', name: 'manage', methods: ['GET'])]
+    public function myMaterials(Request $request): Response
     {
-        try {
-            $material = $this->materialRepository->get($token);
-
-            // Increment view count
-            $material->incrementViewCount();
-            $this->materialService->save($material);
-
-            $this->pageService->init('/material', [
-                'token' => $material->getToken(),
-                'title' => $material->getTitle(),
-                'description' => $material->getDescription(),
-            ]);
-        } catch (NotFoundException $e) {
-            return $this->page404($this->pageService, $this->materialService);
+        if ($response = $this->requireAuth($request)) {
+            return $response;
         }
 
+        $this->pageService->init('/material/manage-my-materials');
+
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/material/main/material.html.twig',
+            'main_template' => 'pages/my-materials/list.html.twig',
             'data' => [
-                'material' => $material,
-                'materialsHighestRated' => $this->materialService->getHighestRated(50, $material->getToken()),
-                'materialsByAuthor' => $this->materialService->getByAuthor($material, 10),
-                'likeCount' => $this->voteRepository->countLikes($material->getToken()),
-                'dislikeCount' => $this->voteRepository->countDislikes($material->getToken()),
-                'isLoggedIn' => $this->getUser() !== null,
+                'materials' => []
             ],
         ]);
     }
 
-    #[Route('/{token}/edit', name: 'material-edit', methods: ['GET'])]
-    public function edit(string $token, Request $request): Response
+    #[Route('/manage/{token}', name: 'manage_one', methods: ['GET'])]
+    public function manage(string $token, Request $request): Response
     {
         if ($response = $this->requireAuth($request)) {
             return $response;
@@ -84,6 +69,38 @@ class MaterialController extends BaseController
                     'description' => $material->getDescription(),
                     'createdAt' => $material->getCreatedAt()?->format('c'),
                 ]
+            ],
+        ]);
+    }
+
+    #[Route('/{token}', name: 'page', methods: ['GET'])]
+    public function get(string $token): Response
+    {
+        try {
+            $material = $this->materialRepository->get($token);
+
+            // Increment view count
+            $material->incrementViewCount();
+            $this->materialService->save($material);
+
+            $this->pageService->init('/material', [
+                'token' => $material->getToken(),
+                'title' => $material->getTitle(),
+                'description' => $material->getDescription(),
+            ]);
+        } catch (NotFoundException $e) {
+            return $this->page404($this->pageService, $this->materialService);
+        }
+
+        return $this->render('base.html.twig', [
+            'main_template' => 'pages/material/main/material.html.twig',
+            'data' => [
+                'material' => $material,
+                'materialsHighestRated' => $this->materialService->getHighestRated(50, $material->getToken()),
+                'materialsByAuthor' => $this->materialService->getByAuthor($material, 10),
+                'likeCount' => $this->voteRepository->countLikes($material->getToken()),
+                'dislikeCount' => $this->voteRepository->countDislikes($material->getToken()),
+                'isLoggedIn' => $this->getUser() !== null,
             ],
         ]);
     }

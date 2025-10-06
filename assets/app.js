@@ -55,7 +55,7 @@ if (userAuth) {
     root.render(<Provider store={store}><UserAuth user={userData} registerUrl={registerUrl} /></Provider>)
 }
 
-const materialEdit = document.getElementById('material-edit')
+const materialEdit = document.getElementById('material_manage')
 if (materialEdit) {
     const material = JSON.parse(materialEdit.dataset.material)
     createRoot(materialEdit).render(<MaterialEdit material={material} />)
