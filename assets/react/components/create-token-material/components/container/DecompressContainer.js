@@ -3,6 +3,7 @@ import { prettyBytes } from '@js/utils/file'
 import { decompressContainerSmart, removeExtractedFilesFolder, cleanupMemoryFiles } from '../../utils/files'
 import { DecompressCancellationToken, isCancellationError } from './DecompressCancellationToken'
 import { DecompressingStatus, FilesList } from '../container/Components'
+import { ButtonLargeWidth } from '@react/components/form-elements/Buttons'
 import { FILE_MEMORY_DECOMPRESSION_LIMIT } from '../../constants'
 
 export const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, onStartDecompression, tokenData}) => {
@@ -196,8 +197,10 @@ export const ButtonClearPickContainer = ({container, tokenFiles, tokenData, hand
     }, [container, tokenFiles, handlerClear])
 
     return container && !container.isHashing && !container.isDecompressing && (container.files || tokenData) && (
-        <button className="btn btn-primary fs-5 w-100 p-3" onClick={handleClear}>
-            Clear and pick different container file
-        </button>
+        <ButtonLargeWidth
+            className={'btn-primary'}
+            label={'Clear and pick different container file'}
+            onClick={handleClear}
+        />
     )
 }

@@ -12,7 +12,7 @@ export const fetchNonce = async (walletPublicKey) => {
 
 export const validateNonce = async (walletAddress, signature, nonce) => {
     const url = mainUrl + `/auth/verify`
-    axios.post(url, {walletAddress, signature, nonce})
+    return axios.post(url, {walletAddress, signature, nonce})
         .then(response => response.data.data)
         .catch(throwErrorMessage)
 }

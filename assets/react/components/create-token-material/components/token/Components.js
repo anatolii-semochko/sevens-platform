@@ -43,18 +43,15 @@ export const ShowTokenValidity = ({container, tokenData}) => {
     )
 }
 
-export const TryMoreOptions = ({
-    minted,
-    allowMaterial,
-    setAllowMaterial,
-    handlerClear,
-}) => minted && !allowMaterial && (
+export const TryMoreOptions = ({minted, handlerClear}) => minted && (
     <div className="d-flex flex-column align-items-center gap-2 text-center mb-3">
         <h6>You can try:</h6>
         <div className="d-flex flex-wrap justify-content-center gap-2">
             <a href={Routing.generate('check_token')} className="btn btn-primary">Check your token container</a>
             <button className="btn btn-primary" onClick={handlerClear}>Mint a new token</button>
-            <button className="btn btn-primary" onClick={() => setAllowMaterial(true)}>Publish material on site</button>
+            <a href={Routing.generate('create_material_from_token')} className="btn btn-primary">
+                Publish material on site
+            </a>
         </div>
     </div>
 )

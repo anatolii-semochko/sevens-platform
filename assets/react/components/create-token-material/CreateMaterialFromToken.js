@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
+import store from '@react/store'
 import { deriveTokenData } from './utils/blockchain'
 import { calculateContainerHash, removeExtractedFilesFolder } from './utils/files'
+import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
 import { MessagesBlock } from '@react/components/form-elements/Messages'
 import { ShowTokenValidity } from './components/token/Components'
 import { WalletCheckForm } from './components/Wallet/Components'
@@ -59,6 +61,10 @@ export const CreateMaterialFromToken = () => {
             deriveTokenData(container.hash, setTokenData).catch(error => setErrorMessage(error.message))
         }
     }, [container?.hash])
+
+    if (!store.getState().user) return (
+        <UserAuthorization message={'To publish material you need to log in.'}/>
+    )
 
     if (!container?.file) return (
         <SelectContainerFile container={container} onSelectContainer={onSelectContainer} needsExtraction={false} />

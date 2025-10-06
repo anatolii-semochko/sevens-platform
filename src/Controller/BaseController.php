@@ -29,6 +29,9 @@ class BaseController extends AbstractController
             // TODO - Add redirect to authorization page
             throw new AccessDeniedHttpException('User not authorized');
         }
+        if (!$user->isVerified()) {
+            throw new AccessDeniedHttpException('User is not verified');
+        }
         if ($userId && $userId !== $user->getId()) {
             throw new AccessDeniedHttpException('User not authorized');
         }
