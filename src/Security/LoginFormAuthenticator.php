@@ -21,7 +21,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 {
     use TargetPathTrait;
 
-    public const LOGIN_ROUTE = 'app_login';
+    public const string LOGIN_ROUTE = 'app_login';
 
     public function __construct(private UrlGeneratorInterface $urlGenerator)
     {
@@ -48,9 +48,14 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($targetPath);
         }
 
-        // For example:
+        if ($referer = $request->headers->get('referer')) {
+            $host = $request->getSchemeAndHttpHost();
+            if (str_starts_with($referer, $host)) {
+                return new RedirectResponse($referer);
+            }
+        }
+
         return new RedirectResponse($this->urlGenerator->generate('user_index'));
-        //throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
     }
 
     protected function getLoginUrl(Request $request): string
