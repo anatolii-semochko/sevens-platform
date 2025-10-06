@@ -3,6 +3,13 @@ import { throwErrorMessage } from '@react/api/indexApi'
 
 const mainUrl = '/node'
 
+export const fetchSevensTokenByPublicKey = async (publicKey) => {
+    const url = mainUrl + `/sevens-tokens?publicKey=${publicKey}`
+    return axios.get(url)
+        .then(response => response.data.data)
+        .catch(throwErrorMessage)
+}
+
 export const fetchNonce = async (walletPublicKey) => {
     const url = mainUrl + `/auth/nonce?walletAddress=${walletPublicKey}`
     return axios.get(url)

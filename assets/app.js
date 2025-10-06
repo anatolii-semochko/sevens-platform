@@ -19,7 +19,7 @@ import { openWallet, closeWallet } from '@js/wallet'
 import Create from '@react/components/create-token-material/Create'
 import CheckToken from '@react/components/check-token/CheckToken'
 import UserAuth from '@react/components/user-auth/UserAuth'
-import MaterialEdit from '@react/components/material-edit/MaterialEdit'
+import MaterialManage from '@react/components/material-manage/MaterialManage'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
 
@@ -57,8 +57,7 @@ if (userAuth) {
 
 const materialEdit = document.getElementById('material_manage')
 if (materialEdit) {
-    const material = JSON.parse(materialEdit.dataset.material)
-    createRoot(materialEdit).render(<MaterialEdit material={material} />)
+    createRoot(materialEdit).render(<MaterialManage token={materialEdit.dataset.token} />)
 }
 
 const materialVotes = document.getElementById('material-votes')

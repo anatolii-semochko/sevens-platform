@@ -138,4 +138,29 @@ readonly class MaterialService
             ->getQuery()
             ->getResult();
     }
+
+    public function updateMaterial(Material $material, array $data): void
+    {
+        if (isset($data['active'])) {
+            $material->setActive((bool) $data['active']);
+        }
+
+        if (isset($data['title'])) {
+            $material->setTitle($data['title']);
+        }
+
+        if (isset($data['logo'])) {
+            $material->setLogo($data['logo'] ?? '');
+        }
+
+        if (isset($data['description'])) {
+            $material->setDescription($data['description']);
+        }
+
+        if (isset($data['price'])) {
+            $material->setPrice($data['price']);
+        }
+
+        $this->save($material);
+    }
 }

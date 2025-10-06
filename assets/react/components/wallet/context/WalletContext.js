@@ -152,7 +152,7 @@ const WalletContextProvider = ({ children }) => {
 
     useEffect(() => {
         const handleConnectRequest = (event) => {
-            console.log('Sevens Wallet connect request received')
+            // console.log('Sevens Wallet connect request received')
             openWallet()
 
             if (currentWallet) {
@@ -163,7 +163,7 @@ const WalletContextProvider = ({ children }) => {
         }
 
         const handleDisconnectRequest = (event) => {
-            console.log('Sevens Wallet disconnect request received')
+            // console.log('Sevens Wallet disconnect request received')
             // Don't call closeWallet() here as it will cause double event emission
             // The adapter handles its own disconnection
         }
@@ -194,56 +194,56 @@ const WalletContextProvider = ({ children }) => {
         }
 
         const handleCloseDialog = (event) => {
-            console.log('Close dialog request received')
+            // console.log('Close dialog request received')
             setShowComponent(null)
         }
 
         const handleGetCurrent = (event) => {
-            console.log('📥 [Context] Get current wallet request received')
-            console.log('📊 [Context] Current state:', {
-                hasCurrentWallet: !!currentWallet,
-                hasPublicKey: !!currentWallet?.publicKey,
-                publicKey: currentWallet?.publicKey?.toString(),
-                unlocked,
-                hasWalletData: !!walletData?.publicKey
-            })
+            // console.log('📥 [Context] Get current wallet request received')
+            // console.log('📊 [Context] Current state:', {
+            //     hasCurrentWallet: !!currentWallet,
+            //     hasPublicKey: !!currentWallet?.publicKey,
+            //     publicKey: currentWallet?.publicKey?.toString(),
+            //     unlocked,
+            //     hasWalletData: !!walletData?.publicKey
+            // })
             const { callback } = event.detail || {}
             if (callback && currentWallet && currentWallet.publicKey) {
-                console.log('✅ [Context] Calling callback with current wallet')
+                // console.log('✅ [Context] Calling callback with current wallet')
                 callback(currentWallet)
             } else if (callback) {
-                console.log('❌ [Context] Calling callback with null (no wallet available)')
+                // console.log('❌ [Context] Calling callback with null (no wallet available)')
                 callback(null)
             }
         }
 
         const handlePing = (event) => {
-            console.log('📥 [Context] Wallet ping received, announcing current state')
-            console.log('📊 [Context] Current state:', {
-                hasCurrentWallet: !!currentWallet,
-                hasPublicKey: !!currentWallet?.publicKey,
-                publicKey: currentWallet?.publicKey?.toString(),
-                unlocked
-            })
+            // console.log('📥 [Context] Wallet ping received, announcing current state')
+            // console.log('📊 [Context] Current state:', {
+            //     hasCurrentWallet: !!currentWallet,
+            //     hasPublicKey: !!currentWallet?.publicKey,
+            //     publicKey: currentWallet?.publicKey?.toString(),
+            //     unlocked
+            // })
             // Respond to ping by announcing current wallet state
             if (currentWallet && currentWallet.publicKey) {
-                console.log('📤 [Context] Emitting sevens-wallet-connected in response to ping')
+                // console.log('📤 [Context] Emitting sevens-wallet-connected in response to ping')
                 eventBus.emit('sevens-wallet-connected', {
                     wallet: currentWallet
                 })
             } else {
-                console.log('⚠️ [Context] No current wallet to announce')
+                // console.log('⚠️ [Context] No current wallet to announce')
             }
         }
 
         const handleReloadRequest = (event) => {
-            console.log('🔄 [Context] Wallet reload request received')
+            // console.log('🔄 [Context] Wallet reload request received')
             if (password && walletReload) {
                 // Perform 3 sequential reloads with 1-second intervals
                 const performReloads = async () => {
                     try {
                         for (let i = 1; i <= 3; i++) {
-                            console.log(`🔄 [Context] Wallet reload attempt ${i}/3`)
+                            // console.log(`🔄 [Context] Wallet reload attempt ${i}/3`)
                             await walletReload()
 
                             // Wait 1 second between reloads (except after the last one)
@@ -251,9 +251,9 @@ const WalletContextProvider = ({ children }) => {
                                 await new Promise(resolve => setTimeout(resolve, 1000))
                             }
                         }
-                        console.log('✅ [Context] All wallet reloads completed successfully')
+                        // console.log('✅ [Context] All wallet reloads completed successfully')
                     } catch (error) {
-                        console.error('❌ [Context] Wallet reload failed:', error)
+                        // console.error('❌ [Context] Wallet reload failed:', error)
                     }
                 }
 
@@ -287,7 +287,7 @@ const WalletContextProvider = ({ children }) => {
 
     useEffect(() => {
         if (currentWallet) {
-            console.log('Sevens Wallet is now available, notifying adapters')
+            // console.log('Sevens Wallet is now available, notifying adapters')
             eventBus.emit('sevens-wallet-connected', {
                 wallet: currentWallet
             })

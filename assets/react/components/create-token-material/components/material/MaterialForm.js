@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { createMaterial } from '@react/api/materialApi'
+import MaterialApi from '@react/api/materialApi'
 import { Input, TextArea } from '@react/components/form-elements/Inputs'
 import { ImagePreview } from '../container/Components'
 import { ButtonLargeWidth } from '@react/components/form-elements/Buttons'
-import { MessagesBlock } from '@react/components/form-elements/Messages'
+import { MessagesBlock } from '@react/components/info-componnents/Messages'
+
+const materialApi = new MaterialApi()
 
 const Title = ({title, setTitle, error, setErrorMessage}) => (
     <div className="col-12">
@@ -193,7 +195,7 @@ export const PublishButton = ({container, tokenData, walletSignature}) => {
         setErrorMessage(null)
         try {
             // TODO - add container size
-            const response = await createMaterial(
+            const response = await materialApi.create(
                 container.file.name,
                 container.hash,
                 tokenData.tokenPublicKey,
@@ -219,7 +221,7 @@ export const PublishButton = ({container, tokenData, walletSignature}) => {
     return (
         <div>
             <MessagesBlock error={errorMessage} />
-            <ButtonLargeWidth className="btn-primary" label={'Publish material'} onClick={handlerPublish}/>
+            <ButtonLargeWidth className="btn-success" label={'Publish material'} onClick={handlerPublish}/>
         </div>
     )
 }

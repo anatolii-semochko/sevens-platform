@@ -6,7 +6,6 @@ use App\Service\PageContent\PageService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 class BaseController extends AbstractController
@@ -37,19 +36,5 @@ class BaseController extends AbstractController
         }
 
         return null;
-    }
-
-    public function checkAuthorizationAjax(?string $userId = null): void
-    {
-        $user = $this->getUser();
-        if (!$user || !$user->getId()) {
-            throw new AccessDeniedHttpException('User not authorized');
-        }
-        if (!$user->isVerified()) {
-            throw new AccessDeniedHttpException('User is not verified');
-        }
-        if ($userId && $userId !== $user->getId()) {
-            throw new AccessDeniedHttpException('User not authorized for this operation');
-        }
     }
 }

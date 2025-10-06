@@ -1,0 +1,64 @@
+<main class="mp-page">
+    <div class="container">
+        <h3>My materials</h3>
+
+        {% if data.materials is empty %}
+            <p>У вас ще немає матеріалів.</p>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Logo</th>
+                            <th>Token</th>
+                            <th>Material</th>
+                            <th>Price</th>
+                            <th>Created</th>
+                            <th>Views</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for material in data.materials %}
+                            <tr>
+                                <td>
+                                    {% if material.logo %}
+                                        <img src="{{ material.logo }}" alt="Logo" style="width: 50px; height: 50px; object-fit: cover;">
+                                    {% else %}
+                                        <div style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                            <span>No logo</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <code class="text-break" style="font-size: 0.8em;">{{ material.token }}</code>
+                                </td>
+                                <td>{{ material.title }}</td>
+                                <td>
+                                    {% if material.price and material.price > 0 %}
+                                        {{ material.price }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ material.createdAt|date('d.m.Y H:i') }}</td>
+                                <td>{{ material.viewCount }}</td>
+                                <td>
+                                    {% if material.isActive %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ path('material_manage_one', {'token': material.token}) }}" class="btn btn-primary">Manage</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+</main>

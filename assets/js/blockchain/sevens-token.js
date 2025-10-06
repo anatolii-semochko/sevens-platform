@@ -217,10 +217,7 @@ const burn = async (tokenPublicKey, walletPublicKey) => {
     }
 }
 
-/**
- * @returns {Promise<string>} txSignature
- */
-const setSale = async ({ tokenPublicKey, onSale, price }) => {
+const setSale = async ({ tokenPublicKey, price, wallet }) => {
     try {
         const mint = new PublicKey(tokenPublicKey)
         const {
@@ -228,20 +225,34 @@ const setSale = async ({ tokenPublicKey, onSale, price }) => {
             salePda,
         } = getSevensToken(mint)
 
-        const owner = provider().wallet.publicKey
-        const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, wallet.publicKey, false, TOKEN_PROGRAM_ID)
 
-        return await program.methods
-            .setSale(onSale, new BN(price))
+        const ix = await program.methods
+            .setSale(price > 0, new BN(price))
             .accounts({
-                ownerAccount: owner,
+                ownerAccount: wallet.publicKey,
                 mint,
                 tokenAccount,
                 sale: salePda,
                 saleAuthority: salePda,
                 tokenProgram: TOKEN_PROGRAM_ID,
             })
-            .rpc()
+            .instruction()
+
+        const { blockhash } = await connection.getLatestBlockhash(commitment)
+        const tx = new Transaction()
+        tx.add(ix)
+        tx.feePayer = wallet.publicKey
+        tx.recentBlockhash = blockhash
+
+        const txSignature = await wallet.signTransaction(tx)
+
+        const signature = await connection.sendRawTransaction(txSignature.serialize(), {
+            skipPreflight: false,
+            preflightCommitment: commitment,
+        })
+
+        return await connection.confirmTransaction({signature, commitment})
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
     }

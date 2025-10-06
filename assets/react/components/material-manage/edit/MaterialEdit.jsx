@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
-import { Input, TextArea } from '@react/components/form-elements/Inputs'
 import { getExt, isAudio, isImage, isPdf, isVideo } from '@js/utils/file'
+import { Input, TextArea } from '@react/components/form-elements/Inputs'
+import { MessagesBlock } from '@react/components/info-componnents/Messages'
 
 const Title = ({title, setTitle, error, setErrorMessage}) => (
     <div className="col-12">
@@ -145,14 +146,14 @@ export const ImageSelectMain = ({images, logo, setLogo}) => {
                                 </div>
                             )}
                             <div style={{ height: '80px', overflow: 'hidden' }} className="d-flex align-items-center justify-content-center">
-                                <img 
-                                    src={window.AppConfig.path.materials + '/' + image} 
-                                    alt={image} 
+                                <img
+                                    src={window.AppConfig.path.materials + '/' + image}
+                                    alt={image}
                                     style={{
-                                        width: "100%", 
-                                        height: "100%", 
+                                        width: "100%",
+                                        height: "100%",
                                         objectFit: "cover"
-                                    }} 
+                                    }}
                                 />
                             </div>
                             <div className="text-center mt-2">
@@ -235,11 +236,12 @@ export const ImageSelectMain = ({images, logo, setLogo}) => {
 //     )
 // }
 
-export const MaterialForm = ({materialData, setMaterialData, setErrorMessage, handlerSave}) => {
-    const [title, setTitle] = useState(materialData?.title || '')
-    const [shortDescription, setShortDescription] = useState(materialData?.shortDescription || '')
-    const [description, setDescription] = useState(materialData?.description || '')
-    const [logo, setLogo] = useState(materialData?.logo || null)
+export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessage, setErrorMessage}) => {
+    const [materialData, setMaterialData] = useState(material)
+    const [title, setTitle] = useState(material?.title || '')
+    const [shortDescription, setShortDescription] = useState(material?.shortDescription || '')
+    const [description, setDescription] = useState(material?.description || '')
+    const [logo, setLogo] = useState(material?.logo || null)
 
     useEffect(() => {
         setMaterialData(prev => ({...prev, title, shortDescription, description, logo}))
@@ -247,7 +249,7 @@ export const MaterialForm = ({materialData, setMaterialData, setErrorMessage, ha
 
     return (
         <div className="mb-3 pt-2">
-            <h4 className="text-center mb-3">Edit publication</h4>
+            <h4 className="text-center mb-4">Edit publication</h4>
             <div className="row mb-3">
                 <div className="col-12 col-lg-5">
                     <Preview logo={logo} />
@@ -261,8 +263,12 @@ export const MaterialForm = ({materialData, setMaterialData, setErrorMessage, ha
                     </div>
                 </div>
             </div>
+            <MessagesBlock error={errorMessage} />
             <div className="d-flex justify-content-end gap-2">
-                <button className="btn btn-success fs-4 w-100 p-3" onClick={handlerSave}>Save</button>
+                <button className="btn btn-primary px-5" onClick={() => setMaterialForm(null)}>Cancel</button>
+                <button className="btn btn-success px-5" onClick={() =>handlerSave(materialData)}>
+                    Save
+                </button>
             </div>
         </div>
     )

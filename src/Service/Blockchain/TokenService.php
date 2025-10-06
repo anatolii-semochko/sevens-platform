@@ -4,8 +4,10 @@ namespace App\Service\Blockchain;
 
 use App\Entity\Token\SevensToken;
 use App\Exception\NotFoundException;
+use App\Repository\Material\MaterialRepository;
 use App\Service\NodeServer\NodeServerApiClient;
 use App\Service\NodeServer\NodeServerApiException;
+use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
 readonly class TokenService
@@ -13,8 +15,10 @@ readonly class TokenService
     private const int ALLOWED_TOKEN_MAX_AGE_WITHOUT_SIGNATURE_MINUTES = 15;
 
     public function __construct(
+        private EntityManagerInterface $em,
         private NodeServerApiClient $nodeServerApiClient,
         private WalletService $walletService,
+        private MaterialRepository $materialRepository,
     ) {}
 
     public function getByPublicKey(string $publicKey): SevensToken
@@ -91,5 +95,25 @@ readonly class TokenService
             $walletSignature['nonce'] ?: null,
             $walletSignature['signature'],
         );
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function refreshSaleStatus(string $tokenPublicKey): array
+    {
+        $tokenData = $this->nodeServerApiClient->getTokenMetadata($tokenPublicKey)['data'];
+        $material = $this->materialRepository->findOneBy(['token' => $tokenPublicKey]);
+        if ($material) {
+            $priceToken = $tokenData['sale']['priceSevens'];
+            $priceMaterial = $material->getPrice();
+            if ($priceToken !== $priceMaterial) {
+                $material->setPrice($priceToken);
+                $this->em->persist($material);
+                $this->em->flush();
+            }
+        }
+
+        return $tokenData;
     }
 }

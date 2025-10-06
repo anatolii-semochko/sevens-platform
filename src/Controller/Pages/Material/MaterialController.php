@@ -29,12 +29,15 @@ class MaterialController extends BaseController
             return $response;
         }
 
+        $user = $this->getUser();
+        $materials = $this->materialRepository->getMaterialsByUser($user->getId());
+
         $this->pageService->init('/material/manage-my-materials');
 
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/my-materials/list.html.twig',
+            'main_template' => 'pages/materials-manage/list.html.twig',
             'data' => [
-                'materials' => []
+                'materials' => $materials
             ],
         ]);
     }
@@ -59,16 +62,9 @@ class MaterialController extends BaseController
         }
 
         return $this->render('base.html.twig', [
-            'main_template' => 'pages/material/edit/material-edit.html.twig',
+            'main_template' => 'pages/materials-manage/manage.html.twig',
             'data' => [
-                'material' => [
-                    'token' => $material->getToken(),
-                    'title' => $material->getTitle(),
-                    'logo' => $material->getLogo(),
-                    'images' => $material->getGalleryImages(),
-                    'description' => $material->getDescription(),
-                    'createdAt' => $material->getCreatedAt()?->format('c'),
-                ]
+                'token' => $material->getToken(),
             ],
         ]);
     }

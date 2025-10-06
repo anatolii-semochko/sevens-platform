@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react'
 import { getExt, prettyBytes, isImage, isVideo, isAudio, isPdf } from '@js/utils/file'
-import { StatusBar } from '@react/components/form-elements/Charts'
+import { StatusBar } from '@react/components/info-componnents/Charts'
 import { InnerTable } from '../../components/token/Components'
 
 export const IsNotReady = ({ssError}) => (

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import store from '@react/store'
-import { InfoMessageBlock } from '@react/components/form-elements/Messages'
+import { InfoMessageBlock } from '@react/components/info-componnents/Messages'
 
 export const UserAuthorization = ({message}) => {
     useEffect(() => {

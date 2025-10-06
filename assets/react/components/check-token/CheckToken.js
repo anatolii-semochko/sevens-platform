@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { deriveTokenData } from '../create-token-material/utils/blockchain'
 import { calculateContainerHash } from '../create-token-material/utils/files'
-import { MessagesBlock } from '@react/components/form-elements/Messages'
+import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { ActionButtons, ContainerCheckMessage } from '../check-token/components/Components'
 import {
     HashingStatus,
