@@ -8,6 +8,7 @@ use App\Repository\Material\MaterialRepository;
 use App\Repository\Material\MaterialVoteRepository;
 use App\Service\Material\MaterialService;
 use App\Service\PageContent\PageService;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -54,10 +55,13 @@ class MaterialController extends BaseController
     }
 
     #[Route('/{token}/edit', name: 'material-edit', methods: ['GET'])]
-    public function edit(string $token): Response
+    public function edit(string $token, Request $request): Response
     {
+        if ($response = $this->requireAuth($request)) {
+            return $response;
+        }
+
         try {
-            $this->checkAuthorization($this->getUser());
             $material = $this->materialRepository->get($token);
 
             $this->pageService->init('/material/edit', [
