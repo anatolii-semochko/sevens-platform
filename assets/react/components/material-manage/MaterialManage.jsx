@@ -40,7 +40,6 @@ const MaterialManage = ({token}) => {
 
 
     const handlerSave = async (materialData) => {
-        console.log('Save', materialData)
         try {
             setErrorMessage(null)
             if (materialData) {

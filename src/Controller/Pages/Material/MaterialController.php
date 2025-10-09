@@ -88,6 +88,15 @@ class MaterialController extends BaseController
             return $this->page404($this->pageService, $this->materialService);
         }
 
+        if ($material->getNewWallet() && $material->getNewWallet() !== $material->getWallet()) {
+            return $this->render('base.html.twig', [
+                'main_template' => 'pages/material/main/material-sold.html.twig',
+                'data' => [
+                    'material' => $material,
+                ],
+            ]);
+        }
+
         return $this->render('base.html.twig', [
             'main_template' => 'pages/material/main/material.html.twig',
             'data' => [
@@ -96,7 +105,7 @@ class MaterialController extends BaseController
                 'materialsByAuthor' => $this->materialService->getByAuthor($material, 10),
                 'likeCount' => $this->voteRepository->countLikes($material->getToken()),
                 'dislikeCount' => $this->voteRepository->countDislikes($material->getToken()),
-                'isLoggedIn' => $this->getUser() !== null,
+                'isLoggedIn' => $this->getUser() !== null, // TODO - REMOVE !!! Олег, запитай мене про це !!!!!!!!!!!!!!
             ],
         ]);
     }
