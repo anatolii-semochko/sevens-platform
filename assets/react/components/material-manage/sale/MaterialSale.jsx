@@ -58,7 +58,7 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
     return (
         <div className="mb-3">
             <h4 className="text-center mb-4">Sale Management</h4>
-            <div className="d-flex align-items-end gap-2 mb-5">
+            <div className="d-flex align-items-end gap-2 mb-4">
                 <label htmlFor="material-price" className="mb-2 me-1">
                     Price $SEV:
                 </label>

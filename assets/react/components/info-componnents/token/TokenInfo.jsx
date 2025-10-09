@@ -55,7 +55,7 @@ export const HistoryTable = ({tokenPublicKey, showChart}) => {
     }
 
     return (
-        <div>
+        <div className="mt-4">
             <h4 className="text-center mb-4">Sales history</h4>
             {showChart && (
                 <PriceHistoryChart history={history} />
