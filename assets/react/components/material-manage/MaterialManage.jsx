@@ -27,12 +27,8 @@ const MaterialManage = ({token}) => {
 
     const getTokenData = async () => {
         try {
-            console.log('Getting token data for:', token)
-            const data = await fetchSevensTokenByPublicKey(token)
-            console.log('Token data received:', data)
-            setTokenData(data)
+            await fetchSevensTokenByPublicKey(token).then(setTokenData)
         } catch (error) {
-            console.log('Token data error:', error.message)
             setTokenData({error: 'Token not found'})
         }
     }

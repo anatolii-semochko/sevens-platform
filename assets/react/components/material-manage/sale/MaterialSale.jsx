@@ -30,7 +30,7 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
             setIsWaiting(true)
             await setSale ({
                 tokenPublicKey: material.token,
-                price: type === 'sale' ? Math.floor(parseFloat(price) * LAMPORTS_PER_SOL) : 0,
+                price: type === 'sale' ? price : 0,
                 wallet,
             })
             await materialSaleApi.refresh(tokenData.tokenPublicKey)

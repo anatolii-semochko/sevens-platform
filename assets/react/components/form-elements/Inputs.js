@@ -127,38 +127,38 @@ export const Select = ({id, placeHolder, className, value, onChange, options, di
     </select>
 )
 
-
-
-
-
-
-
+// 1) Import Bootstrap CSS (once in app, index.js or App.jsx):
+// import 'bootstrap/dist/css/bootstrap.min.css'
+// 2) Controlled:
+// const [isOn, setIsOn] = useState(false)
+// <ToggleSwitch checked={isOn} onChange={(v) => setIsOn(v)} label="Увімкнути сповіщення" />
+// 3) Not controlled (no state):
+// <ToggleSwitch defaultChecked={true} label="За замовчуванням увімкнено" />
+// 4) Small inline:
+// <ToggleSwitch size="sm" inline label="Коротко" />
 export const ToggleSwitch = ({
-                                 id = `toggle-${Math.random().toString(36).slice(2, 9)}`,
-                                 checked,
-                                 defaultChecked,
-                                 onChange = () => {},
-                                 label,
-                                 inline = false,
-                                 disabled = false,
-                                 size = "md", // sm | md | lg
-                                 className = "",
-                                 ...rest
-                             }) => {
-    const handleChange = (e) => onChange(e.target.checked, e);
-
-    // Класи для розмірів (без scale)
+    id = `toggle-${Math.random().toString(36).slice(2, 9)}`,
+    checked,
+    defaultChecked,
+    onChange = () => {},
+    label,
+    inline = false,
+    disabled = false,
+    size = "md", // sm | md | lg
+    className = "",
+    ...rest
+}) => {
     const sizeStyles = {
         sm: { width: "2rem", height: "1rem" },
         md: { width: "2.5rem", height: "1.25rem" },
         lg: { width: "3rem", height: "1.5rem" },
-    };
+    }
 
     const knobSize = {
         sm: "0.9rem",
         md: "1.1rem",
         lg: "1.3rem",
-    };
+    }
 
     return (
         <div
@@ -214,29 +214,5 @@ export const ToggleSwitch = ({
                 )}
             </div>
         </div>
-    );
+    )
 }
-
-
-// ---------- Приклад використання ----------
-// 1) Імпорт Bootstrap CSS (один раз у вашому додатку, напр. у index.js або App.jsx):
-// import 'bootstrap/dist/css/bootstrap.min.css';
-
-
-// 2) Контрольований приклад:
-// const [isOn, setIsOn] = useState(false);
-// <ToggleSwitch checked={isOn} onChange={(v) => setIsOn(v)} label="Увімкнути сповіщення" />
-
-
-// 3) Неконтрольований приклад (без state):
-// <ToggleSwitch defaultChecked={true} label="За замовчуванням увімкнено" />
-
-
-// 4) Малий inline приклад:
-// <ToggleSwitch size="sm" inline label="Коротко" />
-
-
-// ---------- Поради ----------
-// - Якщо вам потрібен більш стильний switch — можна додати свої CSS-класи або використовувати бібліотеки
-// на кшталт react-bootstrap, react-switch або bootstrap-toggle.
-// - Для інтеграції з формами (Formik, react-hook-form) використайте контролюваний режим (checked + onChange)
