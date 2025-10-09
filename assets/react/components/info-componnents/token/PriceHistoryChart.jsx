@@ -1,6 +1,21 @@
-import React from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 
 export const PriceHistoryChart = ({ history }) => {
+    const containerRef = useRef(null)
+    const [containerWidth, setContainerWidth] = useState(600)
+
+    useEffect(() => {
+        const updateWidth = () => {
+            if (containerRef.current) {
+                setContainerWidth(containerRef.current.offsetWidth - 20) // minus small padding
+            }
+        }
+
+        updateWidth()
+        window.addEventListener('resize', updateWidth)
+        return () => window.removeEventListener('resize', updateWidth)
+    }, [])
+
     if (!history || history.length < 2) {
         return
     }
@@ -16,10 +31,10 @@ export const PriceHistoryChart = ({ history }) => {
         )
     }
 
-    // Chart dimensions
-    const width = 600
-    const height = 300
-    const padding = 40
+    // Chart dimensions - responsive
+    const width = Math.max(containerWidth, 400) // minimum width
+    const height = Math.max(width * 0.4, 250) // responsive height based on width, minimum 250px
+    const padding = Math.max(width * 0.04, 40) // responsive padding, minimum 40px
 
     // Get price range
     const prices = priceHistory.map(entry => parseFloat(entry.price))
@@ -48,11 +63,21 @@ export const PriceHistoryChart = ({ history }) => {
         gridLines.push({ y, price: price.toFixed(2) })
     }
 
+    // Responsive font sizes
+    const baseFontSize = Math.max(width / 50, 10)
+    const labelFontSize = Math.max(width / 40, 12)
+
     return (
-        <div className="mt-4 mb-4">
-            <h5 className="text-center mb-3">Price History Chart</h5>
-            <div className="d-flex justify-content-center">
-                <svg width={width} height={height} className="border rounded">
+        <div className="mt-4 mb-4" ref={containerRef}>
+            <div className="w-100">
+                <svg
+                    width="100%"
+                    height={height}
+                    viewBox={`0 0 ${width} ${height}`}
+                    preserveAspectRatio="xMidYMid meet"
+                    className="border rounded"
+                    style={{ maxWidth: '100%', height: 'auto' }}
+                >
                     {/* Grid lines */}
                     {gridLines.map((line, index) => (
                         <g key={index}>
@@ -69,10 +94,10 @@ export const PriceHistoryChart = ({ history }) => {
                                 x={padding - 5}
                                 y={line.y + 5}
                                 textAnchor="end"
-                                fontSize="12"
+                                fontSize={baseFontSize/2}
                                 fill="#666"
                             >
-                                {line.price} $SEV
+                                {line.price}
                             </text>
                         </g>
                     ))}
@@ -82,7 +107,7 @@ export const PriceHistoryChart = ({ history }) => {
                         d={pathData}
                         fill="none"
                         stroke="#007bff"
-                        strokeWidth="2"
+                        strokeWidth={Math.max(width / 300, 2)}
                         strokeLinecap="round"
                         strokeLinejoin="round"
                     />
@@ -93,10 +118,10 @@ export const PriceHistoryChart = ({ history }) => {
                             <circle
                                 cx={point.x}
                                 cy={point.y}
-                                r="4"
+                                r={Math.max(width / 150, 3)}
                                 fill="#007bff"
                                 stroke="white"
-                                strokeWidth="2"
+                                strokeWidth={Math.max(width / 300, 1)}
                             />
                             <title>
                                 Price: {point.price} $SEV
@@ -112,7 +137,7 @@ export const PriceHistoryChart = ({ history }) => {
                         x2={padding}
                         y2={height - padding}
                         stroke="#333"
-                        strokeWidth="2"
+                        strokeWidth={Math.max(width / 300, 1)}
                     />
                     <line
                         x1={padding}
@@ -120,31 +145,8 @@ export const PriceHistoryChart = ({ history }) => {
                         x2={width - padding}
                         y2={height - padding}
                         stroke="#333"
-                        strokeWidth="2"
+                        strokeWidth={Math.max(width / 300, 1)}
                     />
-
-                    {/* Y-axis label */}
-                    <text
-                        x="20"
-                        y={height / 2}
-                        textAnchor="middle"
-                        fontSize="14"
-                        fill="#666"
-                        transform={`rotate(-90 20 ${height / 2})`}
-                    >
-                        Price ($SEV)
-                    </text>
-
-                    {/* X-axis label */}
-                    <text
-                        x={width / 2}
-                        y={height - 10}
-                        textAnchor="middle"
-                        fontSize="14"
-                        fill="#666"
-                    >
-                        Time
-                    </text>
                 </svg>
             </div>
 

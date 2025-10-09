@@ -50,7 +50,7 @@ export const HistoryTable = ({tokenPublicKey, showChart}) => {
             <span className="text-danger fw-bold">Cancel</span>
     }
 
-    if (!tokenPublicKey) {
+    if (!tokenPublicKey || !history.length) {
         return
     }
 
