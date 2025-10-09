@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import MaterialApi from '@react/api/materialApi'
+import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
 import { MaterialEdit } from '@react/components/material-manage/edit/MaterialEdit'
 import { MaterialSale } from '@react/components/material-manage/sale/MaterialSale'
-import { TokenInfo } from '@react/components/info-componnents/TokenInfo'
-import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
-import {ToggleSwitch} from "@react/components/form-elements/Inputs";
+import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
+import { ToggleSwitch } from '@react/components/form-elements/Inputs'
 
 const materialApi = new MaterialApi()
 
@@ -24,8 +24,6 @@ const MaterialManage = ({token}) => {
             setErrorMessage(error.message)
         }
     }
-
-
 
     const getTokenData = async () => {
         try {

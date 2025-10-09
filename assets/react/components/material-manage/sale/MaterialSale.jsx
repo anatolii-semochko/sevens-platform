@@ -10,7 +10,7 @@ import { Number } from '@react/components/form-elements/Inputs'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 import { WalletSaleToken } from '@react/components/form-elements/WalletForms'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
-import { HistoryTable } from '@react/components/info-componnents/TokenInfo'
+import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 
 const materialSaleApi = new MaterialSaleApi()
 
@@ -27,7 +27,6 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
             if (!isWalletExpected() || !type || isWaiting) {
                 return
             }
-
             setIsWaiting(true)
             await setSale ({
                 tokenPublicKey: material.token,
@@ -106,7 +105,7 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
                 </button>
             )}
             <MessagesBlock error={errorMessage} />
-            <HistoryTable tokenPublicKey={tokenData.tokenPublicKey}/>
+            <HistoryTable tokenPublicKey={tokenData.tokenPublicKey} showChart={true} />
             <div className="d-flex justify-content-end gap-2">
                 <button className="btn btn-secondary px-5" onClick={() => setMaterialForm(null)} disabled={isWaiting}>
                     Back

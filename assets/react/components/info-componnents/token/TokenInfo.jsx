@@ -3,6 +3,7 @@ import MaterialSaleApi from '@react/api/materialSaleApi'
 import { getDateTimeFromDate } from '@js/utils/time'
 import { InnerTable } from '@react/components/create-token-material/components/token/Components'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
+import { PriceHistoryChart } from '@react/components/info-componnents/token/PriceHistoryChart'
 
 const materialSaleApi = new MaterialSaleApi()
 
@@ -32,7 +33,7 @@ export const TokenInfo = ({tokenData}) => {
     )
 }
 
-export const HistoryTable = ({tokenPublicKey}) => {
+export const HistoryTable = ({tokenPublicKey, showChart}) => {
     const [history, setHistory] = useState([])
     const [errorMessage, setErrorMessage] = useState(null)
 
@@ -56,6 +57,9 @@ export const HistoryTable = ({tokenPublicKey}) => {
     return (
         <div>
             <h4 className="text-center mb-4">Sales history</h4>
+            {showChart && (
+                <PriceHistoryChart history={history} />
+            )}
             <table className="table mb-4">
                 <tbody>
                 {history.map((row, key) => (
