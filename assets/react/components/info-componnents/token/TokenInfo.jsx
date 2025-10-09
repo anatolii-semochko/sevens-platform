@@ -44,11 +44,9 @@ export const HistoryTable = ({tokenPublicKey, showChart}) => {
         }
     }, [tokenPublicKey]);
 
-    const Info = (row, key) => {
-        return row.price ?
-            <span className="fw-bold">{row.price} <span className="fw-normal fst-italic mx-2">$SEV</span></span> :
-            <span className="text-danger fw-bold">Cancel</span>
-    }
+    const Info = (row, key) => row.price ?
+        <span className="fw-bold">{row.price} <span className="fw-normal fst-italic mx-2">$SEV</span></span> :
+        <span>{key && history[key - 1]?.wallet !== row.wallet ? <span className="text-danger fw-bold">SOLD</span> : 'Canceled'}</span>
 
     if (!tokenPublicKey || !history.length) {
         return
@@ -66,7 +64,7 @@ export const HistoryTable = ({tokenPublicKey, showChart}) => {
                     <tr key={key}>
                         <td>{row.wallet}</td>
                         <td>{getDateTimeFromDate(row.date)}</td>
-                        <td className="text-end">{Info(row)}</td>
+                        <td className="text-end">{Info(row, key)}</td>
                     </tr>
                 ))}
                 </tbody>
