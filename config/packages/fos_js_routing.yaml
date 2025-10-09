@@ -1,0 +1,2 @@
+fos_js_routing:
+    routes_to_expose: [ ".*" ]  # Expose all routes or specify patterns like ["^api_", "^app_"]

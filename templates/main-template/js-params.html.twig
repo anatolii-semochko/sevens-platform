@@ -1,0 +1,15 @@
+<script>
+    window.AppConfig = {
+        currentLocale: '{{ current_locale }}',
+        path: {{ global.path|json_encode|raw }},
+        user: {% if app.user %}{{ {
+            'id': app.user.id,
+            'email': app.user.email,
+            'firstName': app.user.firstName,
+            'lastName': app.user.lastName,
+            'createdAt': app.user.createdAt|date('c'),
+            'roles': app.user.roles,
+            'profileUrl': path('user_index')
+        }|json_encode|raw }}{% else %}null{% endif %},
+    };
+</script>

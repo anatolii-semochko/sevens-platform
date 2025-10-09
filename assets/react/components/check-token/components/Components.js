@@ -45,13 +45,19 @@ export const ActionButtons = ({handlerClear}) => (
         <h6 className="text-center">YOU CAN TRY ALSO:</h6>
         <div className="row">
             <div className="col-4">
-                <button className="btn btn-primary w-100 p-2">Create new private token</button>
+                <a href={Routing.generate('create_private_token')} className="btn btn-primary w-100 p-2">
+                    Create new private token
+                </a>
             </div>
             <div className="col-4">
-                <button className="btn btn-primary w-100 p-2">Publish material from private token</button>
+                <a href={Routing.generate('create_material_from_token')} className="btn btn-primary w-100 p-2">
+                    Publish material from private token
+                </a>
             </div>
             <div className="col-4">
-                <button className="btn btn-primary w-100 p-2">Create new token and publish material</button>
+                <a href={Routing.generate('create_token_material')} className="btn btn-primary w-100 p-2">
+                    Create new token and publish material
+                </a>
             </div>
         </div>
     </div>

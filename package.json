@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "encore dev",
-    "dev-watch": "encore dev --watch",
-    "build": "encore production",
-    "dev-server": "encore dev-server"
+    "dev": "npm run routes && encore dev",
+    "dev-watch": "npm run routes && encore dev --watch",
+    "build": "npm run routes && encore production",
+    "dev-server": "npm run routes && encore dev-server",
+    "routes": "docker compose exec -T php-fpm php bin/console fos:js-routing:dump --target=public/build/fos_js_routes.json --format=json || echo 'Could not generate routes. Make sure Docker containers are running.'"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.29.0",

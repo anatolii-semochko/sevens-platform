@@ -1,7 +1,7 @@
 import React from 'react'
 
 export const MintedInfo = ({minted}) => minted && (
-    <div className="alert-success alert text-break p-4">
+    <div className="alert-success alert text-break p-4 mb-4">
         <h4 className="text-center">Congratulations !</h4>
         <p className="text-center">Your token has been successfully minted.</p>
         <div className="d-flex justify-content-center">
@@ -43,13 +43,15 @@ export const ShowTokenValidity = ({container, tokenData}) => {
     )
 }
 
-export const TryMoreOptions = ({minted, doMaterial, handlerClear}) => minted && !doMaterial && (
+export const TryMoreOptions = ({minted, handlerClear}) => minted && (
     <div className="d-flex flex-column align-items-center gap-2 text-center mb-3">
         <h6>You can try:</h6>
         <div className="d-flex flex-wrap justify-content-center gap-2">
-            <button className="btn btn-primary">Check your token container</button>
+            <a href={Routing.generate('check_token')} className="btn btn-primary">Check your token container</a>
             <button className="btn btn-primary" onClick={handlerClear}>Mint a new token</button>
-            <button className="btn btn-primary">Publish material on site</button>
+            <a href={Routing.generate('create_material_from_token')} className="btn btn-primary">
+                Publish material on site
+            </a>
         </div>
     </div>
 )

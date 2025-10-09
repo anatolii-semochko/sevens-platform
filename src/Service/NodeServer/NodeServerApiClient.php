@@ -8,74 +8,101 @@ readonly class NodeServerApiClient
         private string $nodeServerBaseUrl,
     ) {}
 
+    /**
+     * @throws NodeServerApiException
+     */
     public function fetchNonce(string $walletAddress): array
     {
-        $url = $this->nodeServerBaseUrl . '/auth/nonce?' . http_build_query(['walletAddress' => $walletAddress]);
+        $response = file_get_contents(
+            $this->nodeServerBaseUrl . '/auth/nonce?' . http_build_query(['walletAddress' => $walletAddress]),
+            false,
+            $this->getContext('GET'),
+        );
 
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => 'Content-Type: application/json',
-                'timeout' => 30,
-            ],
-        ]);
-
-        $response = file_get_contents($url, false, $context);
-
-        if ($response === false) {
-            throw new NodeServerApiException('Failed to fetch nonce from Node Server');
-        }
+        $this->checkResponse($response);
 
         return json_decode($response, true);
     }
 
+    /**
+     * @throws NodeServerApiException
+     */
     public function validateSignature(
         string $walletAddress,
         string $signature,
         string $nonce
     ): array {
-        $data = json_encode([
-            'walletAddress' => $walletAddress,
-            'signature' => $signature,
-            'nonce' => $nonce,
-        ]);
+        $response = file_get_contents(
+            $this->nodeServerBaseUrl . '/auth/verify',
+            false,
+            $this->getContext('POST', json_encode([
+                'walletAddress' => $walletAddress,
+                'signature' => $signature,
+                'nonce' => $nonce,
+            ])),
+        );
 
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => 'Content-Type: application/json',
-                'content' => $data,
-                'timeout' => 30,
-            ],
-        ]);
-
-        $response = file_get_contents($this->nodeServerBaseUrl . '/auth/verify', false, $context);
-
-        if ($response === false) {
-            throw new NodeServerApiException('Failed to validate signature with Node Server');
-        }
+        $this->checkResponse($response);
 
         return json_decode($response, true);
     }
 
+    /**
+     * @throws NodeServerApiException
+     */
     public function getTokenMetadata(string $tokenPublicKey): array
     {
-        $url = $this->nodeServerBaseUrl . '/sevens-tokens?' . http_build_query(['publicKey' => $tokenPublicKey]);
+        $response = file_get_contents(
+            $this->nodeServerBaseUrl . '/sevens-tokens?' . http_build_query(['publicKey' => $tokenPublicKey]),
+            false,
+            $this->getContext('GET'),
+        );
 
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'GET',
-                'header' => 'Content-Type: application/json',
-                'timeout' => 30,
-            ],
-        ]);
-
-        $response = file_get_contents($url, false, $context);
-
-        if ($response === false) {
-            throw new NodeServerApiException('Failed to get token metadata from Node Server');
-        }
+        $this->checkResponse($response);
 
         return json_decode($response, true);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getTokenAgeMinutes(string $tokenPublicKey): array
+    {
+        $response = file_get_contents(
+            $this->nodeServerBaseUrl . '/sevens-tokens/age-minutes?' . http_build_query(['publicKey' => $tokenPublicKey]),
+            false,
+            $this->getContext('GET'),
+        );
+
+        $this->checkResponse($response);
+
+        return json_decode($response, true);
+    }
+
+    private function getContext(string $method, ?string $content = null)
+    {
+        $http = [
+            'method' => $method,
+            'header' => 'Content-Type: application/json',
+            'timeout' => 30,
+        ];
+
+        if ($content) {
+            $http['content'] = $content;
+        }
+
+        return stream_context_create([
+            'http' => $http,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    private function checkResponse(false|string $response): void
+    {
+        if ($response === false) {
+            throw new NodeServerApiException('Failed to validate signature with Node Server');
+        }
     }
 }

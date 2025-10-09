@@ -17,6 +17,7 @@ app.use(express.json())
 
 // Token routes
 app.get('/sevens-tokens', TokenController.getTokens)
+app.get('/sevens-tokens/age-minutes', TokenController.getAgeMinutes)
 
 // Auth routes
 app.get('/auth/nonce', AuthController.getNonce)
@@ -53,6 +54,7 @@ app.listen(port, '0.0.0.0', () => {
     console.log(`Available endpoints:`)
     console.log(`  Tokens: /node/sevens-tokens?publicKey=xxx`)
     console.log(`  Tokens: /node/sevens-tokens?hash=xxx`)
+    console.log(`  Tokens: /node/sevens-tokens/age-minutes?publicKey=xxx`)
     console.log(`  Auth nonce: /node/auth/nonce?walletAddress=xxx`)
     console.log(`  Auth verify: POST /node/auth/verify`)
 })

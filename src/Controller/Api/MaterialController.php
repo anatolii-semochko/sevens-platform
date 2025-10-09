@@ -2,26 +2,45 @@
 
 namespace App\Controller\Api;
 
+use App\Controller\BaseApiController;
 use App\Exception\WrappedHttpException;
+use App\Repository\Material\MaterialRepository;
 use App\Service\Material\MaterialService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/material', name: 'api_material_')]
-class MaterialController extends AbstractController
+class MaterialController extends BaseApiController
 {
     public function __construct(
         private readonly MaterialService $materialService,
+        private readonly MaterialRepository $materialRepository,
     ) {}
 
     /**
      * @throws HttpException
      */
-    #[Route('/create', name: 'material_create', methods: ['POST'])]
+    #[Route('/{token}', name: 'get', methods: ['GET'])]
+    public function get(string $token): JsonResponse
+    {
+        try {
+            $material = $this->materialRepository->get($token);
+            $this->checkAuthorization($material->getAuthor()->getId());
+
+            return $this->json([
+                'material' => $material,
+            ], context: ['groups' => ['material:read']]);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/create', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         try {
@@ -39,20 +58,34 @@ class MaterialController extends AbstractController
             // Create inactive material
             $this->materialService->create(
                 $this->getUser(),
-                $payload->get('title'),
-                $payload->get('shortDescription'),
-                $payload->get('description'),
+                $tokenPublicKey,
                 $payload->get('containerFileName'),
                 $payload->get('containerHash'),
-                $tokenPublicKey,
                 $payload->all('walletSignature'),
             );
 
             // And return redirect to edit and activate material page
             return new JsonResponse([
                 'message' => 'Material created successfully.',
-                'redirect' => $this->generateUrl('material_page', ['token' => $tokenPublicKey])
+                'redirect' => $this->generateUrl('material_manage_one', ['token' => $tokenPublicKey])
             ]);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}', name: 'put', methods: ['PUT'])]
+    public function put(string $token, Request $request): JsonResponse
+    {
+        try {
+            $material = $this->materialRepository->get($token);
+            $this->checkAuthorization($material->getAuthor()->getId());
+            $this->materialService->updateMaterial($material, $request->getPayload()->all());
+
+            return $this->json(null);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
         }

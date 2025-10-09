@@ -186,6 +186,20 @@ class SevensTokenService {
             hashRegistryPda: hash ? this.getHashPda(program.programId, hash) : null,
         }
     }
+
+    async getAgeMinutes(publicKey) {
+        try {
+            const tokenData = await this.getTokenByPublicKey(publicKey)
+            const blockchainTimestamp = tokenData.metadata.timestamp.toNumber()
+            const currentTimeSeconds = Math.floor(Date.now() / 1000)
+            const ageInSeconds = currentTimeSeconds - blockchainTimestamp
+            const ageInMinutes = Math.floor(ageInSeconds / 60)
+
+            return Math.max(0, ageInMinutes)
+        } catch (error) {
+            throw new Error(`Failed to calculate token age: ${error.message}`)
+        }
+    }
 }
 
 // Export singleton instance

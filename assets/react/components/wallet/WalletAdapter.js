@@ -29,17 +29,17 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
         this._id = Math.random().toString(36).substr(2, 9) // For debugging
         this._hasEmittedConnect = false // Track if we've emitted connect event
 
-        console.log(`🏗️ [Adapter-${this._id}] SevensWalletAdapter constructor called`)
+        // console.log(`🏗️ [Adapter-${this._id}] SevensWalletAdapter constructor called`)
 
         this._setupEventListeners()
 
         // Check for existing wallet after a longer delay to ensure React has settled
         setTimeout(() => {
-            console.log(`⏰ [Adapter-${this._id}] Auto-connect timeout triggered`)
+            // console.log(`⏰ [Adapter-${this._id}] Auto-connect timeout triggered`)
             if (!this.connected && !this.connecting) {
                 this._autoConnectIfAvailable()
             } else {
-                console.log(`⏹️ [Adapter-${this._id}] Skipping auto-connect: connected=${this.connected}, connecting=${this.connecting}`)
+                // console.log(`⏹️ [Adapter-${this._id}] Skipping auto-connect: connected=${this.connected}, connecting=${this.connecting}`)
             }
         }, 500)
     }
@@ -55,7 +55,7 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
     get connected() {
         const isConnected = !!this._wallet && !!this._publicKey
         // Uncomment for debugging:
-        console.log('🔍 [Adapter] Connected check:', { isConnected, hasWallet: !!this._wallet, hasPublicKey: !!this._publicKey })
+        // console.log('🔍 [Adapter] Connected check:', { isConnected, hasWallet: !!this._wallet, hasPublicKey: !!this._publicKey })
         return isConnected
     }
 
@@ -76,23 +76,23 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
         this._eventBus.on('sevens-wallet-connected', (event) => {
             const { wallet } = event.detail
             if (wallet && wallet.publicKey) {
-                console.log(`📡 [Adapter-${this._id}] Received sevens-wallet-connected, current state:`, {
-                    connected: this.connected,
-                    hasWallet: !!this._wallet,
-                    hasPublicKey: !!this._publicKey
-                })
+                // console.log(`📡 [Adapter-${this._id}] Received sevens-wallet-connected, current state:`, {
+                //     connected: this.connected,
+                //     hasWallet: !!this._wallet,
+                //     hasPublicKey: !!this._publicKey
+                // })
 
                 const previousKey = this._publicKey?.toString()
                 const newKey = wallet.publicKey.toString()
                 const wasConnected = this.connected
 
-                console.log(`🔄 [Adapter-${this._id}] Updating wallet connection:`, {
-                    previousKey,
-                    newKey,
-                    same: previousKey === newKey,
-                    wasConnected,
-                    connecting: this._connecting
-                })
+                // console.log(`🔄 [Adapter-${this._id}] Updating wallet connection:`, {
+                //     previousKey,
+                //     newKey,
+                //     same: previousKey === newKey,
+                //     wasConnected,
+                //     connecting: this._connecting
+                // })
 
                 // Update wallet reference and publicKey
                 this._wallet = wallet
@@ -103,7 +103,7 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
                 const shouldEmit = !wasConnected || previousKey !== newKey || this._connecting || !this._hasEmittedConnect
 
                 if (shouldEmit) {
-                    console.log(`✅ [Adapter-${this._id}] Emitting connect event via sevens-wallet-connected`)
+                    // console.log(`✅ [Adapter-${this._id}] Emitting connect event via sevens-wallet-connected`)
                     this.emit('readyStateChange', this._readyState) // First emit readyStateChange
                     this.emit('connect', this._publicKey) // Then emit connect
                     this._hasEmittedConnect = true
@@ -116,7 +116,7 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
                         }
                     }, 100)
                 } else {
-                    console.log(`⏭️ [Adapter-${this._id}] Skipping connect event - already connected to same wallet`)
+                    // console.log(`⏭️ [Adapter-${this._id}] Skipping connect event - already connected to same wallet`)
                 }
             }
         })
@@ -145,90 +145,90 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
 
     async _autoConnectIfAvailable() {
         try {
-            console.log(`🔍 [Adapter-${this._id}] Auto-checking for available wallet...`)
+            // console.log(`🔍 [Adapter-${this._id}] Auto-checking for available wallet...`)
             const currentWallet = await this._checkForExistingWallet()
 
             if (currentWallet && currentWallet.publicKey) {
-                console.log(`✅ [Adapter-${this._id}] Auto-connecting to existing wallet:`, currentWallet.publicKey.toString())
+                // console.log(`✅ [Adapter-${this._id}] Auto-connecting to existing wallet:`, currentWallet.publicKey.toString())
                 this._publicKey = currentWallet.publicKey
                 this._wallet = currentWallet
-                console.log(`📡 [Adapter-${this._id}] Emitting connect event from auto-connect`)
+                // console.log(`📡 [Adapter-${this._id}] Emitting connect event from auto-connect`)
                 this.emit('readyStateChange', this._readyState)
                 this.emit('connect', this._publicKey)
                 this._hasEmittedConnect = true
             } else {
-                console.log(`❌ [Adapter-${this._id}] No wallet available for auto-connect`)
+                // console.log(`❌ [Adapter-${this._id}] No wallet available for auto-connect`)
             }
         } catch (error) {
-            console.warn(`⚠️ [Adapter-${this._id}] Auto-connect check failed:`, error)
+            // console.warn(`⚠️ [Adapter-${this._id}] Auto-connect check failed:`, error)
         }
     }
 
     async connect() {
         try {
-            console.log('🚀 [Adapter] Connect method called')
-            console.log('📊 [Adapter] Current state:', {
-                connected: this.connected,
-                connecting: this.connecting,
-                hasWallet: !!this._wallet,
-                hasPublicKey: !!this._publicKey
-            })
+            // console.log('🚀 [Adapter] Connect method called')
+            // console.log('📊 [Adapter] Current state:', {
+            //     connected: this.connected,
+            //     connecting: this.connecting,
+            //     hasWallet: !!this._wallet,
+            //     hasPublicKey: !!this._publicKey
+            // })
 
             if (this.connected || this.connecting) {
-                console.log('⏹️ [Adapter] Already connected or connecting, returning')
+                // console.log('⏹️ [Adapter] Already connected or connecting, returning')
                 return
             }
 
             this._connecting = true
-            console.log('🔄 [Adapter] Setting connecting state to true')
+            // console.log('🔄 [Adapter] Setting connecting state to true')
 
             // First, check if there's already an available wallet
-            console.log('🔍 [Adapter] Starting check for existing wallet...')
+            // console.log('🔍 [Adapter] Starting check for existing wallet...')
             const currentWallet = await this._checkForExistingWallet()
 
             if (currentWallet && currentWallet.publicKey) {
-                console.log('✅ [Adapter] Found existing wallet:', currentWallet.publicKey.toString())
+                // console.log('✅ [Adapter] Found existing wallet:', currentWallet.publicKey.toString())
                 this._publicKey = currentWallet.publicKey
                 this._wallet = currentWallet
-                console.log('📡 [Adapter] Emitting connect event from manual connect')
+                // console.log('📡 [Adapter] Emitting connect event from manual connect')
                 this.emit('connect', this._publicKey)
                 this._hasEmittedConnect = true
                 return
             }
 
-            console.log('❌ [Adapter] No existing wallet found, requesting connection')
+            // console.log('❌ [Adapter] No existing wallet found, requesting connection')
 
             // If no existing wallet, request connection
-            console.log('📤 [Adapter] Emitting sevens-wallet-connect-request')
+            // console.log('📤 [Adapter] Emitting sevens-wallet-connect-request')
             this._eventBus.emit('sevens-wallet-connect-request', {
                 adapter: this
             })
 
             // Wait for wallet response
-            console.log('⏳ [Adapter] Waiting for wallet connection...')
+            // console.log('⏳ [Adapter] Waiting for wallet connection...')
             const wallet = await this._waitForWalletConnection()
 
-            console.log('✅ [Adapter] Got wallet from connection request:', wallet.publicKey.toString())
+            // console.log('✅ [Adapter] Got wallet from connection request:', wallet.publicKey.toString())
             this._publicKey = wallet.publicKey
             this._wallet = wallet
 
-            console.log('📡 [Adapter] Emitting connect event')
+            // console.log('📡 [Adapter] Emitting connect event')
             this.emit('connect', this._publicKey)
             this._hasEmittedConnect = true
         } catch (error) {
-            console.error('❌ [Adapter] Connect error:', error)
+            // console.error('❌ [Adapter] Connect error:', error)
             this.emit('error', error)
             throw error
         } finally {
             this._connecting = false
-            console.log('✅ [Adapter] Setting connecting state to false')
+            // console.log('✅ [Adapter] Setting connecting state to false')
         }
     }
 
     _checkForExistingWallet() {
         return new Promise((resolve) => {
             let resolved = false
-            console.log('🔍 [Adapter] Checking for existing wallet...')
+            // console.log('🔍 [Adapter] Checking for existing wallet...')
 
             const handleResponse = (wallet) => {
                 if (!resolved) {
@@ -239,7 +239,7 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             }
 
             // Method 1: Request current wallet status via event
-            console.log('📤 [Adapter] Emitting sevens-wallet-get-current')
+            // console.log('📤 [Adapter] Emitting sevens-wallet-get-current')
             this._eventBus.emit('sevens-wallet-get-current', {
                 callback: handleResponse
             })
@@ -247,17 +247,17 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             // Method 0: Try direct global access as fallback
             setTimeout(() => {
                 if (!resolved && typeof window !== 'undefined' && window.__sevensCurrentWallet) {
-                    console.log('🌐 [Adapter] Found wallet via global access')
+                    // console.log('🌐 [Adapter] Found wallet via global access')
                     handleResponse(window.__sevensCurrentWallet)
                 }
             }, 100)
 
             // Method 2: Listen for any existing wallet announcements
             const handleExistingConnection = (event) => {
-                console.log('👂 [Adapter] Received sevens-wallet-connected event:', event.detail)
+                // console.log('👂 [Adapter] Received sevens-wallet-connected event:', event.detail)
                 const { wallet } = event.detail || {}
                 if (wallet && wallet.publicKey && !resolved) {
-                    console.log('✅ [Adapter] Found existing connection via event')
+                    // console.log('✅ [Adapter] Found existing connection via event')
                     this._eventBus.off('sevens-wallet-connected', handleExistingConnection)
                     handleResponse(wallet)
                 }
@@ -266,13 +266,13 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             this._eventBus.on('sevens-wallet-connected', handleExistingConnection)
 
             // Trigger a potential announcement of current state
-            console.log('📤 [Adapter] Emitting sevens-wallet-ping')
+            // console.log('📤 [Adapter] Emitting sevens-wallet-ping')
             this._eventBus.emit('sevens-wallet-ping')
 
             // Timeout after 1 second if no response
             setTimeout(() => {
                 if (!resolved) {
-                    console.log('⏰ [Adapter] Timeout waiting for existing wallet response')
+                    // console.log('⏰ [Adapter] Timeout waiting for existing wallet response')
                     this._eventBus.off('sevens-wallet-connected', handleExistingConnection)
                     handleResponse(null)
                 }
@@ -337,7 +337,7 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             const wallet = this._wallet
             if (!wallet) throw new WalletNotConnectedError()
 
-            console.log('signTransaction', transaction)
+            // console.log('signTransaction', transaction)
 
             // Open SignTransaction page and wait for user decision
             const signedTransaction = await this._showSignTransactionDialog(transaction)
@@ -401,11 +401,11 @@ export class SevensWalletAdapter extends BaseWalletAdapter {
             const wallet = this._wallet
             if (!wallet) throw new WalletNotConnectedError()
 
-            console.log('signMessage', message)
+            // console.log('signMessage', message)
 
             // Show SignMessage dialog and wait for user decision
             const signature = await this._showSignMessageDialog(message)
-            
+
             return signature
 
         } catch (error) {

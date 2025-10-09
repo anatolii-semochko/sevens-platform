@@ -6,16 +6,14 @@ use App\Entity\Material\Material;
 use App\Entity\User;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
-use App\Service\Blockchain\WalletService;
+use App\Service\NodeServer\NodeServerApiException;
 use Doctrine\ORM\EntityManagerInterface;
-use InvalidArgumentException;
 
 readonly class MaterialService
 {
     public function __construct(
         private EntityManagerInterface $em,
         private MaterialRepository $repository,
-        private WalletService $walletService,
         private TokenService $tokenService,
     ) {}
 
@@ -29,33 +27,22 @@ readonly class MaterialService
         return $this->repository->findOneBy(['token' => $tokenPublicKey]);
     }
 
+    /**
+     * @throws NodeServerApiException
+     */
     public function create(
         User $user,
-        string $title,
-        string $shortDescription,
-        string $description,
+        string $tokenPublicKey,
         string $containerFileName,
         string $containerHash,
-        string $tokenPublicKey,
-        array $walletSignature,
+        ?array $walletSignature,
     ): void {
         // Get token data from blockchain
         $token = $this->tokenService->getByPublicKey($tokenPublicKey);
+        // Check if user owns the token
+        $this->tokenService->checkUserPermissionToPublishMaterial($token, $walletSignature);
 
-        // Check if wallet possess this token
-        if ($token->getWalletPublicKey() !== $walletSignature['walletPublicKey']) {
-            throw new InvalidArgumentException('Only the token owner can publish materials');
-        }
-
-        // Check wallet signature
-        $this->walletService->verifyWalletSignature(
-            $token->getWalletPublicKey(),
-            $walletSignature['signature'],
-            $walletSignature['nonce'],
-        );
-
-
-//        Token data directly from blockchain
+//        Trust token data
 //        dd([
 //            'title' => $token->getName(),
 //            'tokenName' => $token->getName(),
@@ -69,22 +56,19 @@ readonly class MaterialService
 //            'mintingTime' => $token->getMintingTime(),
 //        ]);
 
-//        Form data - will be removed and used on material edit page
+//        Form data
 //        dd([
-//            'title' => $title,
-//            'shortDescription' => $shortDescription,
-//            'description' => $description,
+//            'tokenPublicKey' => $tokenPublicKey,
 //            '$containerFileName' => $containerFileName,
 //            '$containerHash' => $containerHash,
-//            'tokenPublicKey' => $tokenPublicKey,
 //            'walletSignature' => $walletSignature,
 //        ]);
 
         $material = new Material();
         $material->setToken($tokenPublicKey);
-        $material->setTitle($title);
-        $material->setDescription($description);
-        $material->setLogo('logo');
+        $material->setTitle('');
+        $material->setDescription('');
+        $material->setLogo('');
         $material->setCreatedAt(new \DateTime());
         $material->setAuthor($user);
 
@@ -153,5 +137,30 @@ readonly class MaterialService
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    public function updateMaterial(Material $material, array $data): void
+    {
+        if (isset($data['active'])) {
+            $material->setActive((bool) $data['active']);
+        }
+
+        if (isset($data['title'])) {
+            $material->setTitle($data['title']);
+        }
+
+        if (isset($data['logo'])) {
+            $material->setLogo($data['logo'] ?? '');
+        }
+
+        if (isset($data['description'])) {
+            $material->setDescription($data['description']);
+        }
+
+        if (isset($data['price'])) {
+            $material->setPrice($data['price']);
+        }
+
+        $this->save($material);
     }
 }

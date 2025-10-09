@@ -1,14 +1,16 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
+import store from '@react/store'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { removeReferenceFile } from './utils/files'
-import { MessagesBlock } from '@react/components/form-elements/Messages'
+import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
+import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { CreateContainer } from './components/container/CreateContainer'
 import { ContainerFileInfo } from './components/container/Components'
 import { MintedInfo, TryMoreOptions } from './components/token/Components'
 import { WalletMintForm } from './components/Wallet/Components'
 import { ButtonCreateToken } from '@react/components/create-token-material/components/token/ButtonCreateToken'
 import { TokenForm } from '@react/components/create-token-material/components/token/TokenForm'
-import { MaterialForm } from './components/material/MaterialForm'
+
 
 export const CreateTokenMaterial = ({doMaterial}) => {
     const wallet = useWallet()
@@ -17,9 +19,10 @@ export const CreateTokenMaterial = ({doMaterial}) => {
     const [container, setContainer] = useState(null)
     const [tokenData, setTokenData] = useState(null)
     const [minted, setMinted] = useState(null)
-    const [materialData, setMaterialData] = useState(null)
     const [errorContainer, setErrorContainer] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
+
+    useEffect(() => setErrorMessage(null), [wallet.publicKey, container, tokenData, tokenFiles])
 
     const handlerChangeFiles = () => {
         setContainer(null)
@@ -49,7 +52,10 @@ export const CreateTokenMaterial = ({doMaterial}) => {
     const showCreateToken = () => container && !container.isCompressing && !minted
     const showTokenForm = () => showCreateToken() && !errorContainer
     const showActions = () => showCreateToken()
-    const showMaterialForm = () => minted && doMaterial
+
+    if (doMaterial && !store.getState().user) return (
+        <UserAuthorization message={'To publish material you need to log in.'}/>
+    )
 
     return (
         <div>
@@ -71,10 +77,7 @@ export const CreateTokenMaterial = ({doMaterial}) => {
                 </div>
             )}
             <MintedInfo minted={minted} />
-            <TryMoreOptions {...{minted, doMaterial, handlerClear}} />
-            {showMaterialForm() && (
-                <MaterialForm {...{materialData, setMaterialData, setErrorMessage, tokenFiles, setTokenFiles}} />
-            )}
+            <TryMoreOptions {...{minted, handlerClear}} />
         </div>
     )
 }

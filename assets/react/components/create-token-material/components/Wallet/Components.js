@@ -64,6 +64,7 @@ export const WalletCheckForm = ({tokenData, walletSignature, setWalletSignature}
     useEffect(() => {
         setWalletPublicKey(wallet.publicKey?.toString())
         setWalletSignature(null)
+        setErrorMessage(null)
     }, [wallet.publicKey])
 
     const handleSign = async () => {
@@ -93,7 +94,7 @@ export const WalletCheckForm = ({tokenData, walletSignature, setWalletSignature}
             <div className="text-danger">
                 <p className="fw-semibold">{walletPublicKey}</p>
                 <p>
-                    The wallet address does not match the token owner's public address. Expected wallet:
+                    This wallet address does not match the token owner's public address. Expected wallet:
                     <span className="text-primary fw-semibold ms-2">{tokenData.walletPublicKey}</span>
                 </p>
             </div>
@@ -126,7 +127,11 @@ export const WalletCheckForm = ({tokenData, walletSignature, setWalletSignature}
             <ErrorText errorMessage={errorMessage} />
             <div className="d-flex justify-content-center gap-2">
                 <WalletMultiButton />
-                <button className="btn btn-success py-2 px-4" disabled={!walletPublicKey} onClick={handleSign}>
+                <button
+                    className="btn btn-success py-2 px-4"
+                    disabled={!walletPublicKey || walletPublicKey !== tokenData.walletPublicKey}
+                    onClick={handleSign}
+                >
                     Sign
                 </button>
             </div>

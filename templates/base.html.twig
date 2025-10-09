@@ -21,9 +21,4 @@
     {% endblock %}
   </body>
 </html>
-<script>
-    window.AppConfig = {
-        currentLocale: '{{ current_locale }}',
-        path: {{ global.path|json_encode|raw }},
-    };
-</script>
+{% include 'main-template/js-params.html.twig' %}

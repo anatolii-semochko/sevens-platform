@@ -12,12 +12,14 @@ import React from 'react'
 import store from '@react/store/index'
 import streamSaver from 'streamsaver'
 import { Buffer } from 'buffer'
+import { RoutingWithLocale } from '@js/router/routing-with-locale'
 import { Provider } from 'react-redux'
 import { createRoot } from 'react-dom/client'
 import { openWallet, closeWallet } from '@js/wallet'
 import Create from '@react/components/create-token-material/Create'
 import CheckToken from '@react/components/check-token/CheckToken'
 import UserAuth from '@react/components/user-auth/UserAuth'
+import MaterialManage from '@react/components/material-manage/MaterialManage'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
 
@@ -26,7 +28,8 @@ window.Buffer = Buffer
 
 streamSaver.WritableStream = streamSaver.WritableStream || window.WritableStream
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/streamsaver-sw.js', { scope: '/' })
+    navigator.serviceWorker
+        .register('/streamsaver-sw.js', { scope: '/' })
         .catch(error => console.error('SW register failed:', error))
 }
 
@@ -52,26 +55,26 @@ if (userAuth) {
     root.render(<Provider store={store}><UserAuth user={userData} registerUrl={registerUrl} /></Provider>)
 }
 
+const materialEdit = document.getElementById('material_manage')
+if (materialEdit) {
+    createRoot(materialEdit).render(<MaterialManage token={materialEdit.dataset.token} />)
+}
+
 const materialVotes = document.getElementById('material-votes')
 if (materialVotes) {
     const materialToken = materialVotes.dataset.materialToken || ''
     const initialLikes = materialVotes.dataset.initialLikes || '0'
     const initialDislikes = materialVotes.dataset.initialDislikes || '0'
     const viewCount = materialVotes.dataset.viewCount || '0'
-
-    if (materialToken) {
-        const root = createRoot(materialVotes)
-        root.render(
-            <MaterialVotes
-                materialToken={materialToken}
-                initialLikes={parseInt(initialLikes)}
-                initialDislikes={parseInt(initialDislikes)}
-                viewCount={parseInt(viewCount)}
-            />
-        )
-    } else {
-        console.error('Material token is missing from data attributes')
-    }
+    const root = createRoot(materialVotes)
+    root.render(
+        <MaterialVotes
+            materialToken={materialToken}
+            initialLikes={parseInt(initialLikes)}
+            initialDislikes={parseInt(initialDislikes)}
+            viewCount={parseInt(viewCount)}
+        />
+    )
 }
 
 const materialComments = document.getElementById('material-comments')
@@ -90,4 +93,4 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('closeWalletBtn')?.addEventListener('click',() => closeWallet())
 })
 
-console.log('Start sevenstime APP')
+window.Routing = RoutingWithLocale

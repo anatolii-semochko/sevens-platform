@@ -4,10 +4,13 @@ namespace App\Controller;
 use App\Service\Material\MaterialService;
 use App\Service\PageContent\PageService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 class BaseController extends AbstractController
 {
+    use TargetPathTrait;
     public function page404(
         PageService $pageService,
         MaterialService $materialService,
@@ -19,5 +22,19 @@ class BaseController extends AbstractController
                 'materials' => $materialService->getHighestRated(50),
             ],
         ]), Response::HTTP_NOT_FOUND);
+    }
+
+    public function requireAuth(Request $request): ?Response
+    {
+        $user = $this->getUser();
+        if (!$user || !$user->getId()) {
+            $this->saveTargetPath($request->getSession(), 'main', $request->getUri());
+
+            return $this->redirectToRoute('app_login', [
+                '_locale' => $request->getLocale()
+            ]);
+        }
+
+        return null;
     }
 }

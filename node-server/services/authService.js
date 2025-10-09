@@ -84,7 +84,6 @@ class AuthService {
                 throw new Error('Nonce already used')
             }
 
-
             if (this.isNonceExpired(nonceRecord.expires_at)) {
                 throw new Error('Nonce expired')
             }

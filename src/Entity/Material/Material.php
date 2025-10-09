@@ -15,7 +15,20 @@ class Material
 {
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 44, unique: true)]
+    #[Groups(['material:read'])]
     private string $token;
+
+    #[ORM\Column(type: 'string', length: 44)]
+    #[Groups(['material:read'])]
+    private string $wallet;
+
+    #[ORM\Column(type: 'string', length: 44)]
+    #[Groups(['material:read'])]
+    private string $newWallet;
+
+    #[ORM\Column(type: 'boolean')]
+    #[Groups(['material:read'])]
+    private bool $active = true;
 
     #[ORM\Column(type: 'string', length: 64)]
     #[Groups(['material:read'])]
@@ -46,7 +59,7 @@ class Material
     #[Groups(['material:read'])]
     private ?array $galleryImages = [];
 
-    #[ORM\Column(type: 'decimal', precision: 20, scale: 8, nullable: true)]
+    #[ORM\Column(type: 'decimal', precision: 20, scale: 9, nullable: true)]
     #[Groups(['material:read'])]
     private ?string $price = null;
 
@@ -63,6 +76,7 @@ class Material
 
     public function __construct()
     {
+        $this->active = false;
         $this->votes = new ArrayCollection();
     }
 
@@ -74,6 +88,26 @@ class Material
     public function setToken(string $token): void
     {
         $this->token = $token;
+    }
+
+    public function getWallet(): ?string
+    {
+        return $this->wallet;
+    }
+
+    public function setWallet(string $walletPublicKey): void
+    {
+        $this->wallet = $walletPublicKey;
+    }
+
+    public function getNewWallet(): ?string
+    {
+        return $this->newWallet;
+    }
+
+    public function setNewWallet(string $newWalletPublicKey): void
+    {
+        $this->newWallet = $newWalletPublicKey;
     }
 
     public function getTitle(): ?string
@@ -146,12 +180,12 @@ class Material
         $this->galleryImages = $galleryImages;
     }
 
-    public function getPrice(): ?string
+    public function getPrice(): ?float
     {
         return $this->price;
     }
 
-    public function setPrice(?string $price): void
+    public function setPrice(?float $price): void
     {
         $this->price = $price;
     }
@@ -179,6 +213,16 @@ class Material
     public function setHasBlockchainProof(bool $hasBlockchainProof): void
     {
         $this->hasBlockchainProof = $hasBlockchainProof;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->active;
+    }
+
+    public function setActive(bool $active): void
+    {
+        $this->active = $active;
     }
 
     public function getVotes(): Collection

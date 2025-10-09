@@ -6,3 +6,6 @@ controllers:
 home_redirect:
     path: /
     controller: App\Controller\LocaleRedirectController::redirect
+
+fos_js_routing:
+    resource: "@FOSJsRoutingBundle/Resources/config/routing/routing-sf4.xml"

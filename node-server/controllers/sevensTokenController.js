@@ -55,6 +55,31 @@ class SevensTokenController {
             })
         }
     }
+
+    static async getAgeMinutes(req, res) {
+        try {
+            const { publicKey } = req.query
+
+            if (!publicKey) {
+                return res.status(400).json({
+                    error: 'Bad Request',
+                    message: 'publicKey query parameter is required',
+                })
+            }
+
+            const ageMinutes = await tokenService.getAgeMinutes(publicKey)
+            res.json({
+                success: true,
+                data: ageMinutes,
+            })
+        } catch (error) {
+            console.error('Error getting token age:', error)
+            res.status(404).json({
+                error: 'Not Found',
+                message: 'Token not found',
+            })
+        }
+    }
 }
 
 module.exports = SevensTokenController

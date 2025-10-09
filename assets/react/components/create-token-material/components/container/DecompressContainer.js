@@ -2,7 +2,8 @@ import React, { useCallback, useState, useRef, useEffect } from 'react'
 import { prettyBytes } from '@js/utils/file'
 import { decompressContainerSmart, removeExtractedFilesFolder, cleanupMemoryFiles } from '../../utils/files'
 import { DecompressCancellationToken, isCancellationError } from './DecompressCancellationToken'
-import { DecompressingStatus } from '../container/Components'
+import { DecompressingStatus, FilesList } from '../container/Components'
+import { ButtonLargeWidth } from '@react/components/form-elements/Buttons'
 import { FILE_MEMORY_DECOMPRESSION_LIMIT } from '../../constants'
 
 export const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, onStartDecompression, tokenData}) => {
@@ -123,7 +124,7 @@ export const Decompressing = ({tokenFiles, setTokenFiles, container, setContaine
     if (!container?.file) return null
 
     return container.isDecompressing && (
-        <div>
+        <div className="mb-3">
             <DecompressingStatus container={container} overallDecompressing={overallDecompressing} />
             <button className="btn btn-outline-danger w-100 mt-2 p-2" onClick={cancelDecompression}>
                 Cancel extraction
@@ -132,8 +133,38 @@ export const Decompressing = ({tokenFiles, setTokenFiles, container, setContaine
     )
 }
 
+export const ShowContainerFiles = ({
+    container,
+    setContainer,
+    tokenData,
+    tokenFiles,
+    setTokenFiles,
+    onStartDecompression,
+    handleStartDecompression,
+}) => {
+    const [showFiles, setShowFiles] = useState(false)
+
+    if (!tokenData || tokenData.error) return
+
+    if (!showFiles) return (
+        <button className="btn btn-primary w-100 fs-5 p-3 mb-3" onClick={() => setShowFiles(true)}>
+            Show container files
+        </button>
+    )
+
+    return (
+        <div>
+            <ButtonSelectDecompressionFolder {...{tokenData, container, handleStartDecompression}} />
+            <Decompressing {...{tokenFiles, setTokenFiles, container, setContainer, onStartDecompression, tokenData}} />
+            {!!tokenFiles?.length && (
+                <FilesList {...{tokenFiles, disabled: true, className: 'mb-3'}} />
+            )}
+        </div>
+    )
+}
+
 export const ButtonSelectDecompressionFolder = ({tokenData, container, handleStartDecompression}) => {
-    if (!tokenData || tokenData.error || container?.files || container?.isDecompressing) {
+    if (container?.files || container?.isDecompressing) {
         return null
     }
 
@@ -166,10 +197,10 @@ export const ButtonClearPickContainer = ({container, tokenFiles, tokenData, hand
     }, [container, tokenFiles, handlerClear])
 
     return container && !container.isHashing && !container.isDecompressing && (container.files || tokenData) && (
-        <div className="d-flex justify-content-end gap-2">
-            <button className="btn btn-primary fs-5 w-100 p-3" onClick={handleClear}>
-                Clear and pick different container file
-            </button>
-        </div>
+        <ButtonLargeWidth
+            className={'btn-primary'}
+            label={'Clear and pick different container file'}
+            onClick={handleClear}
+        />
     )
 }

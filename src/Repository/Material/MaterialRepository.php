@@ -32,4 +32,14 @@ class MaterialRepository extends ServiceEntityRepository
     {
         return new Material();
     }
+
+    public function getMaterialsByUser(string $userId): array
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.author = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('m.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }
