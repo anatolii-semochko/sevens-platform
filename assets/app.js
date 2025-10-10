@@ -28,6 +28,7 @@ import MaterialManage from '@react/components/material-manage/MaterialManage'
 import MaterialClaim from '@react/components/material-manage/claim/MaterialClaim'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
+import CommentsManage from '@react/components/comments-manage/CommentsManage'
 
 window.bootstrap = bootstrap
 window.Buffer = Buffer
@@ -97,6 +98,13 @@ if (materialComments) {
         const root = createRoot(materialComments)
         root.render(<MaterialComments materialToken={materialToken} isLoggedIn={isLoggedIn} />)
     }
+}
+
+const commentsManage = document.getElementById('comments-manage')
+if (commentsManage) {
+    const comments = JSON.parse(commentsManage.dataset.comments || '[]')
+    const root = createRoot(commentsManage)
+    root.render(<CommentsManage initialComments={comments} />)
 }
 
 document.addEventListener('DOMContentLoaded', function () {
