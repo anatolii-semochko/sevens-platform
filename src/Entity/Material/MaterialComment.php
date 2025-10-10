@@ -33,6 +33,10 @@ class MaterialComment
     #[ORM\Column(type: 'string', length: 45, nullable: true)]
     private ?string $ipAddress = null;
 
+    #[ORM\ManyToOne(targetEntity: MaterialComment::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?MaterialComment $parent = null;
+
     #[ORM\Column(type: 'datetime')]
     private \DateTimeInterface $createdAt;
 
@@ -114,5 +118,15 @@ class MaterialComment
     public function setCreatedAt(\DateTimeInterface $createdAt): void
     {
         $this->createdAt = $createdAt;
+    }
+
+    public function getParent(): ?MaterialComment
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?MaterialComment $parent): void
+    {
+        $this->parent = $parent;
     }
 }

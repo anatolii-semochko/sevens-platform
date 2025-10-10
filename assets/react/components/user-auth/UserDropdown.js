@@ -74,6 +74,13 @@ export default function UserDropdown({ user }) {
                         <i className="bi bi-person-gear me-2"></i>
                         My materials
                     </a>
+                    <a
+                        className="dropdown-item d-flex align-items-center"
+                        href={Routing.generate('comments_manage')}
+                    >
+                        <i className="bi bi-chat-left-text me-2"></i>
+                        Manage Comments
+                    </a>
                     <div className="dropdown-divider"></div>
                     <button
                         className="dropdown-item d-flex align-items-center text-danger"

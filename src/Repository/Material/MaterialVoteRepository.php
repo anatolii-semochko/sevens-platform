@@ -56,4 +56,16 @@ class MaterialVoteRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function save(MaterialVote $vote): void
+    {
+        $this->getEntityManager()->persist($vote);
+        $this->getEntityManager()->flush();
+    }
+
+    public function delete(MaterialVote $vote): void
+    {
+        $this->getEntityManager()->remove($vote);
+        $this->getEntityManager()->flush();
+    }
 }
