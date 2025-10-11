@@ -64,7 +64,7 @@ export const WalletSaleToken = ({expectedPublicKey, error}) => {
 
     return (
         <div className="alert-success bg-light alert border text-center">
-            <h4>Wallet</h4>
+            <h3>Wallet</h3>
             <h6 className="lh-base mb-3">
                 Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the
                 blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a

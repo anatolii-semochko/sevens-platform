@@ -3,6 +3,7 @@
 namespace App\Entity\Material;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use App\Entity\User;
 use App\Entity\Material\MaterialVote;
@@ -22,7 +23,7 @@ class Material
     #[Groups(['material:read'])]
     private string $wallet;
 
-    #[ORM\Column(type: 'string', length: 44)]
+    #[ORM\Column(type: 'string', length: 44, nullable: true)]
     #[Groups(['material:read'])]
     private string $newWallet;
 
@@ -145,7 +146,7 @@ class Material
         return $this->author;
     }
 
-    public function setAuthor(User $author): void
+    public function setAuthor(User|UserInterface $author): void
     {
         $this->author = $author;
     }
@@ -183,6 +184,11 @@ class Material
     public function getPrice(): ?float
     {
         return $this->price;
+    }
+
+    public function isSold(): bool
+    {
+        return $this->newWallet && $this->newWallet !== $this->wallet;
     }
 
     public function setPrice(?float $price): void

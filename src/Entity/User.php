@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
@@ -18,21 +19,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 36)]
+    #[Groups(['user:read'])]
     private string $id;
 
     #[ORM\Column(type: 'string', length: 180, unique: true, nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $email = null;
 
     #[ORM\Column(type: 'json')]
+    #[Groups(['user:read'])]
     private array $roles = [];
 
     #[ORM\Column(type: 'string', nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column(type: 'boolean')]
+    #[Groups(['user:read'])]
     private bool $isVerified = false;
 
     #[ORM\Column(type: 'datetime_immutable')]
+    #[Groups(['user:read'])]
     private \DateTimeInterface $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -45,9 +51,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $facebookId = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $firstName = null;
 
     #[ORM\Column(type: 'string', nullable: true)]
+    #[Groups(['user:read'])]
     private ?string $lastName = null;
 
     public function __construct()

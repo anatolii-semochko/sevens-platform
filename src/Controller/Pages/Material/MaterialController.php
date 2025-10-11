@@ -74,11 +74,6 @@ class MaterialController extends BaseController
     {
         try {
             $material = $this->materialRepository->get($token);
-
-            // Increment view count
-            $material->incrementViewCount();
-            $this->materialService->save($material);
-
             $this->pageService->init('/material', [
                 'token' => $material->getToken(),
                 'title' => $material->getTitle(),
@@ -88,7 +83,8 @@ class MaterialController extends BaseController
             return $this->page404($this->pageService, $this->materialService);
         }
 
-        if ($material->getNewWallet() && $material->getNewWallet() !== $material->getWallet()) {
+        // If material has been sold
+        if ($material->isSold()) {
             return $this->render('base.html.twig', [
                 'main_template' => 'pages/material/main/material-sold.html.twig',
                 'data' => [
@@ -96,6 +92,19 @@ class MaterialController extends BaseController
                 ],
             ]);
         }
+
+        // If material is not active
+        if (!$material->isActive()) {
+            return $this->render('base.html.twig', [
+                'main_template' => 'pages/material/main/material-inactive.html.twig',
+                'data' => [
+                    'material' => $material,
+                ],
+            ]);
+        }
+
+        $material->incrementViewCount();
+        $this->materialService->save($material);
 
         return $this->render('base.html.twig', [
             'main_template' => 'pages/material/main/material.html.twig',
@@ -105,7 +114,13 @@ class MaterialController extends BaseController
                 'materialsByAuthor' => $this->materialService->getByAuthor($material, 10),
                 'likeCount' => $this->voteRepository->countLikes($material->getToken()),
                 'dislikeCount' => $this->voteRepository->countDislikes($material->getToken()),
-                'isLoggedIn' => $this->getUser() !== null, // TODO - REMOVE !!! Олег, запитай мене про це !!!!!!!!!!!!!!
+
+                // TODO - for OLEG
+                // Current Authorized User Info
+                // Twig - app.user (app.user.id, app.user.email, app.user.firstName, app.user.roles...)
+                // React - store.getState().user (store.getState().user.id...)
+                'isLoggedIn' => $this->getUser() !== null,
+                // TODO - REMOVE
             ],
         ]);
     }

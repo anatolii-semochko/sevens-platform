@@ -4,10 +4,10 @@ import { deriveTokenData } from './utils/blockchain'
 import { calculateContainerHash, removeExtractedFilesFolder } from './utils/files'
 import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
-import { ShowTokenValidity } from './components/token/Components'
+import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
 import { WalletCheckForm } from './components/Wallet/Components'
 import { HashingStatus, SelectContainerFile } from './components/container/Components'
-import { PublishButton } from '@react/components/create-token-material/components/material/MaterialForm'
+import { PublishMaterial } from '@react/components/create-token-material/components/material/PublishMaterial'
 import { ButtonClearPickContainer, ShowContainerFiles } from './components/container/DecompressContainer'
 
 export const CreateMaterialFromToken = () => {
@@ -23,6 +23,7 @@ export const CreateMaterialFromToken = () => {
         setContainer({
             file,
             name: file.name,
+            size: file.size,
             downloadsHandle: providedDownloadsHandle,
             isHashing: true
         })
@@ -82,15 +83,16 @@ export const CreateMaterialFromToken = () => {
                 onStartDecompression,
                 handleStartDecompression,
             }}/>
-            <ShowTokenValidity {...{container, tokenData}} />
+            <TokenInfo {...{container, tokenData}} />
             {tokenData && !tokenData.error && (
                 <WalletCheckForm {...{tokenData, walletSignature, setWalletSignature}} />
             )}
             <MessagesBlock error={errorMessage} />
-            {!!walletSignature && (
-                <PublishButton {...{container, tokenData, walletSignature}} />
+            {!walletSignature ? (
+                <ButtonClearPickContainer {...{container, tokenFiles, tokenData, handlerClear}} />
+            ) : (
+                <PublishMaterial {...{container, tokenData, walletSignature}} />
             )}
-            <ButtonClearPickContainer {...{container, tokenFiles, tokenData, handlerClear}} />
         </div>
     )
 }

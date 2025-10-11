@@ -11,10 +11,10 @@ export default class MaterialApi {
             .catch(throwErrorMessage)
     }
 
-    async create(containerFileName, containerHash, tokenPublicKey, walletSignature) {
+    async create(container, tokenPublicKey, walletSignature) {
         const url = `${mainUrl}/create`
         return api
-            .post(url, {containerFileName, containerHash, tokenPublicKey, walletSignature})
+            .post(url, {container, tokenPublicKey, walletSignature})
             .then(response => response.data)
             .catch(throwErrorMessage)
     }

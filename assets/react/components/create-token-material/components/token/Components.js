@@ -13,36 +13,6 @@ export const MintedInfo = ({minted}) => minted && (
     </div>
 )
 
-export const ShowTokenValidity = ({container, tokenData}) => {
-    if (!tokenData) return
-
-    return tokenData.error ? (
-        <div className="alert-danger alert text-center text-break p-4">
-            <h4>Token not found for this files container.</h4>
-            <InnerTable data={[
-                ['File', container.file.name],
-                ['Hash', container.hash],
-            ]} />
-        </div>
-    ) : (
-        <div className="alert-success alert text-center text-break p-4">
-            <h4>Your container has been successfully checked in blockchain.</h4>
-            <div className="d-flex justify-content-center">
-                <InnerTable data={[
-                    ['Container file', container.file.name],
-                    ['Container hash', tokenData.metadata.hash],
-                    ['Token public key', tokenData.tokenPublicKey],
-                    ['Wallet public key', tokenData.walletPublicKey],
-                    ['Token name', tokenData.metadata.tokenName],
-                    ['Token author', tokenData.metadata.author],
-                    ['Token description', tokenData.metadata.description],
-                    ['Token can be burned', tokenData.metadata.canBeBurned ? 'Yes' : 'No'],
-                ]} />
-            </div>
-        </div>
-    )
-}
-
 export const TryMoreOptions = ({minted, handlerClear}) => minted && (
     <div className="d-flex flex-column align-items-center gap-2 text-center mb-3">
         <h6>You can try:</h6>
