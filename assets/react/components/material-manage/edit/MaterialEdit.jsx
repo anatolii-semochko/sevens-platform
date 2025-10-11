@@ -50,25 +50,15 @@ const Description = ({description, setDescription, error, setErrorMessage}) => (
     </div>
 )
 
-const Preview = ({logo}) => {
-    const width = 450
-    const height = 270
-
-    return (
-        <>
-            <label htmlFor="tokenDescription" className="form-label text-center w-100">Main publication image:</label>
-            {logo ? (
-                <div className="d-flex justify-content-center">
-                    <img src={window.AppConfig.path.materials + '/' + logo} alt={logo} style={{maxHeight: height, maxWidth: width}}/>
-                </div>
-            ) : (
-                <div className="bg-light rounded d-flex align-items-center justify-content-center" style={{width, height}}>
-                    <span className="small text-muted">No main file selected</span>
-                </div>
-            )}
-        </>
-    )
-}
+export const Preview = ({logo}) => logo ? (
+    <div className="d-flex justify-content-center">
+        <img src={window.AppConfig.path.materials + '/' + logo} alt={logo} />
+    </div>
+) : (
+    <div className="bg-light rounded d-flex align-items-center justify-content-center py-5">
+        <span className="small text-muted">No main file selected</span>
+    </div>
+)
 
 // const ImagePreview = ({file, width, height}) => {
 //     const f = file.file || file
@@ -252,6 +242,9 @@ export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessa
             <h4 className="text-center mb-4">Edit publication</h4>
             <div className="row mb-3">
                 <div className="col-12 col-lg-5">
+                    <label htmlFor="tokenDescription" className="form-label text-center w-100">
+                        Main publication image:
+                    </label>
                     <Preview logo={logo} />
                     <ImageSelectMain images={materialData.images} logo={logo} setLogo={setLogo} />
                 </div>

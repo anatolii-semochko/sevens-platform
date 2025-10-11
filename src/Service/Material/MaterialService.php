@@ -4,7 +4,6 @@ namespace App\Service\Material;
 
 use App\Entity\Material\Material;
 use App\Entity\Token\SevensTokenContainer;
-use App\Entity\User;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
 use App\Service\NodeServer\NodeServerApiException;
@@ -123,6 +122,12 @@ readonly class MaterialService
     public function updateMaterial(Material $material, array $data): void
     {
         if (isset($data['active'])) {
+            if ($data['active'] && !$material->getTitle()) {
+                throw new \InvalidArgumentException('The title is required to activate the publication..');
+            }
+            if ($data['active'] && !$material->getDescription()) {
+                throw new \InvalidArgumentException('The description is required to activate the publication.');
+            }
             $material->setActive((bool) $data['active']);
         }
 

@@ -25,7 +25,7 @@ class Material
 
     #[ORM\Column(type: 'string', length: 44, nullable: true)]
     #[Groups(['material:read'])]
-    private string $newWallet;
+    private ?string $newWallet = null;
 
     #[ORM\Column(type: 'boolean')]
     #[Groups(['material:read'])]
@@ -106,7 +106,7 @@ class Material
         return $this->newWallet;
     }
 
-    public function setNewWallet(string $newWalletPublicKey): void
+    public function setNewWallet(?string $newWalletPublicKey): void
     {
         $this->newWallet = $newWalletPublicKey;
     }
