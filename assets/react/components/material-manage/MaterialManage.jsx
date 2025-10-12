@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import MaterialApi from '@react/api/materialApi'
 import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
-import { MaterialEdit } from '@react/components/material-manage/edit/MaterialEdit'
+import { ToggleSwitch } from '@react/components/form-elements/Inputs'
+import { MaterialEdit, Preview } from '@react/components/material-manage/edit/MaterialEdit'
 import { MaterialSale } from '@react/components/material-manage/sale/MaterialSale'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
-import { ToggleSwitch } from '@react/components/form-elements/Inputs'
 
 const materialApi = new MaterialApi()
 
@@ -13,7 +13,6 @@ const MaterialManage = ({token}) => {
     const [tokenData, setTokenData] = useState(null)
     const [materialForm, setMaterialForm] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
-    const [isOn, setIsOn] = useState(false)
 
     const getMaterial = async () => {
         try {
@@ -27,12 +26,8 @@ const MaterialManage = ({token}) => {
 
     const getTokenData = async () => {
         try {
-            console.log('Getting token data for:', token)
-            const data = await fetchSevensTokenByPublicKey(token)
-            console.log('Token data received:', data)
-            setTokenData(data)
+            await fetchSevensTokenByPublicKey(token).then(setTokenData)
         } catch (error) {
-            console.log('Token data error:', error.message)
             setTokenData({error: 'Token not found'})
         }
     }
@@ -42,9 +37,7 @@ const MaterialManage = ({token}) => {
         getTokenData().catch()
     }, [])
 
-
     const handlerSave = async (materialData) => {
-        console.log('Save', materialData)
         try {
             setErrorMessage(null)
             if (materialData) {
@@ -56,6 +49,7 @@ const MaterialManage = ({token}) => {
             setMaterialForm(null)
         } catch (error) {
             setErrorMessage(error.message)
+            setMaterialForm('MaterialEdit')
         }
     }
 
@@ -71,63 +65,72 @@ const MaterialManage = ({token}) => {
 
     return (
         <div>
-            <p>Token: {material?.token}</p>
-            <p>Title: {material?.title}</p>
-            <p>Description: {material?.description}</p>
-            <p>Active: {material?.active ? 'YES' : 'NO'}</p>
-            <p>Price: {material?.price ? (material?.price + ' $SEV') : 'Not on sale'}</p>
             <TokenInfo tokenData={tokenData} />
-            <table>
-                <tbody className="table">
-                <tr>
-                    <td className="pt-2 pe-3">Material active status</td>
-                    <td>
-                        <ToggleSwitch
-                            checked={isOn}
-                            onChange={(v) => setIsOn(v)}
-                            inline={false}
-                            size={'lg'}
-                        />
-                    </td>
-                </tr>
-                <tr>
-                    <td className="pt-2 pe-3">Edit material</td>
-                    <td>
-                        <button className="btn btn-primary" onClick={() => setMaterialForm('MaterialEdit')}>
-                            Edit publication
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td className="pt-2 pe-3">Sale material</td>
-                    <td>
-                        <button className="btn btn-primary" onClick={() => setMaterialForm('MaterialSale')}>
-                            Change sale status
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td className="pt-2 pe-3">Remove material</td>
-                    <td>
-                        <button className="btn btn-primary" onClick={() => setMaterialForm('MaterialSale')}>
-                            Remove material
-                        </button>
-                    </td>
-                </tr>
-                <tr>
-                    <td className="pt-2 pe-3">Burn token and remove material</td>
-                    <td>
-                        <button className="btn btn-primary" onClick={() => setMaterialForm('MaterialSale')}>
-                            Burn token
-                        </button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>           <div className="d-flex justify-content-end gap-2">
-            <a className="btn btn-secondary px-5" href={Routing.generate('material_manage')}>
-                Back
-            </a>
-        </div>
+
+            <div className="row mt-5 mb-5">
+                <div className="col-lg-4 col-md-12">
+                    <Preview logo={material?.logo} />
+                </div>
+                <div className="col-lg-4 col-md-12">
+                    <p>Title: {material?.title}</p>
+                    <p>Description: {material?.description}</p>
+                    <p>Active: {material?.active ? 'YES' : 'NO'}</p>
+                    <p>Price: {material?.price ? ('On sale: ' + material?.price + ' $SEV') : 'Not on sale'}</p>
+                </div>
+            </div>
+
+            <div className="row mb-4">
+                <div className="col-8">Material active status:</div>
+                <div className="col-4">
+                    <ToggleSwitch
+                        checked={material?.active}
+                        onChange={async (active) => await handlerSave({active})}
+                        size={'lg'}
+                    />
+                </div>
+            </div>
+            <div className="row mb-3">
+                <div className="col-8">Edit material:</div>
+                <div className="col-4">
+                    <button className="btn btn-primary w-100" onClick={() => setMaterialForm('MaterialEdit')}>
+                        Edit publication
+                    </button>
+                </div>
+            </div>
+            <div className="row mb-3">
+                <div className="col-8">Sale material:</div>
+                <div className="col-4">
+                    <button className="btn btn-primary w-100" onClick={() => setMaterialForm('MaterialSale')}>
+                        Change sale status
+                    </button>
+                </div>
+            </div>
+            <div className="row mb-3">
+                <div className="col-8">Remove material:</div>
+                <div className="col-4">
+                    <button className="btn btn-primary w-100">
+                        Remove material
+                    </button>
+                </div>
+            </div>
+            <div className="row mb-4">
+                <div className="col-8">Burn token and remove material:</div>
+                <div className="col-4">
+                    <button className="btn btn-primary w-100">
+                        Burn token
+                    </button>
+                </div>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2 mb-3">
+                <a className="btn btn-secondary px-5" href={Routing.generate('material_manage')}>
+                    Back to materials management
+                </a>
+                <a className="btn btn-primary px-5" href={Routing.generate('material_page', {token})}>
+                    Go to the public material page
+                </a>
+            </div>
+
         </div>
     )
 }

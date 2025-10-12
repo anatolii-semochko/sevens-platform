@@ -1,6 +1,5 @@
 import React from 'react'
-import { getDateTimeFromDate } from '@js/utils/time'
-import { InnerTable } from '../../create-token-material/components/token/Components'
+import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
 
 export const ContainerCheckMessage = ({tokenData}) => !!tokenData && (
     <div>
@@ -16,23 +15,11 @@ export const ContainerCheckMessage = ({tokenData}) => !!tokenData && (
                 </ul>
             </div>
         ) : (
-            <div className="alert-success alert text-break p-4" role="alert">
-                <h3 className="text-center mb-3">Congratulations !</h3>
-                <p className="text-center">
-                    Your token container has been successfully checked.
-                    It is saved in blockchain and represented by token:
-                </p>
-                <div className="d-flex justify-content-center">
-                    <InnerTable data={[
-                        ['Token name', tokenData.metadata?.tokenName],
-                        ['Author', tokenData.metadata?.author],
-                        ['Description', tokenData.metadata?.description],
-                        ['Token public key', tokenData.tokenPublicKey?.toString()],
-                        ['Token hash', tokenData.metadata?.hash],
-                        ['Minting time', getDateTimeFromDate(tokenData.mintingTime)],
-                     ]} />
-                </div>
-            </div>
+            <TokenInfo
+                tokenData={tokenData}
+                label={'Congratulations !'}
+                text={'Your token container has been successfully checked. It is saved in blockchain and represented by token:'}
+            />
         )}
     </div>
 )

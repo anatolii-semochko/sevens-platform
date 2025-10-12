@@ -3,11 +3,12 @@
 namespace App\Service\Material;
 
 use App\Entity\Material\Material;
-use App\Entity\User;
+use App\Entity\Token\SevensTokenContainer;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
 use App\Service\NodeServer\NodeServerApiException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 readonly class MaterialService
 {
@@ -31,10 +32,9 @@ readonly class MaterialService
      * @throws NodeServerApiException
      */
     public function create(
-        User $user,
+        UserInterface $user,
+        SevensTokenContainer $sevensTokenContainer,
         string $tokenPublicKey,
-        string $containerFileName,
-        string $containerHash,
         ?array $walletSignature,
     ): void {
         // Get token data from blockchain
@@ -42,34 +42,15 @@ readonly class MaterialService
         // Check if user owns the token
         $this->tokenService->checkUserPermissionToPublishMaterial($token, $walletSignature);
 
-//        Trust token data
-//        dd([
-//            'title' => $token->getName(),
-//            'tokenName' => $token->getName(),
-//            'author' => $token->getAuthor(),
-//            'description' => $token->getDescription(),
-//            'tokenPublicKey' => $token->getTokenPublicKey(),
-//            'walletPublicKey' => $token->getWalletPublicKey(),
-//            'hash' => $token->getHash(),
-//            'isOnSale' => $token->isOnSale(),
-//            'price' => $token->getPrice(),
-//            'mintingTime' => $token->getMintingTime(),
-//        ]);
-
-//        Form data
-//        dd([
-//            'tokenPublicKey' => $tokenPublicKey,
-//            '$containerFileName' => $containerFileName,
-//            '$containerHash' => $containerHash,
-//            'walletSignature' => $walletSignature,
-//        ]);
-
+        // Create material
         $material = new Material();
         $material->setToken($tokenPublicKey);
+        $material->setWallet($walletSignature['walletPublicKey']);
         $material->setTitle('');
         $material->setDescription('');
         $material->setLogo('');
         $material->setCreatedAt(new \DateTime());
+        $material->setUpdatedAt(new \DateTime());
         $material->setAuthor($user);
 
         $this->em->persist($material);
@@ -142,6 +123,12 @@ readonly class MaterialService
     public function updateMaterial(Material $material, array $data): void
     {
         if (isset($data['active'])) {
+            if ($data['active'] && !$material->getTitle()) {
+                throw new \InvalidArgumentException('The title is required to activate the publication..');
+            }
+            if ($data['active'] && !$material->getDescription()) {
+                throw new \InvalidArgumentException('The description is required to activate the publication.');
+            }
             $material->setActive((bool) $data['active']);
         }
 

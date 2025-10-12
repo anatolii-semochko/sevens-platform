@@ -63,6 +63,10 @@ migration-diff:
 	docker compose run --rm ${APP_PHP_CLI} bin/console doctrine:migrations:diff
 migration-migrate:
 	docker compose run --rm ${APP_PHP_CLI} bin/console doctrine:migrations:migrate
+migration:
+	- rm -f migrations/Version*.*
+	docker compose run --rm ${APP_PHP_CLI} bin/console doctrine:migrations:diff
+	docker compose run --rm ${APP_PHP_CLI} bin/console doctrine:migrations:migrate
 
 fixtures:
 	docker compose run --rm ${APP_PHP_CLI} composer app fixtures:load

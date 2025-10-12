@@ -16,7 +16,7 @@ const materialSaleApi = new MaterialSaleApi()
 
 const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, errorMessage, setErrorMessage}) => {
     const wallet = useWallet()
-    const [price, setPrice] = useState(material.price || '')
+    const [price, setPrice] = useState(material.price || '') // TODO - take price from tokenData !!!!!!!!!!!!!
     const [type, setType] = useState(null)
     const [isWaiting, setIsWaiting] = useState(false)
 
@@ -29,8 +29,8 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
             }
             setIsWaiting(true)
             await setSale ({
-                tokenPublicKey: material.token,
-                price: type === 'sale' ? Math.floor(parseFloat(price) * LAMPORTS_PER_SOL) : 0,
+                tokenPublicKey: tokenData.tokenPublicKey,
+                price: type === 'sale' ? price : 0,
                 wallet,
             })
             await materialSaleApi.refresh(tokenData.tokenPublicKey)
@@ -80,10 +80,10 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
                     className={'btn-success'}
                     label={'Set for sale'}
                     processing={type === 'sale' && isWaiting}
-                    disabled={price === material.price || price <= 0 || isWaiting}
+                    disabled={price === tokenData.sale.price || price <= 0 || isWaiting}
                     onClick={() => setType('sale')}
                 /><>
-                {!!material.price && (
+                {!!tokenData.sale.price && (
                     <ButtonWithProcessing
                         className={'btn-primary'}
                         label={'Cancel Sale'}

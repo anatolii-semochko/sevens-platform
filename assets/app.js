@@ -9,19 +9,21 @@ import '@css/404.scss'
 import '@js/help-link'
 import '@js/material-slider'
 import React from 'react'
+import ReactDOM, { createRoot } from 'react-dom/client'
 import store from '@react/store/index'
 import streamSaver from 'streamsaver'
 import { Buffer } from 'buffer'
 import { RoutingWithLocale } from '@js/router/routing-with-locale'
 import { Provider } from 'react-redux'
-import { createRoot } from 'react-dom/client'
 import { openWallet, closeWallet } from '@js/wallet'
 import Create from '@react/components/create-token-material/Create'
+import BuyToken from '@react/components/buy-token/BuyToken'
 import CheckToken from '@react/components/check-token/CheckToken'
 import UserAuth from '@react/components/user-auth/UserAuth'
 import MaterialManage from '@react/components/material-manage/MaterialManage'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
+import ButtonContainerDownload from '@react/components/download-container/DownloadContainer'
 
 window.bootstrap = bootstrap
 window.Buffer = Buffer
@@ -55,7 +57,7 @@ if (userAuth) {
     root.render(<Provider store={store}><UserAuth user={userData} registerUrl={registerUrl} /></Provider>)
 }
 
-const materialEdit = document.getElementById('material_manage')
+const materialEdit = document.getElementById('material-manage')
 if (materialEdit) {
     createRoot(materialEdit).render(<MaterialManage token={materialEdit.dataset.token} />)
 }
@@ -91,6 +93,18 @@ if (materialComments) {
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('openWalletBtn')?.addEventListener('click', () => openWallet())
     document.getElementById('closeWalletBtn')?.addEventListener('click',() => closeWallet())
+    document.getElementById('closeWalletBtn')?.addEventListener('click',() => closeWallet())
+    document.getElementById('buyTokenBtn')?.addEventListener('click', () => {
+        const container = document.getElementById('buyTokenForm')
+        const root = ReactDOM.createRoot(container)
+        root.render(<BuyToken root={root} token={container.dataset.token} price={container.dataset.price} />)
+    })
+    document.querySelectorAll('.react-download').forEach(el => {
+        if (el?.dataset) {
+            const root = ReactDOM.createRoot(el)
+            root.render(<ButtonContainerDownload token={el?.dataset.token} />)
+        }
+    })
 })
 
 window.Routing = RoutingWithLocale

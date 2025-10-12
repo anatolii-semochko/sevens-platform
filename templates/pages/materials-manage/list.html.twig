@@ -10,7 +10,7 @@
                     <thead>
                         <tr>
                             <th>Logo</th>
-                            <th>Token</th>
+                            <th class="d-none d-lg-table-cell text-break">Token</th>
                             <th>Material</th>
                             <th>Price</th>
                             <th>Created</th>
@@ -31,9 +31,7 @@
                                         </div>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <code class="text-break" style="font-size: 0.8em;">{{ material.token }}</code>
-                                </td>
+                                <td class="d-none d-lg-table-cell text-break small">{{ material.token }}</td>
                                 <td>{{ material.title }}</td>
                                 <td>
                                     {% if material.price and material.price > 0 %}
@@ -48,11 +46,14 @@
                                     {% if material.isActive %}
                                         <span class="badge bg-success">Active</span>
                                     {% else %}
-                                        <span class="badge bg-secondary">Inactive</span>
+                                        <span class="badge bg-danger">Inactive</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     <a href="{{ path('material_manage_one', {'token': material.token}) }}" class="btn btn-primary">Manage</a>
+                                </td>
+                                <td>
+                                    <div class="react-download" id="react-download-{{ material.token }}" data-token="{{ material.token }}"></div>
                                 </td>
                             </tr>
                         {% endfor %}

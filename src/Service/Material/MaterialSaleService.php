@@ -35,7 +35,6 @@ readonly class MaterialSaleService
             $material->setActive(false);
             $this->em->persist($material);
             $this->em->flush();
-            $this->materialSaleHistoryRepository->createEntry($tokenPublicKey, $walletPublicKey, null);
         }
 
         if ($material->getPrice() !== $tokenPrice) {

@@ -50,11 +50,11 @@ const WaitingSignatureText = ({publicKey}) => !!publicKey && (
     <p className="text-danger">Waiting wallet signature</p>
 )
 
-const ErrorText = ({errorMessage}) => !!errorMessage && (
-    <p className="text-danger">{errorMessage}</p>
+const ErrorText = ({error}) => !!error && (
+    <p className="text-danger">{error.message || error}</p>
 )
 
-export const WalletSaleToken = ({expectedPublicKey}) => {
+export const WalletSaleToken = ({expectedPublicKey, error}) => {
     const wallet = useWallet()
     const publicKey = () => wallet?.publicKey?.toString()
 
@@ -64,7 +64,7 @@ export const WalletSaleToken = ({expectedPublicKey}) => {
 
     return (
         <div className="alert-success bg-light alert border text-center">
-            <h4>Wallet</h4>
+            <h3>Wallet</h3>
             <h6 className="lh-base mb-3">
                 Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the
                 blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a
@@ -72,9 +72,35 @@ export const WalletSaleToken = ({expectedPublicKey}) => {
             </h6>
             <PublicKeyText {...{publicKey: publicKey(), expectedPublicKey}} />
             <WaitingSignatureText publicKey={publicKey()} />
+            <ErrorText error={error} />
             <div className="d-flex justify-content-center gap-2">
                 <WalletMultiButton />
             </div>
         </div>
     )
 }
+
+// export const WalletBuyToken = () => {
+//     const wallet = useWallet()
+//     const publicKey = () => wallet?.publicKey?.toString()
+//
+//     useEffect(() => {
+//         walletConnection(wallet)
+//     }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
+//
+//     return (
+//         <div className="alert-success bg-light alert border text-center">
+//             <h4>Wallet</h4>
+//             <h6 className="lh-base mb-3">
+//                 Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the
+//                 blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a
+//                 blockchain fee — the amount will be displayed in the wallet before it's signed.
+//             </h6>
+//             <PublicKeyText {...{publicKey: publicKey(), expectedPublicKey}} />
+//             <WaitingSignatureText publicKey={publicKey()} />
+//             <div className="d-flex justify-content-center gap-2">
+//                 <WalletMultiButton />
+//             </div>
+//         </div>
+//     )
+// }

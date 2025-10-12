@@ -11,7 +11,6 @@ import { WalletMintForm } from './components/Wallet/Components'
 import { ButtonCreateToken } from '@react/components/create-token-material/components/token/ButtonCreateToken'
 import { TokenForm } from '@react/components/create-token-material/components/token/TokenForm'
 
-
 export const CreateTokenMaterial = ({doMaterial}) => {
     const wallet = useWallet()
     const targetRef = useRef(null)

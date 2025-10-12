@@ -228,7 +228,7 @@ const setSale = async ({ tokenPublicKey, price, wallet }) => {
         const tokenAccount = getAssociatedTokenAddressSync(mint, wallet.publicKey, false, TOKEN_PROGRAM_ID)
 
         const ix = await program.methods
-            .setSale(price > 0, new BN(price))
+            .setSale(price > 0, new BN(price * LAMPORTS_PER_SOL))
             .accounts({
                 ownerAccount: wallet.publicKey,
                 mint,
@@ -258,10 +258,7 @@ const setSale = async ({ tokenPublicKey, price, wallet }) => {
     }
 }
 
-/**
- * @returns {Promise<string>} txSignature
- */
-const buy = async ({ tokenPublicKey, lamports }) => {
+const buy = async ({ tokenPublicKey, price, wallet }) => {
     try {
         const mint = new PublicKey(tokenPublicKey)
         const {
@@ -269,15 +266,14 @@ const buy = async ({ tokenPublicKey, lamports }) => {
             salePda,
         } = getSevensToken(mint)
 
-        const owner = await getTokenOwner(mint)  // TODO - RTEMOVE OWNER !!!
+        const owner = await getTokenOwner(mint)
         const ownerToken = owner.tokenAccount
-        const buyer = provider().wallet
-        const buyerToken = getAssociatedTokenAddressSync(mint, buyer.publicKey, false, TOKEN_PROGRAM_ID)
+        const buyerToken = getAssociatedTokenAddressSync(mint, wallet.publicKey, false, TOKEN_PROGRAM_ID)
 
-        return await program.methods
-            .buyToken(new BN(lamports))
+        const ix = await program.methods
+            .buyToken(new BN(price * LAMPORTS_PER_SOL))
             .accounts({
-                buyerAccount: buyer.publicKey,
+                buyerAccount: wallet.publicKey,
                 ownerAccount: owner.publicKey,
                 buyerTokenAccount: buyerToken,
                 ownerTokenAccount: ownerToken,
@@ -288,7 +284,22 @@ const buy = async ({ tokenPublicKey, lamports }) => {
                 systemProgram: SystemProgram.programId,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
             })
-            .rpc()
+            .instruction()
+
+        const { blockhash } = await connection.getLatestBlockhash(commitment)
+        const tx = new Transaction()
+        tx.add(ix)
+        tx.feePayer = wallet.publicKey
+        tx.recentBlockhash = blockhash
+
+        const txSignature = await wallet.signTransaction(tx)
+
+        const signature = await connection.sendRawTransaction(txSignature.serialize(), {
+            skipPreflight: false,
+            preflightCommitment: commitment,
+        })
+
+        return await connection.confirmTransaction({signature, commitment})
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
     }
@@ -304,7 +315,7 @@ const getTokenOwner = async (tokenPublicKey) => {
     const owner = new PublicKey(parsedAccount.value.data.parsed.info.owner)
 
     return {
-        tokenAccount: largestAccounts?.value[0]?.address,
+        tokenAccount: largestAccountInfo.address,
         publicKey: owner,
     }
 }

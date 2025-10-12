@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Controller\BaseApiController;
+use App\Entity\Token\SevensTokenContainer;
 use App\Exception\WrappedHttpException;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Material\MaterialService;
@@ -47,28 +48,27 @@ class MaterialController extends BaseApiController
             $payload = $request->getPayload();
             $tokenPublicKey = $payload->get('tokenPublicKey');
 
-            // If material already exists - we return the redirect to it's page
-            if ($this->materialService->finByTokenPublicKey($tokenPublicKey)) {
-                return new JsonResponse([
-                    'message' => 'Material for this container already exists.',
-                    'link' => $this->generateUrl('material_page', ['token' => $tokenPublicKey]),
-                ]);
+            // If material already exists
+            if ($material = $this->materialService->finByTokenPublicKey($tokenPublicKey)) {
+                return $this->json([
+                    'created' => false,
+                    'material' => $material,
+                ], context: ['groups' => ['material:read', 'user:read']]);
             }
 
-            // Create inactive material
+            // Create material
+            $container = $payload->all('container');
             $this->materialService->create(
                 $this->getUser(),
+                new SevensTokenContainer($container['name'], $container['size'], $container['hash']),
                 $tokenPublicKey,
-                $payload->get('containerFileName'),
-                $payload->get('containerHash'),
                 $payload->all('walletSignature'),
             );
 
-            // And return redirect to edit and activate material page
-            return new JsonResponse([
-                'message' => 'Material created successfully.',
-                'redirect' => $this->generateUrl('material_manage_one', ['token' => $tokenPublicKey])
-            ]);
+            return $this->json([
+                'created' => true,
+                'material' => $this->materialService->finByTokenPublicKey($tokenPublicKey),
+            ], context: ['groups' => ['material:read', 'user:read']]);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
         }
