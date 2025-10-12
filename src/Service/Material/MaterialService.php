@@ -50,6 +50,7 @@ readonly class MaterialService
         $material->setDescription('');
         $material->setLogo('');
         $material->setCreatedAt(new \DateTime());
+        $material->setUpdatedAt(new \DateTime());
         $material->setAuthor($user);
 
         $this->em->persist($material);

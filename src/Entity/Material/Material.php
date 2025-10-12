@@ -52,6 +52,14 @@ class Material
     #[Groups(['material:read'])]
     private \DateTimeInterface $createdAt;
 
+    #[ORM\Column(type: 'datetime')]
+    #[Groups(['material:read'])]
+    private \DateTimeInterface $updatedAt;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[Groups(['material:read'])]
+    private ?\DateTimeInterface $downloadedAt = null;
+
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     #[Groups(['material:read'])]
     private ?string $contractAddress = null;
@@ -159,6 +167,26 @@ class Material
     public function setCreatedAt(\DateTimeInterface $createdAt): void
     {
         $this->createdAt = $createdAt;
+    }
+
+    public function getUpdatedAt(): \DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeInterface $updatedAt): void
+    {
+        $this->updatedAt = $updatedAt;
+    }
+
+    public function getDownloadedAt(): ?\DateTimeInterface
+    {
+        return $this->downloadedAt;
+    }
+
+    public function setDownloadedAt(?\DateTimeInterface $downloadedAt): void
+    {
+        $this->downloadedAt = $downloadedAt;
     }
 
     public function getContractAddress(): ?string
