@@ -23,6 +23,7 @@ import UserAuth from '@react/components/user-auth/UserAuth'
 import MaterialManage from '@react/components/material-manage/MaterialManage'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
+import ButtonContainerDownload from '@react/components/download-container/DownloadContainer'
 
 window.bootstrap = bootstrap
 window.Buffer = Buffer
@@ -93,11 +94,17 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('openWalletBtn')?.addEventListener('click', () => openWallet())
     document.getElementById('closeWalletBtn')?.addEventListener('click',() => closeWallet())
     document.getElementById('closeWalletBtn')?.addEventListener('click',() => closeWallet())
-    document.getElementById("buyTokenBtn")?.addEventListener("click", () => {
+    document.getElementById('buyTokenBtn')?.addEventListener('click', () => {
         const container = document.getElementById('buyTokenForm')
         const root = ReactDOM.createRoot(container)
         root.render(<BuyToken root={root} token={container.dataset.token} price={container.dataset.price} />)
-    });
+    })
+    document.querySelectorAll('.react-download').forEach(el => {
+        if (el?.dataset) {
+            const root = ReactDOM.createRoot(el)
+            root.render(<ButtonContainerDownload token={el?.dataset.token} />)
+        }
+    })
 })
 
 window.Routing = RoutingWithLocale
