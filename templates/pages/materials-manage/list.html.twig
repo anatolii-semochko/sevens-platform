@@ -55,7 +55,9 @@
                                     <a href="{{ path('material_manage_one', {'token': material.token}) }}" class="btn btn-primary">Manage</a>
                                 </td>
                                 <td>
-                                    <div class="react-download" id="react-download-{{ material.token }}" data-token="{{ material.token }}"></div>
+                                    <button class="btn btn-primary download-container-btn" data-token="{{ material.token }}">
+                                        Container download
+                                    </button>
                                 </td>
                             </tr>
                         {% endfor %}

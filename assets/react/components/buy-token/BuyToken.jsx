@@ -7,6 +7,8 @@ import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { WalletSaleToken } from '@react/components/form-elements/WalletForms'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
+import {showModal} from "@js/modal";
+import {DownloadContainer} from "@react/components/download-container/DownloadContainer";
 
 const materialSaleApi = new MaterialSaleApi()
 
@@ -15,6 +17,7 @@ const BuyTokenInner = ({tokenPublicKey, price}) => {
     const [fee, setFee] = useState(null)
     const [inProgress, setInProgress] = useState(false)
     const [sold, setSold] = useState(false)
+    const [downloaded, setDownloaded] = useState(false)
     const [error, setError] = useState(null)
 
     const handlerBuy = async () => {
@@ -24,6 +27,15 @@ const BuyTokenInner = ({tokenPublicKey, price}) => {
             await buy({tokenPublicKey, price, wallet})
             await materialSaleApi.refresh(tokenPublicKey)
             setSold(true)
+
+            showModal({
+                id: 'download-files-container-' + tokenPublicKey,
+                title: 'Download token files container',
+                body: <DownloadContainer token={tokenPublicKey}/>,
+                size: 'lg',
+            })
+
+
             window.location.reload()
         } catch (error) {
             setError(error.message)

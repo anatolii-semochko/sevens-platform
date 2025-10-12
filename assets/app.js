@@ -15,7 +15,9 @@ import streamSaver from 'streamsaver'
 import { Buffer } from 'buffer'
 import { RoutingWithLocale } from '@js/router/routing-with-locale'
 import { Provider } from 'react-redux'
+import { showModal } from '@js/modal'
 import { openWallet, closeWallet } from '@js/wallet'
+import { ButtonContainerDownload } from '@react/components/download-container/DownloadContainer'
 import Create from '@react/components/create-token-material/Create'
 import BuyToken from '@react/components/buy-token/BuyToken'
 import CheckToken from '@react/components/check-token/CheckToken'
@@ -23,7 +25,6 @@ import UserAuth from '@react/components/user-auth/UserAuth'
 import MaterialManage from '@react/components/material-manage/MaterialManage'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
-import ButtonContainerDownload from '@react/components/download-container/DownloadContainer'
 
 window.bootstrap = bootstrap
 window.Buffer = Buffer
@@ -99,11 +100,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const root = ReactDOM.createRoot(container)
         root.render(<BuyToken root={root} token={container.dataset.token} price={container.dataset.price} />)
     })
-    document.querySelectorAll('.react-download').forEach(el => {
-        if (el?.dataset) {
-            const root = ReactDOM.createRoot(el)
-            root.render(<ButtonContainerDownload token={el?.dataset.token} />)
-        }
+    document.querySelectorAll('.download-container-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.dataset) {
+                showModal({
+                    id: 'download-files-container-' + this.dataset.token,
+                    title: 'Download token files container',
+                    body: React.createElement(ButtonContainerDownload.DownloadContainer, { token: this.dataset.token }),
+                    size: 'lg',
+                })
+            }
+        })
     })
 })
 
