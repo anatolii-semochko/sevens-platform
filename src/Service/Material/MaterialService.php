@@ -123,11 +123,14 @@ readonly class MaterialService
     public function updateMaterial(Material $material, array $data): void
     {
         if (isset($data['active'])) {
-            if ($data['active'] && !$material->getTitle()) {
-                throw new \InvalidArgumentException('The title is required to activate the publication..');
-            }
-            if ($data['active'] && !$material->getDescription()) {
-                throw new \InvalidArgumentException('The description is required to activate the publication.');
+            if ($data['active']) {
+                $this->tokenService->getByPublicKey($material->getToken());
+                if (!$material->getTitle()) {
+                    throw new \InvalidArgumentException('The title is required to activate the publication..');
+                }
+                if (!$material->getDescription()) {
+                    throw new \InvalidArgumentException('The description is required to activate the publication.');
+                }
             }
             $material->setActive((bool) $data['active']);
         }
@@ -146,6 +149,10 @@ readonly class MaterialService
 
         if (isset($data['price'])) {
             $material->setPrice($data['price']);
+        }
+
+        if (!$material->getTitle() || !$material->getDescription()) {
+            $material->setActive(false);
         }
 
         $this->save($material);

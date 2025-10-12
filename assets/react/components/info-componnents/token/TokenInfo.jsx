@@ -27,7 +27,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
 
     if (tokenData.error) return (
         <div className="alert-danger alert text-center text-break p-4">
-            <h4>Token not found: {tokenData.error}.</h4>
+            <h4 className="mb-0">Error: {tokenData.error}.</h4>
         </div>
     )
 
