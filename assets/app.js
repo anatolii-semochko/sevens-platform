@@ -8,11 +8,13 @@ import '@css/gallery.scss'
 import '@css/404.scss'
 import '@js/help-link'
 import '@js/material-slider'
+import '@js/toast'
 import React from 'react'
 import ReactDOM, { createRoot } from 'react-dom/client'
 import store from '@react/store/index'
 import streamSaver from 'streamsaver'
 import { Buffer } from 'buffer'
+import { Toaster } from 'react-hot-toast'
 import { RoutingWithLocale } from '@js/router/routing-with-locale'
 import { Provider } from 'react-redux'
 import { showModal } from '@js/modal'
@@ -112,6 +114,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         })
     })
+
+    // Global toast for using by TWIG
+    const toastContainer = document.createElement('div')
+    toastContainer.id = 'toast-container'
+    document.body.appendChild(toastContainer)
+    const toastRoot = createRoot(toastContainer)
+    toastRoot.render(<Toaster position="top-right" />)
 })
 
 window.Routing = RoutingWithLocale
