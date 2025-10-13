@@ -24,13 +24,19 @@ class BaseController extends AbstractController
         ]), Response::HTTP_NOT_FOUND);
     }
 
-    public function requireAuth(Request $request): ?Response
+    public function requireAuth(Request $request, ?string $userId = null): ?Response
     {
         $user = $this->getUser();
         if (!$user || !$user->getId()) {
             $this->saveTargetPath($request->getSession(), 'main', $request->getUri());
 
             return $this->redirectToRoute('app_login', [
+                '_locale' => $request->getLocale()
+            ]);
+        }
+
+        if ($userId && $userId !== $user->getId()) {
+            return $this->redirectToRoute('home_page', [
                 '_locale' => $request->getLocale()
             ]);
         }

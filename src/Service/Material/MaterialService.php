@@ -4,8 +4,10 @@ namespace App\Service\Material;
 
 use App\Entity\Material\Material;
 use App\Entity\Token\SevensTokenContainer;
+use App\Entity\Wallet\WalletSignature;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
+use App\Service\Blockchain\WalletService;
 use App\Service\NodeServer\NodeServerApiException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -16,6 +18,7 @@ readonly class MaterialService
         private EntityManagerInterface $em,
         private MaterialRepository $repository,
         private TokenService $tokenService,
+        private WalletService $walletService,
     ) {}
 
     public function fetch(): array
@@ -35,19 +38,21 @@ readonly class MaterialService
         UserInterface $user,
         SevensTokenContainer $sevensTokenContainer,
         string $tokenPublicKey,
-        ?array $walletSignature,
+        ?WalletSignature $walletSignature,
     ): void {
         // Get token data from blockchain
-        $token = $this->tokenService->getByPublicKey($tokenPublicKey);
+        $sevensToken = $this->tokenService->getByPublicKey($tokenPublicKey);
         // Check if user owns the token
-        $this->tokenService->checkUserPermissionToPublishMaterial($token, $walletSignature);
+        $this->tokenService->checkUserPermissionToPublishMaterial($sevensToken, $walletSignature);
 
         // Create material
         $material = new Material();
         $material->setToken($tokenPublicKey);
-        $material->setWallet($walletSignature['walletPublicKey']);
+        $material->setWallet($walletSignature->getWalletPublicKey());
         $material->setTitle('');
         $material->setDescription('');
+        $material->setTokenData($sevensToken);
+        $material->setTokenContainer($sevensTokenContainer);
         $material->setLogo('');
         $material->setCreatedAt(new \DateTime());
         $material->setUpdatedAt(new \DateTime());
@@ -156,5 +161,11 @@ readonly class MaterialService
         }
 
         $this->save($material);
+    }
+
+    public function claim(WalletSignature $walletSignature, array $tokens): void
+    {
+        $this->walletService->verifyWalletSignature($walletSignature);
+        dd($walletSignature, $tokens);
     }
 }

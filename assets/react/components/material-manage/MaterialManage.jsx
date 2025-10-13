@@ -81,7 +81,7 @@ const MaterialManage = ({token}) => {
                 <div className="col-lg-4 col-md-12">
                     <Preview logo={material?.logo} />
                 </div>
-                <div className="col-lg-4 col-md-12">
+                <div className="col-lg-8 col-md-12">
                     <p>Title: {material?.title}</p>
                     <p>Description: {material?.description}</p>
                     <p>Price: {material?.price ? ('On sale: ' + material?.price + ' $SEV') : 'Not on sale'}</p>

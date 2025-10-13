@@ -1,6 +1,9 @@
-import React, { useEffect } from 'react'
+import React, {useEffect, useState} from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import {fetchNonce} from "@react/api/nodeApi";
+import bs58 from "bs58";
+import {getAnchorErrorText} from "@js/blockchain/sevens";
 
 
 
@@ -104,3 +107,81 @@ export const WalletSaleToken = ({expectedPublicKey, error}) => {
 //         </div>
 //     )
 // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const WalletClaimMaterialsForm = ({walletSignature, setWalletSignature}) => {
+    const wallet = useWallet()
+    const [walletPublicKey, setWalletPublicKey] = useState(null)
+    const [errorMessage, setErrorMessage] = useState(null)
+
+    useEffect(() => {
+        walletConnection(wallet)
+    }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
+
+    useEffect(() => {
+        setWalletPublicKey(wallet.publicKey?.toString())
+        setWalletSignature(null)
+        setErrorMessage(null)
+    }, [wallet.publicKey])
+
+    const handleSign = async () => {
+        try {
+            setWalletSignature(null)
+            setErrorMessage(null)
+
+            const derivedNonce = await fetchNonce(walletPublicKey)
+            const signature = await wallet.signMessage(new TextEncoder().encode(derivedNonce.message))
+
+            setWalletSignature({
+                walletPublicKey,
+                signature: bs58.encode(signature),
+                ...derivedNonce,
+            })
+        } catch (error) {
+            setErrorMessage(getAnchorErrorText(error))
+        }
+    }
+
+
+    const SignatureText = ({walletPublicKey, walletSignature}) => !!walletPublicKey && (walletSignature ? (
+        <p className="text-success fw-semibold">{walletSignature.signature}</p>
+    ) : (
+        <p className="text-danger">Waiting wallet signature</p>
+    ))
+
+    return (
+        <div className="alert-success bg-light alert border text-center">
+            <h4>Wallet</h4>
+            <h6 className="lh-base mb-3">
+                Publishing material requires signing the message to confirm ownership and verify that you own the token
+                to avoid fraudulent publications. This operation does not require spending coins.
+            </h6>
+            <PublicKeyText publicKey={wallet.publicKey?.toString()} />
+            <SignatureText {...{walletPublicKey, walletSignature}} />
+            <ErrorText errorMessage={errorMessage} />
+            <div className="d-flex justify-content-center gap-2">
+                <WalletMultiButton />
+                <button
+                    className="btn btn-success py-2 px-4"
+                    disabled={!walletPublicKey}
+                    onClick={handleSign}
+                >
+                    Sign
+                </button>
+            </div>
+        </div>
+    )
+}

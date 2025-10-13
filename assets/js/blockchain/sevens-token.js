@@ -305,6 +305,29 @@ const buy = async ({ tokenPublicKey, price, wallet }) => {
     }
 }
 
+const getWalletTokens = async (walletPublicKey) => {
+    try {
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+            new PublicKey(walletPublicKey),
+            {programId: TOKEN_PROGRAM_ID},
+        )
+
+        const tokens = []
+        for (const accountInfo of tokenAccounts.value) {
+            const accountData = accountInfo.account.data.parsed.info
+            const amount = parseInt(accountData.tokenAmount.amount, 10)
+            const decimals = parseInt(accountData.tokenAmount.decimals, 10)
+            if (amount === 1 && decimals === 0) {
+                tokens.push(accountData.mint)
+            }
+        }
+
+        return tokens
+    } catch (error) {
+        throw new Error(getAnchorErrorText(error))
+    }
+}
+
 const getTokenOwner = async (tokenPublicKey) => {
     const largestAccounts = await connection.getTokenLargestAccounts(tokenPublicKey)
     const largestAccountInfo = largestAccounts.value[0]
@@ -320,4 +343,9 @@ const getTokenOwner = async (tokenPublicKey) => {
     }
 }
 
-export { provider, connection, mint, burn, buy, getData, getTokenByHash, setSale, sevensIdl }
+export {
+    provider, connection, sevensIdl,
+    mint, burn,
+    getData, getTokenByHash, getWalletTokens,
+    setSale, buy,
+}

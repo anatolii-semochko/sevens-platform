@@ -25,6 +25,7 @@ import BuyToken from '@react/components/buy-token/BuyToken'
 import CheckToken from '@react/components/check-token/CheckToken'
 import UserAuth from '@react/components/user-auth/UserAuth'
 import MaterialManage from '@react/components/material-manage/MaterialManage'
+import MaterialClaim from '@react/components/material-manage/claim/MaterialClaim'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
 
@@ -60,9 +61,14 @@ if (userAuth) {
     root.render(<Provider store={store}><UserAuth user={userData} registerUrl={registerUrl} /></Provider>)
 }
 
-const materialEdit = document.getElementById('material-manage')
-if (materialEdit) {
-    createRoot(materialEdit).render(<MaterialManage token={materialEdit.dataset.token} />)
+const materialManage = document.getElementById('material-manage')
+if (materialManage) {
+    createRoot(materialManage).render(<MaterialManage token={materialManage.dataset.token} />)
+}
+
+const materialClaim = document.getElementById('material-claim')
+if (materialClaim) {
+    createRoot(materialClaim).render(<MaterialClaim />)
 }
 
 const materialVotes = document.getElementById('material-votes')
@@ -100,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('buyTokenBtn')?.addEventListener('click', () => {
         const container = document.getElementById('buyTokenForm')
         const root = ReactDOM.createRoot(container)
-        root.render(<BuyToken root={root} token={container.dataset.token} price={container.dataset.price} />)
+        root.render(<BuyToken root={root} token={container.dataset.token} isMyMaterial={container.dataset.isMyMaterial}/>)
     })
     document.querySelectorAll('.download-container-btn').forEach(btn => {
         btn.addEventListener('click', function() {

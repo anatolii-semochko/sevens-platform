@@ -3,7 +3,7 @@
         <h3 class="text-center p-3">My materials</h3>
 
         {% if data.materials is empty %}
-            <p>You have no materials yet.</p>
+            <p class="text-center mb-4">You have no materials yet.</p>
         {% else %}
             <div class="table-responsive">
                 <table class="table table-striped align-middle mb-4">
@@ -63,10 +63,13 @@
                         {% endfor %}
                     </tbody>
                 </table>
-                <button class="btn btn-primary w-100 p-3 mb-4 fs-5">
-                    Claim materials belongs your tokens in the wallet
-                </button>
             </div>
         {% endif %}
+        <p>
+            You can add materials published on the site to your personal list if you have a token that represents them.
+        </p>
+        <a class="btn btn-primary w-100 p-3 mb-4 fs-5" href="{{ path('material_claim') }}">
+            Claim materials belongs your tokens in the wallet
+        </a>
     </div>
 </main>
