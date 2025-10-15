@@ -32,6 +32,7 @@ const walletConnection = (wallet) => {
 
 
 const texts = {
+    mint: 'Creating a token requires using a wallet to store it and pay the transaction fee. Select and activate a wallet to mint the token.',
     publish: 'Publishing material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
     claim: 'Claiming material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
     sale: "Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a blockchain fee — the amount will be displayed in the wallet before it's signed.",

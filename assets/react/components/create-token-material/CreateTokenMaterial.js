@@ -1,18 +1,17 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import store from '@react/store'
-import { useWallet } from '@solana/wallet-adapter-react'
 import { removeReferenceFile } from './utils/files'
 import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { CreateContainer } from './components/container/CreateContainer'
 import { ContainerFileInfo } from './components/container/Components'
-import { MintedInfo, TryMoreOptions } from './components/token/Components'
-import { WalletMintForm } from './components/Wallet/Components'
+import { TryMoreOptions } from './components/token/Components'
 import { ButtonCreateToken } from '@react/components/create-token-material/components/token/ButtonCreateToken'
 import { TokenForm } from '@react/components/create-token-material/components/token/TokenForm'
+import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
+import { WalletForm } from '@react/components/form-elements/WalletForms'
 
 export const CreateTokenMaterial = ({doMaterial}) => {
-    const wallet = useWallet()
     const targetRef = useRef(null)
     const [tokenFiles, setTokenFiles] = useState([])
     const [container, setContainer] = useState(null)
@@ -20,8 +19,6 @@ export const CreateTokenMaterial = ({doMaterial}) => {
     const [minted, setMinted] = useState(null)
     const [errorContainer, setErrorContainer] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
-
-    useEffect(() => setErrorMessage(null), [wallet.publicKey, container, tokenData, tokenFiles])
 
     const handlerChangeFiles = () => {
         setContainer(null)
@@ -63,7 +60,7 @@ export const CreateTokenMaterial = ({doMaterial}) => {
             )}
             <ContainerFileInfo {...{container, setErrorContainer}} />
             <MessagesBlock error={errorContainer} />
-            {showTokenForm() && <WalletMintForm />}
+            {showTokenForm() && <WalletForm operation={'mint'} />}
             {showTokenForm() && <TokenForm {...{tokenData, setTokenData, setErrorMessage}} />}
             {showActions() && <MessagesBlock error={errorMessage} />}
             {showActions() && (
@@ -71,11 +68,11 @@ export const CreateTokenMaterial = ({doMaterial}) => {
                     <button className="btn btn-outline-primary px-5 py-2" onClick={handlerChangeFiles}>Change files</button>
                     <button className="btn btn-outline-primary px-5 py-2" onClick={handlerClear}>Clear</button>
                     {!errorContainer && (
-                        <ButtonCreateToken {...{tokenData, container, wallet, setMinted, setErrorMessage, targetRef, setContainer}} />
+                        <ButtonCreateToken {...{tokenData, container, setMinted, setErrorMessage, targetRef, setContainer}} />
                     )}
                 </div>
             )}
-            <MintedInfo minted={minted} />
+            <TokenInfo tokenData={minted} />
             <TryMoreOptions {...{minted, handlerClear}} />
         </div>
     )

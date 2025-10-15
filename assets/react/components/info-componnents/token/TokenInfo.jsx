@@ -35,6 +35,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
     if (container?.file?.name) containerInfo.push(['Container name', container.file.name])
     if (container?.file?.size) containerInfo.push(['Container size', prettyBytes(container.file.size)])
     if (container?.hash) containerInfo.push(['Container hash', container.hash])
+    if (tokenData?.signature) containerInfo.push(['Transaction signature', tokenData.signature])
 
     const tokenInfo = [
         ['Wallet public key', tokenData.walletPublicKey],
