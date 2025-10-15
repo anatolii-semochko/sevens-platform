@@ -8,7 +8,7 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 import { Number } from '@react/components/form-elements/Inputs'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
-import { WalletSaleToken } from '@react/components/form-elements/WalletForms'
+import {WalletForm, WalletSaleToken} from '@react/components/form-elements/WalletForms'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 
@@ -97,7 +97,7 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
                 )}</>
             </div>
             {type && (
-                <WalletSaleToken expectedPublicKey={tokenData.walletPublicKey} />
+                <WalletForm operation={'sale'} expectedPublicKey={tokenData.walletPublicKey} waitingSignature={isWaiting} />
             )}
             {type && (
                 <button className="btn btn-danger w-100 p-2 mb-3" onClick={handleCancel}>

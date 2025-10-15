@@ -1,9 +1,8 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect } from 'react'
+import bs58 from 'bs58'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { fetchNonce } from '@react/api/nodeApi'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import {fetchNonce} from "@react/api/nodeApi";
-import bs58 from "bs58";
-import {getAnchorErrorText} from "@js/blockchain/sevens";
 
 
 
@@ -29,7 +28,30 @@ const walletConnection = (wallet) => {
 
 
 
-const PublicKeyText = ({publicKey, expectedPublicKey}) => {
+
+
+
+const texts = {
+    publish: 'Publishing material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
+    claim: 'Claiming material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
+    sale: "Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a blockchain fee — the amount will be displayed in the wallet before it's signed.",
+}
+
+export const signNonce = async (wallet) => {
+    const walletPublicKey = wallet.publicKey.toString()
+    const derivedNonce = await fetchNonce(walletPublicKey)
+    const signature = await wallet.signMessage(new TextEncoder().encode(derivedNonce.message))
+
+    return {
+        walletPublicKey,
+        signature: bs58.encode(signature),
+        ...derivedNonce,
+    }
+}
+
+const PublicKeyText = ({wallet, expectedPublicKey}) => {
+    const publicKey = wallet.publicKey?.toString()
+
     if (!publicKey) return (
         <p className="text-danger">Wallet is not activated.</p>
     )
@@ -49,7 +71,7 @@ const PublicKeyText = ({publicKey, expectedPublicKey}) => {
     )
 }
 
-const WaitingSignatureText = ({publicKey}) => !!publicKey && (
+const SignatureText = ({waitingSignature}) => waitingSignature && (
     <p className="text-danger">Waiting wallet signature</p>
 )
 
@@ -57,7 +79,42 @@ const ErrorText = ({error}) => !!error && (
     <p className="text-danger">{error.message || error}</p>
 )
 
-export const WalletSaleToken = ({expectedPublicKey, error}) => {
+export const WalletForm = ({operation, error, expectedPublicKey, waitingSignature}) => {
+    const wallet = useWallet()
+
+    useEffect(() => {
+        walletConnection(wallet)
+    }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
+
+    return (
+        <div className="alert-success bg-light alert border text-center">
+            <h4>Wallet</h4>
+            <h6 className="lh-base mb-3">{texts[operation]}</h6>
+            <PublicKeyText {...{wallet, expectedPublicKey}} />
+            <SignatureText waitingSignature={waitingSignature} />
+            <ErrorText error={error} />
+            <div className="d-flex justify-content-center gap-2">
+                <WalletMultiButton />
+            </div>
+        </div>
+    )
+}
+
+
+
+
+
+
+
+
+
+
+// TODO - to remove
+const WaitingSignatureText = ({publicKey}) => !!publicKey && (
+    <p className="text-danger">Waiting wallet signature</p>
+)
+
+export const WalletSaleToken = ({operation, expectedPublicKey, error}) => {
     const wallet = useWallet()
     const publicKey = () => wallet?.publicKey?.toString()
 
@@ -68,90 +125,9 @@ export const WalletSaleToken = ({expectedPublicKey, error}) => {
     return (
         <div className="alert-success bg-light alert border text-center">
             <h3>Wallet</h3>
-            <h6 className="lh-base mb-3">
-                Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the
-                blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a
-                blockchain fee — the amount will be displayed in the wallet before it's signed.
-            </h6>
-            <PublicKeyText {...{publicKey: publicKey(), expectedPublicKey}} />
-            <WaitingSignatureText publicKey={publicKey()} />
-            <ErrorText error={error} />
-            <div className="d-flex justify-content-center gap-2">
-                <WalletMultiButton />
-            </div>
-        </div>
-    )
-}
-
-// export const WalletBuyToken = () => {
-//     const wallet = useWallet()
-//     const publicKey = () => wallet?.publicKey?.toString()
-//
-//     useEffect(() => {
-//         walletConnection(wallet)
-//     }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
-//
-//     return (
-//         <div className="alert-success bg-light alert border text-center">
-//             <h4>Wallet</h4>
-//             <h6 className="lh-base mb-3">
-//                 Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the
-//                 blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a
-//                 blockchain fee — the amount will be displayed in the wallet before it's signed.
-//             </h6>
-//             <PublicKeyText {...{publicKey: publicKey(), expectedPublicKey}} />
-//             <WaitingSignatureText publicKey={publicKey()} />
-//             <div className="d-flex justify-content-center gap-2">
-//                 <WalletMultiButton />
-//             </div>
-//         </div>
-//     )
-// }
-
-
-
-
-
-export const signNonce = async (wallet) => {
-    const walletPublicKey = wallet.publicKey.toString()
-    const derivedNonce = await fetchNonce(walletPublicKey)
-    const signature = await wallet.signMessage(new TextEncoder().encode(derivedNonce.message))
-
-    return {
-        walletPublicKey,
-        signature: bs58.encode(signature),
-        ...derivedNonce,
-    }
-}
-
-
-
-const SignatureText = ({waitingSignature}) => waitingSignature && (
-    <p className="text-danger">Waiting wallet signature</p>
-)
-
-
-const texts = {
-    publish: 'Publishing material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
-    claim: 'Claiming material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
-}
-
-
-
-export const WalletClaimMaterialsForm = ({operation, error, waitingSignature}) => {
-    const wallet = useWallet()
-    const [errorMessage, setErrorMessage] = useState(null)
-
-    useEffect(() => {
-        walletConnection(wallet)
-    }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
-
-    return (
-        <div className="alert-success bg-light alert border text-center">
-            <h4>Wallet</h4>
             <h6 className="lh-base mb-3">{texts[operation]}</h6>
-            <PublicKeyText publicKey={wallet.publicKey?.toString()} />
-            <SignatureText waitingSignature={waitingSignature} />
+            <PublicKeyText {...{wallet, expectedPublicKey}} />
+            <WaitingSignatureText publicKey={publicKey()} />
             <ErrorText error={error} />
             <div className="d-flex justify-content-center gap-2">
                 <WalletMultiButton />
