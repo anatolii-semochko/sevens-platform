@@ -1,45 +1,52 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import MaterialSaleApi from '@react/api/materialSaleApi'
 import { setSale } from '@js/blockchain/sevens-token'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 import { Number } from '@react/components/form-elements/Inputs'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
-import {WalletForm, WalletSaleToken} from '@react/components/form-elements/WalletForms'
+import { WalletForm } from '@react/components/form-elements/WalletForms'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 
 const materialSaleApi = new MaterialSaleApi()
 
-const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, errorMessage, setErrorMessage}) => {
+const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
     const wallet = useWallet()
-    const [price, setPrice] = useState(material.price || '') // TODO - take price from tokenData !!!!!!!!!!!!!
+    const [price, setPrice] = useState(tokenData.sale.priceSevens || '')
     const [type, setType] = useState(null)
-    const [isWaiting, setIsWaiting] = useState(false)
+    const [waitingSignature, setWaitingSignature] = useState(false)
+    const [processing, setProcessing] = useState(false)
+    const [error, setError] = useState(false)
 
     const isWalletExpected = () => wallet?.publicKey?.toString() === tokenData?.walletPublicKey
+    const busy = () => waitingSignature || processing
+    const processingLabel = () => waitingSignature ? 'Waiting signature...' : 'Processing...'
 
     const getTransaction = async () => {
         try {
-            if (!isWalletExpected() || !type || isWaiting) {
+            if (!isWalletExpected() || !type || waitingSignature || processing) {
                 return
             }
-            setIsWaiting(true)
+            setError(null)
+            setWaitingSignature(true)
             await setSale ({
                 tokenPublicKey: tokenData.tokenPublicKey,
                 price: type === 'sale' ? price : 0,
                 wallet,
             })
+            setWaitingSignature(false)
+            setProcessing(true)
             await materialSaleApi.refresh(tokenData.tokenPublicKey)
             handlerSave()
         } catch (error) {
-            setErrorMessage(error.message)
+            setError(error.message)
         } finally {
             setType(false)
-            setIsWaiting(false)
+            setWaitingSignature(false)
+            setProcessing(false)
         }
     }
 
@@ -47,12 +54,14 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
         if (isWalletExpected()) {
             getTransaction().catch()
         }
-    }, [wallet?.publicKey, type])
+        if (!wallet?.publicKey?.toString()) {
+            setWaitingSignature(null)
+        }
+    }, [wallet?.publicKey?.toString(), type])
 
     const handleCancel = () => {
         setType(null)
-        setIsWaiting(false)
-        setErrorMessage(null)
+        setError(null)
     }
 
     return (
@@ -71,46 +80,51 @@ const MaterialSaleInner = ({material, tokenData, handlerSave, setMaterialForm, e
                         min={0}
                         max={1000000000}
                         maxDecimals={9}
-                        disabled={isWaiting}
+                        disabled={waitingSignature || processing}
                         onChange={setPrice}
-                        setErrorMessage={setErrorMessage}
+                        setErrorMessage={setError}
                     />
                 </div>
                 <ButtonWithProcessing
                     className={'btn-success'}
                     label={'Set for sale'}
-                    processing={type === 'sale' && isWaiting}
-                    disabled={price === tokenData.sale.price || price <= 0 || isWaiting}
+                    processingLabel={processingLabel()}
+                    processing={type === 'sale' && busy()}
+                    disabled={price === tokenData.sale.priceSevens || price <= 0 || busy()}
                     onClick={() => setType('sale')}
                 /><>
                 {!!tokenData.sale.price && (
                     <ButtonWithProcessing
                         className={'btn-primary'}
                         label={'Cancel Sale'}
-                        processing={type === 'cancel' && isWaiting}
-                        disabled={isWaiting}
+                        processingLabel={processingLabel()}
+                        processing={type === 'cancel' && busy()}
+                        disabled={busy()}
                         onClick={() => {
                             setType('cancel')
-                            setIsWaiting(false)
+                            setError(null)
                         }}
                     />
                 )}</>
             </div>
-            {type && (
-                <WalletForm operation={'sale'} expectedPublicKey={tokenData.walletPublicKey} waitingSignature={isWaiting} />
+            {!!type && (
+                <div>
+                    <h4 className="text-center mb-4">
+                        {type === 'sale' ? `Put the token up for sale at ${price} $SEV` : 'Remove a token from sale'}
+                    </h4>
+                    <WalletForm operation={'sale'} expectedPublicKey={tokenData.walletPublicKey} waitingSignature={waitingSignature} />
+                </div>
             )}
-            {type && (
+            {type && !busy() && (
                 <button className="btn btn-danger w-100 p-2 mb-3" onClick={handleCancel}>
                     Cancel
                 </button>
             )}
-            <MessagesBlock error={errorMessage} />
+            <MessagesBlock error={error} />
             <HistoryTable tokenPublicKey={tokenData.tokenPublicKey} showChart={true} />
-            <div className="d-flex justify-content-end gap-2">
-                <button className="btn btn-secondary px-5" onClick={() => setMaterialForm(null)} disabled={isWaiting}>
-                    Back
-                </button>
-            </div>
+            <button className="btn btn-secondary w-100 px-5" onClick={() => setMaterialForm(null)} disabled={busy()}>
+                Back
+            </button>
         </div>
     )
 }

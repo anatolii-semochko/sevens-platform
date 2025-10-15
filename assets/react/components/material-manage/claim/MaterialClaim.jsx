@@ -31,6 +31,8 @@ const MaterialClaimInner = () => {
         setError(null)
         setMaterials([])
         setSelected([])
+        setWaitingSignature(null)
+        setProcessing(null)
         if (wallet.publicKey) {
             getWalletTokens(wallet.publicKey.toString()).then(materialClaimApi.get).then(setMaterials).catch(setError)
         }
