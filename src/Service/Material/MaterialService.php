@@ -163,9 +163,19 @@ readonly class MaterialService
         $this->save($material);
     }
 
-    public function claim(WalletSignature $walletSignature, array $tokens): void
+    public function claim(UserInterface $user, WalletSignature $walletSignature, array $tokens): void
     {
         $this->walletService->verifyWalletSignature($walletSignature);
-        dd($walletSignature, $tokens);
+        foreach ($tokens as $tokenPublicKey) {
+            $tokenData = $this->tokenService->getByPublicKey($tokenPublicKey);
+            if ($tokenData->getWalletPublicKey() === $walletSignature->getWalletPublicKey()) {
+                $material = $this->finByTokenPublicKey($tokenPublicKey);
+                if ($material) {
+                    $material->setAuthor($user);
+                    $this->em->persist($material);
+                    $this->em->flush();
+                }
+            }
+        }
     }
 }

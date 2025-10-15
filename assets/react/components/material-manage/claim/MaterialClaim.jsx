@@ -5,24 +5,25 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
 import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
-import { signNonce, WalletClaimMaterialsForm } from '@react/components/form-elements/WalletForms'
+import { route } from '@js/router/routing-with-locale'
+import { signNonce, WalletForm } from '@react/components/form-elements/WalletForms'
 import { getDateFromDate } from '@js/utils/time'
 import { getWalletTokens } from '@js/blockchain/sevens-token'
 import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
-import { ButtonLargeWidth } from '@react/components/form-elements/Buttons'
+import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 
 const materialClaimApi = new MaterialClaimApi()
 
 const MaterialClaimInner = () => {
     if (!store.getState().user) return (
-        <UserAuthorization message={'To publish material you need to log in.'}/>
+        <UserAuthorization message={'To claim materials you need to log in.'}/>
     )
 
     const wallet = useWallet()
     const [selected, setSelected] = useState([])
     const [waitingSignature, setWaitingSignature] = useState(false)
-    const [walletSignature, setWalletSignature] = useState(null)
+    const [processing, setProcessing] = useState(false)
     const [materials, setMaterials] = useState([])
     const [error, setError] = useState(null)
 
@@ -33,44 +34,42 @@ const MaterialClaimInner = () => {
         if (wallet.publicKey) {
             getWalletTokens(wallet.publicKey.toString()).then(materialClaimApi.get).then(setMaterials).catch(setError)
         }
-    }, [wallet.publicKey])
+    }, [wallet.publicKey?.toString()])
 
-    // useEffect(() => {
-    //     if (walletSignature) {
-    //         materialClaimApi.post(selected, walletSignature).catch(setError)
-    //     }
-    // }, [walletSignature])
-
-    const handleClaim = () => {
-        setError(null)
-        signNonce(wallet)
-            .then((walletSignature) => {
-                materialClaimApi.post(selected, walletSignature)
-                    .then(() => {
-                        console.log(666)
-                    })
-                    .catch(setError)
-            })
-            .catch(setError)
+    const handleClaim = async () => {
+        try {
+            setError(null)
+            setWaitingSignature(true)
+            const walletSignature = await signNonce(wallet)
+            setWaitingSignature(false)
+            setProcessing(true)
+            await materialClaimApi.post(selected, walletSignature)
+            window.location.href = route('material_manage')
+        } catch (error) {
+            setError(error.message)
+        } finally {
+            setWaitingSignature(false)
+            setProcessing(false)
+        }
     }
 
     return (
         <div>
-            <WalletClaimMaterialsForm operation={'claim'} waitingSignature={waitingSignature}/>
+            <WalletForm operation={'claim'} waitingSignature={waitingSignature} />
             <MaterialsList {...{wallet, materials, selected, setSelected}} />
             <ErrorMessageBlock message={error} />
             {!!selected.length && (
-                <ButtonLargeWidth
-                    className={'btn-success'}
+                <ButtonWithProcessing
+                    className={'btn-success w-100 fs-5 p-3 mb-3'}
                     label={`Claim selected materials (${selected.length})`}
+                    processingLabel={waitingSignature ? 'Waiting wallet signature...' : 'Processing...'}
+                    processing={waitingSignature || processing}
                     onClick={handleClaim}
                 />
             )}
-            <div className="d-flex justify-content-end gap-2 mb-3">
-                <a className="btn btn-secondary px-5" href={Routing.generate('material_manage')}>
-                    Materials management
-                </a>
-            </div>
+            <a className="btn btn-secondary w-100 px-5 mt-2 mb-3" href={Routing.generate('material_manage')}>
+                Materials management
+            </a>
         </div>
     )
 }

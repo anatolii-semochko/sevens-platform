@@ -29,7 +29,7 @@ readonly class WalletService
                 throw new InvalidArgumentException('Wallet not authenticated');
             }
         } catch (\Throwable $e) {
-            throw new InvalidArgumentException('Wallet signature verification failed: ' . $e->getMessage());
+            throw new InvalidArgumentException('Wallet signature verification failed.');
         }
     }
 }

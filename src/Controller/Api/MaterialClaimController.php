@@ -49,6 +49,7 @@ class MaterialClaimController extends BaseApiController
             $this->checkAuthorization();
             $payload = $request->getPayload();
             $this->materialService->claim(
+                $this->getUser(),
                 new WalletSignature($payload->all('walletSignature')),
                 $payload->all('tokens'),
             );
