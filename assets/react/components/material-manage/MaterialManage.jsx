@@ -148,13 +148,17 @@ const MaterialManage = ({token}) => {
                 </button>
             )}
 
-            <div className="d-flex justify-content-end gap-2 mb-3">
-                <a className="btn btn-secondary px-5" href={Routing.generate('material_manage')}>
-                    Back to materials management
-                </a>
-                <a className="btn btn-primary px-5" href={Routing.generate('material_page', {token})}>
-                    Go to the public material page
-                </a>
+            <div className="d-flex justify-content-end row mb-3">
+                <div className="col col-6">
+                    <a className="btn btn-secondary w-100" href={Routing.generate('material_manage')}>
+                        Back to materials management
+                    </a>
+                </div>
+                <div className="col col-6">
+                    <a className="btn btn-primary w-100" href={Routing.generate('material_page', {token})}>
+                        Go to the public material page
+                    </a>
+                </div>
             </div>
         </div>
     )

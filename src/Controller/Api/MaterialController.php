@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Controller\BaseApiController;
 use App\Entity\Token\SevensTokenContainer;
+use App\Entity\Wallet\WalletSignature;
 use App\Exception\WrappedHttpException;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Material\MaterialService;
@@ -60,9 +61,9 @@ class MaterialController extends BaseApiController
             $container = $payload->all('container');
             $this->materialService->create(
                 $this->getUser(),
-                new SevensTokenContainer($container['name'], $container['size'], $container['hash']),
+                new SevensTokenContainer($container['name'], $container['size'], $container['hash']), // TODO - CHANGE PARAMETER AS FOR SIGNATURE !
                 $tokenPublicKey,
-                $payload->all('walletSignature'),
+                $payload->all('walletSignature') ? new WalletSignature($payload->all('walletSignature')) : null,
             );
 
             return $this->json([

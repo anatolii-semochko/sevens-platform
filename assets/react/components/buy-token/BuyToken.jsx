@@ -62,21 +62,33 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
     }, [wallet?.publicKey])
 
     if (isMyMaterial === 'true') return (
-        <ErrorMessageBlock message={'This publication is already in your personal list of materials.'} className={'mt-3'} />
+        <div>
+            <ErrorMessageBlock
+                message={'This publication is already in your personal list of materials.'}
+                className={'mt-3'}
+            />
+            <ButtonClose root={root} />
+        </div>
     )
 
     if (tokenData && !tokenData.sale.priceSevens) return (
-        <ErrorMessageBlock message={'Material is not for sale.'} className={'mt-3'} />
+        <div>
+            <ErrorMessageBlock message={'Material is not for sale.'} className={'mt-3'} />
+            <ButtonClose root={root} />
+        </div>
     )
 
     return !sold && (
         <div className="mt-3">
             <WalletSaleToken error={error}/>
-            <button className="btn btn-danger w-100" onClick={() => root.unmount()}>Close</button>
-            =={tokenData?.sale?.priceSevens}==
+            <ButtonClose root={root} />
         </div>
     )
 }
+
+const ButtonClose = ({root}) => (
+    <button className="btn btn-danger w-100" onClick={() => root.unmount()}>Close</button>
+)
 
 const DownloadFilesContainer = ({ tokenPublicKey }) => {
     const modalRef = useRef(null)

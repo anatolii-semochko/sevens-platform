@@ -5,25 +5,25 @@ namespace App\Entity\Token;
 class SevensToken
 {
     private string $tokenPublicKey;
-    private string $walletPublicKey;
     private \DateTime $mintingTimestamp;
     private string $name;
     private string $author;
     private string $description;
     private string $hash;
-    private bool $isOnSale;
-    private float $price;
+    private ?string $walletPublicKey;
+    private ?bool $isOnSale;
+    private ?float $price;
 
     public function __construct(
         string $tokenPublicKey,
-        string $walletPublicKey,
         \DateTime $mintingTimestamp,
         string $name,
         string $author,
         string $description,
         string $hash,
-        bool $isOnSale,
-        float $price,
+        ?string $walletPublicKey = null,
+        ?bool $isOnSale = null,
+        ?float $price = null,
     ){
         $this->tokenPublicKey = $tokenPublicKey;
         $this->walletPublicKey = $walletPublicKey;
@@ -41,7 +41,7 @@ class SevensToken
         return $this->tokenPublicKey;
     }
 
-    public function getWalletPublicKey(): string
+    public function getWalletPublicKey(): ?string
     {
         return $this->walletPublicKey;
     }
@@ -49,6 +49,11 @@ class SevensToken
     public function getMintingTime(): \DateTime
     {
         return $this->mintingTimestamp;
+    }
+
+    public function getMintingTimeText(): string
+    {
+        return $this->mintingTimestamp->format('Y-m-d');
     }
 
     public function getName(): string
@@ -71,12 +76,12 @@ class SevensToken
         return $this->hash;
     }
 
-    public function isOnSale(): bool
+    public function isOnSale(): ?bool
     {
         return $this->isOnSale;
     }
 
-    public function getPrice(): float
+    public function getPrice(): ?float
     {
         return $this->price;
     }

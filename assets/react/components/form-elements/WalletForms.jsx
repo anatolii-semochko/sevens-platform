@@ -112,75 +112,49 @@ export const WalletSaleToken = ({expectedPublicKey, error}) => {
 
 
 
+export const signNonce = async (wallet) => {
+    const walletPublicKey = wallet.publicKey.toString()
+    const derivedNonce = await fetchNonce(walletPublicKey)
+    const signature = await wallet.signMessage(new TextEncoder().encode(derivedNonce.message))
+
+    return {
+        walletPublicKey,
+        signature: bs58.encode(signature),
+        ...derivedNonce,
+    }
+}
 
 
 
+const SignatureText = ({waitingSignature}) => waitingSignature && (
+    <p className="text-danger">Waiting wallet signature</p>
+)
+
+
+const texts = {
+    publish: 'Publishing material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
+    claim: 'Claiming material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
+}
 
 
 
-
-
-
-
-export const WalletClaimMaterialsForm = ({walletSignature, setWalletSignature}) => {
+export const WalletClaimMaterialsForm = ({operation, error, waitingSignature}) => {
     const wallet = useWallet()
-    const [walletPublicKey, setWalletPublicKey] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
 
     useEffect(() => {
         walletConnection(wallet)
     }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
 
-    useEffect(() => {
-        setWalletPublicKey(wallet.publicKey?.toString())
-        setWalletSignature(null)
-        setErrorMessage(null)
-    }, [wallet.publicKey])
-
-    const handleSign = async () => {
-        try {
-            setWalletSignature(null)
-            setErrorMessage(null)
-
-            const derivedNonce = await fetchNonce(walletPublicKey)
-            const signature = await wallet.signMessage(new TextEncoder().encode(derivedNonce.message))
-
-            setWalletSignature({
-                walletPublicKey,
-                signature: bs58.encode(signature),
-                ...derivedNonce,
-            })
-        } catch (error) {
-            setErrorMessage(getAnchorErrorText(error))
-        }
-    }
-
-
-    const SignatureText = ({walletPublicKey, walletSignature}) => !!walletPublicKey && (walletSignature ? (
-        <p className="text-success fw-semibold">{walletSignature.signature}</p>
-    ) : (
-        <p className="text-danger">Waiting wallet signature</p>
-    ))
-
     return (
         <div className="alert-success bg-light alert border text-center">
             <h4>Wallet</h4>
-            <h6 className="lh-base mb-3">
-                Publishing material requires signing the message to confirm ownership and verify that you own the token
-                to avoid fraudulent publications. This operation does not require spending coins.
-            </h6>
+            <h6 className="lh-base mb-3">{texts[operation]}</h6>
             <PublicKeyText publicKey={wallet.publicKey?.toString()} />
-            <SignatureText {...{walletPublicKey, walletSignature}} />
-            <ErrorText errorMessage={errorMessage} />
+            <SignatureText waitingSignature={waitingSignature} />
+            <ErrorText error={error} />
             <div className="d-flex justify-content-center gap-2">
                 <WalletMultiButton />
-                <button
-                    className="btn btn-success py-2 px-4"
-                    disabled={!walletPublicKey}
-                    onClick={handleSign}
-                >
-                    Sign
-                </button>
             </div>
         </div>
     )

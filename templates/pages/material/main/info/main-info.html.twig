@@ -6,37 +6,30 @@
 
 <h1 class="mp-title">{{ data.material.getTitle }}</h1>
 
-<div class="mp-info-header">
-    <h3 class="mp-section-title">Token Information</h3>
-    <span class="mp-status">On Sale</span>
-</div>
-
 <div class="mp-info-card">
     <div class="mp-row">
-        <div class="mp-label">Token<br>Description:</div>
-        <div class="mp-value">
-            {{ data.material.getDescription() }}
-        </div>
+        <div class="mp-label">Token Public Key:</div>
+        <div class="mp-value ps-2">{{ data.material.getToken() }}</div>
     </div>
-
+    <div class="mp-row">
+        <div class="mp-label">Token Author:</div>
+        <div class="mp-value ps-2">{{ data.material.getTokenData().getAuthor() }}</div>
+    </div>
+    <div class="mp-row">
+        <div class="mp-label">Token Description:</div>
+        <div class="mp-value ps-2">{{ data.material.getTokenData().getDescription() }}</div>
+    </div>
+    <div class="mp-row">
+        <div class="mp-label">Token Mint:</div>
+        <div class="mp-value ps-2">{{ data.material.getTokenData().getMintingTimeText() }}</div>
+    </div>
     <div class="mp-row">
         <div class="mp-label">Created on:</div>
-        <div class="mp-value">{{ data.material.getCreatedAt()|date('F j, Y') }}</div>
+        <div class="mp-value ps-2">{{ data.material.getCreatedAt()|date('F j, Y') }}</div>
     </div>
-
     <div class="mp-row">
         <div class="mp-label">Blockchain:</div>
-        <div class="mp-value">sevenscoin</div>
-    </div>
-
-    <div class="mp-row">
-        <div class="mp-label">Token ID:</div>
-        <div class="mp-value">{{ data.material.getToken() }}</div>
-    </div>
-
-    <div class="mp-row">
-        <div class="mp-label">Smart contract<br>address:</div>
-        <div class="mp-value">{{ data.material.getContractAddress() ?? 'Not available' }}</div>
+        <div class="mp-value ps-2">sevenscoin</div>
     </div>
 </div>
 
