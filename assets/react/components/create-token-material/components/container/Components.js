@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState, useEffect } from 'react'
 import { getExt, prettyBytes, isImage, isVideo, isAudio, isPdf } from '@js/utils/file'
 import { StatusBar } from '@react/components/info-componnents/Charts'
-import { InnerTable } from '../../components/token/Components'
+import { InnerTable } from '@react/components/info-componnents/TableComponents'
 
 export const IsNotReady = ({ssError}) => (
     <div className="alert alert-warning py-2 my-0">
@@ -325,17 +325,16 @@ export const CompressingActions = ({
     container,
     cancelCompression,
 }) => !!tokenFiles.length && (
-    <div className="d-flex gap-2 align-items-center">
+    <div>
         {!container && (
-            <button className="btn btn-info" onClick={createContainer}>
+            <button className="btn btn-success w-100" onClick={createContainer}>
                 Create container
             </button>
         )}
         {container && container.isCompressing && (
-            <span>
-                Creating container...
-                <button className="btn btn-outline-danger ms-3" onClick={cancelCompression}>Cancel</button>
-            </span>
+            <button className="btn btn-outline-danger w-100" onClick={cancelCompression}>
+                Cancel
+            </button>
         )}
     </div>
 )

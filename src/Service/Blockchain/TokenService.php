@@ -13,9 +13,8 @@ use InvalidArgumentException;
 
 readonly class TokenService
 {
-    private const int ALLOWED_TOKEN_MAX_AGE_WITHOUT_SIGNATURE_MINUTES = 15;
-
     public function __construct(
+        private int $allowedPublishingTimeWithoutSignatureMinutes,
         private EntityManagerInterface $em,
         private NodeServerApiClient $nodeServerApiClient,
         private WalletService $walletService,
@@ -59,7 +58,7 @@ readonly class TokenService
     {
         // We suppose that token possession is confirmed if token has been minted now
         $ageMinutes = $this->nodeServerApiClient->getTokenAgeMinutes($token->getTokenPublicKey())['data'];
-        if (!$walletSignature && $ageMinutes <= self::ALLOWED_TOKEN_MAX_AGE_WITHOUT_SIGNATURE_MINUTES) {
+        if (!$walletSignature && $ageMinutes <= $this->allowedPublishingTimeWithoutSignatureMinutes) {
             return;
         }
 

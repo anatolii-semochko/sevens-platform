@@ -9,7 +9,7 @@ import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-ad
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
-import { WalletSaleToken } from '@react/components/form-elements/WalletForms'
+import { WalletSaleToken } from '@react/components/form-elements/WalletForm'
 import { DownloadContainer } from '@react/components/download-container/DownloadContainer'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 

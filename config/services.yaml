@@ -10,6 +10,7 @@ parameters:
     path_language_flags: '%env(PATH_LANGUAGE_FLAGS)%'
     path_category_logos: '%env(PATH_CATEGORY_LOGOS)%'
     path_materials: '%env(PATH_MATERIALS)%'
+    allowed_publishing_time_without_signature_minutes: '%env(int:ALLOWED_PUBLISHING_TIME_WITHOUT_SIGNATURE_MINUTES)%'
 
 services:
     # default configuration for services in *this* file
@@ -56,6 +57,10 @@ services:
     App\Service\NodeServer\NodeServerApiClient:
       arguments:
         $nodeServerBaseUrl: '%env(NODE_SERVER_BASE_URL)%'
+
+    App\Service\Blockchain\TokenService:
+      arguments:
+        $allowedPublishingTimeWithoutSignatureMinutes: '%allowed_publishing_time_without_signature_minutes%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

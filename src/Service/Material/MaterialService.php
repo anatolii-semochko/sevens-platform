@@ -36,19 +36,18 @@ readonly class MaterialService
      */
     public function create(
         UserInterface $user,
-        SevensTokenContainer $sevensTokenContainer,
         string $tokenPublicKey,
+        SevensTokenContainer $sevensTokenContainer,
         ?WalletSignature $walletSignature,
     ): void {
         // Get token data from blockchain
         $sevensToken = $this->tokenService->getByPublicKey($tokenPublicKey);
         // Check if user owns the token
         $this->tokenService->checkUserPermissionToPublishMaterial($sevensToken, $walletSignature);
-
         // Create material
         $material = new Material();
         $material->setToken($tokenPublicKey);
-        $material->setWallet($walletSignature->getWalletPublicKey());
+        $material->setWallet($walletSignature?->getWalletPublicKey() ?? $sevensToken->getWalletPublicKey());
         $material->setTitle('');
         $material->setDescription('');
         $material->setTokenData($sevensToken);
@@ -57,7 +56,6 @@ readonly class MaterialService
         $material->setCreatedAt(new \DateTime());
         $material->setUpdatedAt(new \DateTime());
         $material->setAuthor($user);
-
         $this->em->persist($material);
         $this->em->flush();
     }
@@ -163,7 +161,7 @@ readonly class MaterialService
         $this->save($material);
     }
 
-    public function claim(UserInterface $user, WalletSignature $walletSignature, array $tokens): void
+    public function claim(UserInterface $user, array $tokens, WalletSignature $walletSignature): void
     {
         $this->walletService->verifyWalletSignature($walletSignature);
         foreach ($tokens as $tokenPublicKey) {

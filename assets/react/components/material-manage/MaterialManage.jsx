@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react'
 import MaterialApi from '@react/api/materialApi'
 import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
 import { ToggleSwitch } from '@react/components/form-elements/Inputs'
-import { MaterialEdit, Preview } from '@react/components/material-manage/edit/MaterialEdit'
+import { MaterialEdit } from '@react/components/material-manage/edit/MaterialEdit'
 import { MaterialSale } from '@react/components/material-manage/sale/MaterialSale'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
+import { MaterialPreview } from '@react/components/info-componnents/material/MaterialInfo'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 
 const materialApi = new MaterialApi()
@@ -76,17 +77,7 @@ const MaterialManage = ({token}) => {
     return (
         <div>
             <TokenInfo tokenData={tokenData} />
-
-            <div className="row my-4">
-                <div className="col-lg-4 col-md-12">
-                    <Preview logo={material?.logo} />
-                </div>
-                <div className="col-lg-8 col-md-12">
-                    <p>Title: {material?.title}</p>
-                    <p>Description: {material?.description}</p>
-                    <p>Price: {material?.price ? ('On sale: ' + material?.price + ' $SEV') : 'Not on sale'}</p>
-                </div>
-            </div>
+            <MaterialPreview {...{material}}/>
 
             {material && !material?.active && tokenOk() && (
                 <ErrorMessageBlock

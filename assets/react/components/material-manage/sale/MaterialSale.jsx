@@ -7,7 +7,7 @@ import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 import { Number } from '@react/components/form-elements/Inputs'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
-import { WalletForm } from '@react/components/form-elements/WalletForms'
+import { WalletForm } from '@react/components/form-elements/WalletForm'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 

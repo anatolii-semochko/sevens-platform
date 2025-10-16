@@ -9,25 +9,16 @@ class WalletSignature
     private string $message;
     private string $signature;
 
-    public function __construct(array $walletSignatureData)
-    {
-        if (empty($walletSignatureData['walletPublicKey'])) {
-            throw new \InvalidArgumentException('Wallet public key not specified.');
-        }
-        if (empty($walletSignatureData['nonce'])) {
-            throw new \InvalidArgumentException('Wallet nonce not specified.');
-        }
-        if (empty($walletSignatureData['message'])) {
-            throw new \InvalidArgumentException('Wallet message not specified.');
-        }
-        if (empty($walletSignatureData['signature'])) {
-            throw new \InvalidArgumentException('Wallet signature not specified.');
-        }
-
-        $this->walletPublicKey = $walletSignatureData['walletPublicKey'];
-        $this->nonce = $walletSignatureData['nonce'];
-        $this->message = $walletSignatureData['message'];
-        $this->signature = $walletSignatureData['signature'];
+    public function __construct(
+        string $walletPublicKey,
+        string $nonce,
+        string $message,
+        string $signature
+    ) {
+        $this->walletPublicKey = $walletPublicKey;
+        $this->nonce = $nonce;
+        $this->message = $message;
+        $this->signature = $signature;
     }
 
     public function getWalletPublicKey(): string

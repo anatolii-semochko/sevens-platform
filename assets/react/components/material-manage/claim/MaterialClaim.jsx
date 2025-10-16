@@ -6,7 +6,7 @@ import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-ad
 import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { route } from '@js/router/routing-with-locale'
-import { signNonce, WalletForm } from '@react/components/form-elements/WalletForms'
+import { signNonce, WalletForm } from '@react/components/form-elements/WalletForm'
 import { getDateFromDate } from '@js/utils/time'
 import { getWalletTokens } from '@js/blockchain/sevens-token'
 import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'

@@ -32,4 +32,26 @@ readonly class WalletService
             throw new InvalidArgumentException('Wallet signature verification failed.');
         }
     }
+
+    public function getSignatureFromArray(?array $data): ?WalletSignature
+    {
+        if (!$data) {
+            return null;
+        }
+
+        if (empty($data['walletPublicKey'])) {
+            throw new \InvalidArgumentException('Wallet public key not specified.');
+        }
+        if (empty($data['nonce'])) {
+            throw new \InvalidArgumentException('Wallet nonce not specified.');
+        }
+        if (empty($data['message'])) {
+            throw new \InvalidArgumentException('Wallet message not specified.');
+        }
+        if (empty($data['signature'])) {
+            throw new \InvalidArgumentException('Wallet signature not specified.');
+        }
+
+        return new WalletSignature($data['walletPublicKey'], $data['nonce'], $data['message'], $data['signature']);
+    }
 }

@@ -6,10 +6,11 @@ import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { CreateContainer } from './components/container/CreateContainer'
 import { ContainerFileInfo } from './components/container/Components'
 import { TryMoreOptions } from './components/token/Components'
-import { ButtonCreateToken } from '@react/components/create-token-material/components/token/ButtonCreateToken'
+import { PublishMaterialWithoutSignature } from './components/material/PublishMaterial'
+import { ButtonCreateToken } from '@react/components/create-token-material/components/token/Components'
 import { TokenForm } from '@react/components/create-token-material/components/token/TokenForm'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
-import { WalletForm } from '@react/components/form-elements/WalletForms'
+import { WalletForm } from '@react/components/form-elements/WalletForm'
 
 export const CreateTokenMaterial = ({doMaterial}) => {
     const targetRef = useRef(null)
@@ -72,8 +73,9 @@ export const CreateTokenMaterial = ({doMaterial}) => {
                     )}
                 </div>
             )}
-            <TokenInfo tokenData={minted} />
-            <TryMoreOptions {...{minted, handlerClear}} />
+            <TokenInfo tokenData={minted} label={'Congratulations !'} text={'Your token has been successfully minted.'} />
+            <PublishMaterialWithoutSignature {...{container, minted, doMaterial}} />
+            <TryMoreOptions {...{minted, doMaterial, handlerClear}} />
         </div>
     )
 }

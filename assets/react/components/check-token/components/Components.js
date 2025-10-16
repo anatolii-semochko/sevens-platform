@@ -30,19 +30,28 @@ export const ActionButtons = ({handlerClear}) => (
             Check another token
         </button>
         <h6 className="text-center">YOU CAN TRY ALSO:</h6>
-        <div className="row">
-            <div className="col-4">
-                <a href={Routing.generate('create_private_token')} className="btn btn-primary w-100 p-2">
+        <div className="row g-3 align-items-stretch">
+            <div className="col-12 col-md-4 d-flex">
+                <a
+                    className="btn btn-primary w-100 p-3 d-flex align-items-center justify-content-center text-center"
+                    href={Routing.generate('create_private_token')}
+                >
                     Create new private token
                 </a>
             </div>
-            <div className="col-4">
-                <a href={Routing.generate('create_material_from_token')} className="btn btn-primary w-100 p-2">
+            <div className="col-12 col-md-4 d-flex">
+                <a
+                    className="btn btn-primary w-100 p-3 d-flex align-items-center justify-content-center text-center"
+                    href={Routing.generate('create_material_from_token')}
+                >
                     Publish material from private token
                 </a>
             </div>
-            <div className="col-4">
-                <a href={Routing.generate('create_token_material')} className="btn btn-primary w-100 p-2">
+            <div className="col-12 col-md-4 d-flex">
+                <a
+                    className="btn btn-primary w-100 p-3 d-flex align-items-center justify-content-center text-center"
+                    href={Routing.generate('create_token_material')}
+                >
                     Create new token and publish material
                 </a>
             </div>

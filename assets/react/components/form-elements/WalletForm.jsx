@@ -31,6 +31,7 @@ const walletConnection = (wallet) => {
 
 
 
+
 const texts = {
     mint: 'Creating a token requires using a wallet to store it and pay the transaction fee. Select and activate a wallet to mint the token.',
     publish: 'Publishing material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
@@ -60,10 +61,11 @@ const PublicKeyText = ({wallet, expectedPublicKey}) => {
     if (expectedPublicKey && publicKey !== expectedPublicKey) return (
         <div className="text-danger">
             <p className="fw-semibold">{publicKey}</p>
-            <p>
-                This wallet address does not match the token owner's public address. Expected wallet:
+            <div className="alert-danger alert text-center text-break pt-4">
+                <h6>This wallet address does not match the token owner's public address.</h6>
+                <h5 className="p-2">Expected wallet:</h5>
                 <span className="text-primary fw-semibold ms-2">{expectedPublicKey}</span>
-            </p>
+            </div>
         </div>
     )
 

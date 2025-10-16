@@ -3,9 +3,9 @@
 namespace App\Controller\Api;
 
 use App\Controller\BaseApiController;
-use App\Entity\Wallet\WalletSignature;
 use App\Exception\WrappedHttpException;
 use App\Repository\Material\MaterialRepository;
+use App\Service\Blockchain\WalletService;
 use App\Service\Material\MaterialService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +18,7 @@ class MaterialClaimController extends BaseApiController
     public function __construct(
         private readonly MaterialService $materialService,
         private readonly MaterialRepository $materialRepository,
+        private readonly WalletService $walletService,
     ) {}
 
     /**
@@ -50,8 +51,8 @@ class MaterialClaimController extends BaseApiController
             $payload = $request->getPayload();
             $this->materialService->claim(
                 $this->getUser(),
-                new WalletSignature($payload->all('walletSignature')),
                 $payload->all('tokens'),
+                $this->walletService->getSignatureFromArray($payload->all('walletSignature')),
             );
 
             return $this->json(null);
