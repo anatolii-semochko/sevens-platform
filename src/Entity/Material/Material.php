@@ -2,6 +2,8 @@
 
 namespace App\Entity\Material;
 
+use App\Entity\Token\SevensToken;
+use App\Entity\Token\SevensTokenContainer;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -42,6 +44,14 @@ class Material
     #[ORM\Column(type: 'text')]
     #[Groups(['material:read'])]
     private string $description;
+
+    #[ORM\Column(type: 'json')]
+    #[Groups(['material:read'])]
+    private array $tokenData = [];
+
+    #[ORM\Column(type: 'json')]
+    #[Groups(['material:read'])]
+    private array $tokenContainer = [];
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -147,6 +157,51 @@ class Material
     public function setDescription(string $description): void
     {
         $this->description = $description;
+    }
+
+    /**
+     * @throws \DateMalformedStringException
+     */
+    public function getTokenData(): SevensToken
+    {
+        return new SevensToken(
+            $this->tokenData['tokenPublicKey'],
+            new \DateTime($this->tokenData['mintingTimestamp']),
+            $this->tokenData['name'],
+            $this->tokenData['author'],
+            $this->tokenData['description'],
+            $this->tokenData['hash'],
+        );
+    }
+
+    public function setTokenData(SevensToken $sevensToken): void
+    {
+        $this->tokenData = [
+            'tokenPublicKey' => $sevensToken->getTokenPublicKey(),
+            'mintingTimestamp' => $sevensToken->getMintingTime()->format('Y-m-d H:i:s'),
+            'name' => $sevensToken->getName(),
+            'author' => $sevensToken->getAuthor(),
+            'description' => $sevensToken->getDescription(),
+            'hash' => $sevensToken->getHash(),
+        ];
+    }
+
+    public function getTokenContainer(): SevensTokenContainer
+    {
+        return new SevensTokenContainer(
+            $this->tokenContainer['name'],
+            $this->tokenContainer['size'],
+            $this->tokenContainer['hash'],
+        );
+    }
+
+    public function setTokenContainer(SevensTokenContainer $sevensTokenContainer): void
+    {
+        $this->tokenContainer= [
+            'name' => $sevensTokenContainer->getName(),
+            'size' => $sevensTokenContainer->getSize(),
+            'hash' => $sevensTokenContainer->getHash(),
+        ];
     }
 
     public function getAuthor(): User

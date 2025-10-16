@@ -3,9 +3,10 @@
 namespace App\Controller\Api;
 
 use App\Controller\BaseApiController;
-use App\Entity\Token\SevensTokenContainer;
 use App\Exception\WrappedHttpException;
 use App\Repository\Material\MaterialRepository;
+use App\Service\Blockchain\TokenContainerService;
+use App\Service\Blockchain\WalletService;
 use App\Service\Material\MaterialService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +19,8 @@ class MaterialController extends BaseApiController
     public function __construct(
         private readonly MaterialService $materialService,
         private readonly MaterialRepository $materialRepository,
+        private readonly TokenContainerService $tokenContainerService,
+        private readonly WalletService $walletService,
     ) {}
 
     /**
@@ -57,12 +60,11 @@ class MaterialController extends BaseApiController
             }
 
             // Create material
-            $container = $payload->all('container');
             $this->materialService->create(
                 $this->getUser(),
-                new SevensTokenContainer($container['name'], $container['size'], $container['hash']),
                 $tokenPublicKey,
-                $payload->all('walletSignature'),
+                $this->tokenContainerService->getFromArray($payload->all('container')),
+                $this->walletService->getSignatureFromArray($payload->all('walletSignature')),
             );
 
             return $this->json([

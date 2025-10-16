@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { getExt, isAudio, isImage, isPdf, isVideo } from '@js/utils/file'
 import { Input, TextArea } from '@react/components/form-elements/Inputs'
+import { LogoPreview } from '@react/components/info-componnents/material/MaterialInfo'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 
 const Title = ({title, setTitle, error, setErrorMessage}) => (
@@ -50,15 +51,6 @@ const Description = ({description, setDescription, error, setErrorMessage}) => (
     </div>
 )
 
-export const Preview = ({logo}) => logo ? (
-    <div className="d-flex justify-content-center">
-        <img src={window.AppConfig.path.materials + '/' + logo} alt={logo} />
-    </div>
-) : (
-    <div className="bg-light rounded d-flex align-items-center justify-content-center py-5">
-        <span className="small text-muted">No main file selected</span>
-    </div>
-)
 
 // const ImagePreview = ({file, width, height}) => {
 //     const f = file.file || file
@@ -245,7 +237,7 @@ export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessa
                     <label htmlFor="tokenDescription" className="form-label text-center w-100">
                         Main publication image:
                     </label>
-                    <Preview logo={logo} />
+                    <LogoPreview logo={logo} />
                     <ImageSelectMain images={materialData.images} logo={logo} setLogo={setLogo} />
                 </div>
                 <div className="col-12 col-lg-7">

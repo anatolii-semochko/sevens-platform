@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import MaterialSaleApi from '@react/api/materialSaleApi'
 import { getDateTimeFromDate } from '@js/utils/time'
-import { InnerTable } from '@react/components/create-token-material/components/token/Components'
+import { InnerTable } from '@react/components/info-componnents/TableComponents'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 import { PriceHistoryChart } from '@react/components/info-componnents/token/PriceHistoryChart'
 import { prettyBytes } from '@js/utils/file'
@@ -27,7 +27,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
 
     if (tokenData.error) return (
         <div className="alert-danger alert text-center text-break p-4">
-            <h4>Token not found: {tokenData.error}.</h4>
+            <h4 className="mb-0">Error: {tokenData.error}.</h4>
         </div>
     )
 
@@ -35,6 +35,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
     if (container?.file?.name) containerInfo.push(['Container name', container.file.name])
     if (container?.file?.size) containerInfo.push(['Container size', prettyBytes(container.file.size)])
     if (container?.hash) containerInfo.push(['Container hash', container.hash])
+    if (tokenData?.signature) containerInfo.push(['Transaction signature', tokenData.signature])
 
     const tokenInfo = [
         ['Wallet public key', tokenData.walletPublicKey],

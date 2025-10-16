@@ -6,6 +6,7 @@ use App\Entity\Material\Material;
 use App\Exception\NotFoundException;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @extends ServiceEntityRepository<Material>
@@ -39,6 +40,21 @@ class MaterialRepository extends ServiceEntityRepository
             ->where('m.author = :userId')
             ->setParameter('userId', $userId)
             ->orderBy('m.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function getToClaim(UserInterface $user, array $tokens): array
+    {
+        if (empty($tokens)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('m')
+            ->where('m.token IN (:tokens)')
+            ->andWhere('m.author != :userId')
+            ->setParameter('tokens', $tokens)
+            ->setParameter('userId', $user->getId())
             ->getQuery()
             ->getResult();
     }

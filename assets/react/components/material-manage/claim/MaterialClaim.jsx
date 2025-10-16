@@ -1,0 +1,172 @@
+import React, {useEffect, useMemo, useState} from 'react'
+import MaterialClaimApi from '@react/api/materialClaimApi'
+import store from '@react/store'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
+import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
+import { route } from '@js/router/routing-with-locale'
+import { signNonce, WalletForm } from '@react/components/form-elements/WalletForm'
+import { getDateFromDate } from '@js/utils/time'
+import { getWalletTokens } from '@js/blockchain/sevens-token'
+import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
+import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
+import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
+
+const materialClaimApi = new MaterialClaimApi()
+
+const MaterialClaimInner = () => {
+    if (!store.getState().user) return (
+        <UserAuthorization message={'To claim materials you need to log in.'}/>
+    )
+
+    const wallet = useWallet()
+    const [selected, setSelected] = useState([])
+    const [waitingSignature, setWaitingSignature] = useState(false)
+    const [processing, setProcessing] = useState(false)
+    const [materials, setMaterials] = useState([])
+    const [error, setError] = useState(null)
+
+    useEffect(() => {
+        setError(null)
+        setMaterials([])
+        setSelected([])
+        setWaitingSignature(null)
+        setProcessing(null)
+        if (wallet.publicKey) {
+            getWalletTokens(wallet.publicKey.toString()).then(materialClaimApi.get).then(setMaterials).catch(setError)
+        }
+    }, [wallet.publicKey?.toString()])
+
+    const handleClaim = async () => {
+        try {
+            setError(null)
+            setWaitingSignature(true)
+            const walletSignature = await signNonce(wallet)
+            setWaitingSignature(false)
+            setProcessing(true)
+            await materialClaimApi.post(selected, walletSignature)
+            window.location.href = route('material_manage')
+        } catch (error) {
+            setError(error.message)
+        } finally {
+            setWaitingSignature(false)
+            setProcessing(false)
+        }
+    }
+
+    return (
+        <div>
+            <WalletForm operation={'claim'} waitingSignature={waitingSignature} />
+            <MaterialsList {...{wallet, materials, selected, setSelected}} />
+            <ErrorMessageBlock message={error} />
+            {!!selected.length && (
+                <ButtonWithProcessing
+                    className={'btn-success w-100 fs-5 p-3 mb-3'}
+                    label={`Claim selected materials (${selected.length})`}
+                    processingLabel={waitingSignature ? 'Waiting wallet signature...' : 'Processing...'}
+                    processing={waitingSignature || processing}
+                    onClick={handleClaim}
+                />
+            )}
+            <a className="btn btn-secondary w-100 px-5 mt-2 mb-3" href={Routing.generate('material_manage')}>
+                Materials management
+            </a>
+        </div>
+    )
+}
+
+const MaterialsList = ({wallet, materials, selected, setSelected}) => {
+    if (!wallet.publicKey) {
+        return
+    }
+
+    if (!materials.length) return (
+        <h4 className="text-center p-2">No materials to claim for this wallet.</h4>
+    )
+
+    const Status = ({status}) => status ?
+        <span className="badge bg-success">Active</span> :
+        <span className="badge bg-danger">Inactive</span>
+
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelected(materials.map(material => material.token))
+        } else {
+            setSelected([])
+        }
+    }
+
+    const handleSelectItem = (token) => {
+        setSelected(prev => {
+            if (prev.includes(token)) {
+                return prev.filter(t => t !== token)
+            } else {
+                return [...prev, token]
+            }
+        })
+    }
+
+    const isAllSelected = materials.length > 0 && selected.length === materials.length
+
+    return (
+        <div>
+            <h4 className="text-center p-2">Found materials available to claim:</h4>
+            <table className="table align-middle">
+                <thead>
+                <tr>
+                    <th>
+                        <input
+                            type="checkbox"
+                            checked={isAllSelected}
+                            onChange={handleSelectAll}
+                            className="form-check-input"
+                        />
+                    </th>
+                    <th className="d-none d-lg-table-cell text-break small">Token</th>
+                    <th>Publication</th>
+                    <th>Created At</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                {materials.map((material, key) => (
+                    <tr key={key}>
+                        <td>
+                            <input
+                                type="checkbox"
+                                checked={selected.includes(material.token)}
+                                onChange={() => handleSelectItem(material.token)}
+                                className="form-check-input"
+                            />
+                        </td>
+                        <td className="d-none d-lg-table-cell text-break small">{material.token}</td>
+                        <td>{material.title}</td>
+                        <td>{getDateFromDate(material.createdAt)}</td>
+                        <td><Status status={material.active}/></td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    )
+}
+
+const MaterialClaim = () => {
+    const wallets = useMemo(() => [
+        new SevensWalletAdapter(),
+        new PhantomWalletAdapter()
+    ], [])
+
+    return (
+        <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
+            <WalletProvider wallets={wallets} autoConnect={true}>
+                <WalletModalProvider>
+                    <MaterialClaimInner />
+                </WalletModalProvider>
+            </WalletProvider>
+        </ConnectionProvider>
+    )
+}
+
+export default MaterialClaim

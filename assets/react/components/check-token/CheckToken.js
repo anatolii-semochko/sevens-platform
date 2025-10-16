@@ -3,6 +3,7 @@ import { deriveTokenData } from '../create-token-material/utils/blockchain'
 import { calculateContainerHash } from '../create-token-material/utils/files'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { ActionButtons, ContainerCheckMessage } from '../check-token/components/Components'
+import { MaterialInfo } from '@react/components/info-componnents/material/MaterialInfo'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 import {
     HashingStatus,
@@ -48,6 +49,7 @@ export const CheckToken = () =>  {
         <div>
             <ContainerFileInfo {...{container}} />
             <ContainerCheckMessage {...{tokenData}} />
+            <MaterialInfo tokenPublicKey={tokenData?.tokenPublicKey} />
             <HistoryTable tokenPublicKey={tokenData?.tokenPublicKey?.toString()} showChart={true} />
             <MessagesBlock error={errorMessage} />
             <ActionButtons {...{handlerClear}}/>

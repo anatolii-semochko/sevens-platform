@@ -4,7 +4,6 @@ import { decompressContainerSmart, removeExtractedFilesFolder, cleanupMemoryFile
 import { DecompressCancellationToken, isCancellationError } from './DecompressCancellationToken'
 import { DecompressingStatus, FilesList } from '../container/Components'
 import { ButtonLargeWidth } from '@react/components/form-elements/Buttons'
-import { FILE_MEMORY_DECOMPRESSION_LIMIT } from '../../constants'
 
 export const Decompressing = ({tokenFiles, setTokenFiles, container, setContainer, onStartDecompression, tokenData}) => {
     const cancellationTokenRef = useRef(null)
@@ -13,7 +12,7 @@ export const Decompressing = ({tokenFiles, setTokenFiles, container, setContaine
     const startDecompression = useCallback(async (containerToUse = container) => {
         if (!containerToUse?.file || containerToUse?.isDecompressing) return
 
-        const useMemoryMode = containerToUse.file.size <= FILE_MEMORY_DECOMPRESSION_LIMIT
+        const useMemoryMode = containerToUse.file.size <= process.env.BROWSER_FILE_MEMORY_DECOMPRESSION_LIMIT
 
         // Get directory picker for extraction only if using disk mode
         let downloadsHandle = containerToUse.downloadsHandle
@@ -47,7 +46,7 @@ export const Decompressing = ({tokenFiles, setTokenFiles, container, setContaine
                 setOverallDecompressing,
                 downloadsHandle,
                 cancellationTokenRef.current,
-                FILE_MEMORY_DECOMPRESSION_LIMIT,
+                process.env.BROWSER_FILE_MEMORY_DECOMPRESSION_LIMIT,
             )
 
             // Update UI with extracted files
@@ -107,7 +106,7 @@ export const Decompressing = ({tokenFiles, setTokenFiles, container, setContaine
     // Auto-start decompression for memory mode when tokenData is valid
     useEffect(() => {
         if (tokenData && !tokenData.error && container?.file && !container.files && !container.isDecompressing) {
-            const useMemoryMode = container.file.size <= FILE_MEMORY_DECOMPRESSION_LIMIT
+            const useMemoryMode = container.file.size <= process.env.BROWSER_FILE_MEMORY_DECOMPRESSION_LIMIT
             if (useMemoryMode) {
                 startDecompression()
             }
@@ -168,7 +167,7 @@ export const ButtonSelectDecompressionFolder = ({tokenData, container, handleSta
         return null
     }
 
-    if (container?.file?.size <= FILE_MEMORY_DECOMPRESSION_LIMIT) {
+    if (container?.file?.size <= process.env.BROWSER_FILE_MEMORY_DECOMPRESSION_LIMIT) {
         return null
     }
 
@@ -185,7 +184,7 @@ export const ButtonSelectDecompressionFolder = ({tokenData, container, handleSta
     )
 }
 
-export const ButtonClearPickContainer = ({container, tokenFiles, tokenData, handlerClear}) => {
+export const ButtonClearPickContainer = ({container, tokenFiles, tokenData, handlerClear, hidden}) => {
     const handleClear = useCallback(() => {
         if (container?.usedMemory && tokenFiles) {
             cleanupMemoryFiles(tokenFiles)
@@ -196,7 +195,7 @@ export const ButtonClearPickContainer = ({container, tokenFiles, tokenData, hand
         handlerClear()
     }, [container, tokenFiles, handlerClear])
 
-    return container && !container.isHashing && !container.isDecompressing && (container.files || tokenData) && (
+    return container && !container.isHashing && !container.isDecompressing && (container.files || tokenData) && !hidden && (
         <ButtonLargeWidth
             className={'btn-primary'}
             label={'Clear and pick different container file'}

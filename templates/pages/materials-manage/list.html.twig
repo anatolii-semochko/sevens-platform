@@ -1,19 +1,19 @@
 <main class="mp-page">
     <div class="container">
-        <h3>My materials</h3>
+        <h3 class="text-center p-3">My materials</h3>
 
         {% if data.materials is empty %}
-            <p>У вас ще немає матеріалів.</p>
+            <p class="text-center mb-4">You have no materials yet.</p>
         {% else %}
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped align-middle mb-4">
                     <thead>
                         <tr>
                             <th>Logo</th>
                             <th class="d-none d-lg-table-cell text-break">Token</th>
                             <th>Material</th>
                             <th>Price</th>
-                            <th>Created</th>
+                            <th class="d-none d-lg-table-cell text-break">Created</th>
                             <th>Views</th>
                             <th>Status</th>
                             <th></th>
@@ -32,16 +32,18 @@
                                     {% endif %}
                                 </td>
                                 <td class="d-none d-lg-table-cell text-break small">{{ material.token }}</td>
-                                <td>{{ material.title }}</td>
                                 <td>
+                                    <a href="{{ path('material_page', {'_locale': app.request.locale, token: material.getToken()}) }}">
+                                        {{ material.title }}
+                                    </a>
+                                </td>
+                                <td class="text-nowrap">
                                     {% if material.price and material.price > 0 %}
-                                        {{ material.price }}
-                                    {% else %}
-                                        -
+                                        {{ material.price }} <span class="fst-italic">$SEV</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ material.createdAt|date('d.m.Y H:i') }}</td>
-                                <td>{{ material.viewCount }}</td>
+                                <td class="d-none d-lg-table-cell text-break">{{ material.createdAt|date('d.m.Y') }}</td>
+                                <td class="text-center">{{ material.viewCount }}</td>
                                 <td>
                                     {% if material.isActive %}
                                         <span class="badge bg-success">Active</span>
@@ -53,7 +55,9 @@
                                     <a href="{{ path('material_manage_one', {'token': material.token}) }}" class="btn btn-primary">Manage</a>
                                 </td>
                                 <td>
-                                    <div class="react-download" id="react-download-{{ material.token }}" data-token="{{ material.token }}"></div>
+                                    <button class="btn btn-primary download-container-btn" data-token="{{ material.token }}">
+                                        Container download
+                                    </button>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -61,5 +65,11 @@
                 </table>
             </div>
         {% endif %}
+        <h5 class="text-center mb-3">
+            You can add materials published on the site to your personal list if you have a token that represents them.
+        </h5>
+        <a class="btn btn-primary w-100 p-3 mb-4 fs-5" href="{{ path('material_claim') }}">
+            Claim materials belongs your tokens in the wallet
+        </a>
     </div>
 </main>

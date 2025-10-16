@@ -4,8 +4,10 @@ namespace App\Service\Material;
 
 use App\Entity\Material\Material;
 use App\Entity\Token\SevensTokenContainer;
+use App\Entity\Wallet\WalletSignature;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
+use App\Service\Blockchain\WalletService;
 use App\Service\NodeServer\NodeServerApiException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -16,6 +18,7 @@ readonly class MaterialService
         private EntityManagerInterface $em,
         private MaterialRepository $repository,
         private TokenService $tokenService,
+        private WalletService $walletService,
     ) {}
 
     public function fetch(): array
@@ -33,26 +36,26 @@ readonly class MaterialService
      */
     public function create(
         UserInterface $user,
-        SevensTokenContainer $sevensTokenContainer,
         string $tokenPublicKey,
-        ?array $walletSignature,
+        SevensTokenContainer $sevensTokenContainer,
+        ?WalletSignature $walletSignature,
     ): void {
         // Get token data from blockchain
-        $token = $this->tokenService->getByPublicKey($tokenPublicKey);
+        $sevensToken = $this->tokenService->getByPublicKey($tokenPublicKey);
         // Check if user owns the token
-        $this->tokenService->checkUserPermissionToPublishMaterial($token, $walletSignature);
-
+        $this->tokenService->checkUserPermissionToPublishMaterial($sevensToken, $walletSignature);
         // Create material
         $material = new Material();
         $material->setToken($tokenPublicKey);
-        $material->setWallet($walletSignature['walletPublicKey']);
+        $material->setWallet($walletSignature?->getWalletPublicKey() ?? $sevensToken->getWalletPublicKey());
         $material->setTitle('');
         $material->setDescription('');
+        $material->setTokenData($sevensToken);
+        $material->setTokenContainer($sevensTokenContainer);
         $material->setLogo('');
         $material->setCreatedAt(new \DateTime());
         $material->setUpdatedAt(new \DateTime());
         $material->setAuthor($user);
-
         $this->em->persist($material);
         $this->em->flush();
     }
@@ -123,11 +126,14 @@ readonly class MaterialService
     public function updateMaterial(Material $material, array $data): void
     {
         if (isset($data['active'])) {
-            if ($data['active'] && !$material->getTitle()) {
-                throw new \InvalidArgumentException('The title is required to activate the publication..');
-            }
-            if ($data['active'] && !$material->getDescription()) {
-                throw new \InvalidArgumentException('The description is required to activate the publication.');
+            if ($data['active']) {
+                $this->tokenService->getByPublicKey($material->getToken());
+                if (!$material->getTitle()) {
+                    throw new \InvalidArgumentException('The title is required to activate the publication..');
+                }
+                if (!$material->getDescription()) {
+                    throw new \InvalidArgumentException('The description is required to activate the publication.');
+                }
             }
             $material->setActive((bool) $data['active']);
         }
@@ -148,6 +154,26 @@ readonly class MaterialService
             $material->setPrice($data['price']);
         }
 
+        if (!$material->getTitle() || !$material->getDescription()) {
+            $material->setActive(false);
+        }
+
         $this->save($material);
+    }
+
+    public function claim(UserInterface $user, array $tokens, WalletSignature $walletSignature): void
+    {
+        $this->walletService->verifyWalletSignature($walletSignature);
+        foreach ($tokens as $tokenPublicKey) {
+            $tokenData = $this->tokenService->getByPublicKey($tokenPublicKey);
+            if ($tokenData->getWalletPublicKey() === $walletSignature->getWalletPublicKey()) {
+                $material = $this->finByTokenPublicKey($tokenPublicKey);
+                if ($material) {
+                    $material->setAuthor($user);
+                    $this->em->persist($material);
+                    $this->em->flush();
+                }
+            }
+        }
     }
 }

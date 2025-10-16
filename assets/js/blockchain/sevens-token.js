@@ -45,26 +45,19 @@ const mint = async ({
     author = '',
     description = '',
     canBeBurned = false,
-    walletPublicKey,
+    wallet,
 }) => {
     try {
-        if (!walletPublicKey) {
-            new Error('Wallet public key is required')
-        }
-
         const mint = Keypair.generate()
         const { program, metadataPda, salePda, hashRegistryPda } = getSevensToken(mint.publicKey, hash)
-
-        const payerPublicKey = new PublicKey(walletPublicKey)
-        const ownerPublicKey = payerPublicKey
 
         const accounts = {
             mint: mint.publicKey,
             metadata: metadataPda,
             sale: salePda,
-            tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, ownerPublicKey, false, TOKEN_PROGRAM_ID),
+            tokenAccount: getAssociatedTokenAddressSync(mint.publicKey, wallet.publicKey, false, TOKEN_PROGRAM_ID),
             hashRegistry: hashRegistryPda,
-            payerAccount: payerPublicKey,
+            payerAccount: wallet.publicKey,
             tokenProgram: TOKEN_PROGRAM_ID,
             systemProgram: SystemProgram.programId,
             rent: anchor.web3.SYSVAR_RENT_PUBKEY,
@@ -79,16 +72,27 @@ const mint = async ({
         const { blockhash} = await connection.getLatestBlockhash(commitment)
         const tx = new Transaction()
         tx.add(ix)
-        tx.feePayer = payerPublicKey
+        tx.feePayer = wallet.publicKey
         tx.recentBlockhash = blockhash
         tx.partialSign(mint)
 
+        const txSignature = await wallet.signTransaction(tx)
+
+        // Add mint keypair signature if needed (it should already be there from partialSign)
+        if (txSignature.signatures.some(s => !s.signature && s.publicKey.equals(mint.publicKey))) {
+            txSignature.partialSign(mint)
+        }
+
+        const signature = await connection.sendRawTransaction(txSignature.serialize(), {
+            skipPreflight: false,
+            preflightCommitment: commitment,
+        })
+
+        await connection.confirmTransaction({signature, commitment})
+
         return {
-            tx,
-            mint,
-            publicKey: mint.publicKey.toBase58(),
-            metadataPublicKey: metadataPda.toBase58(),
-            salePublicKey: salePda.toBase58(),
+            signature,
+            tokenPublicKey: mint.publicKey.toString(),
         }
     } catch (error) {
         throw new Error(getAnchorErrorText(error))
@@ -305,6 +309,29 @@ const buy = async ({ tokenPublicKey, price, wallet }) => {
     }
 }
 
+const getWalletTokens = async (walletPublicKey) => {
+    try {
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+            new PublicKey(walletPublicKey),
+            {programId: TOKEN_PROGRAM_ID},
+        )
+
+        const tokens = []
+        for (const accountInfo of tokenAccounts.value) {
+            const accountData = accountInfo.account.data.parsed.info
+            const amount = parseInt(accountData.tokenAmount.amount, 10)
+            const decimals = parseInt(accountData.tokenAmount.decimals, 10)
+            if (amount === 1 && decimals === 0) {
+                tokens.push(accountData.mint)
+            }
+        }
+
+        return tokens
+    } catch (error) {
+        throw new Error(getAnchorErrorText(error))
+    }
+}
+
 const getTokenOwner = async (tokenPublicKey) => {
     const largestAccounts = await connection.getTokenLargestAccounts(tokenPublicKey)
     const largestAccountInfo = largestAccounts.value[0]
@@ -320,4 +347,9 @@ const getTokenOwner = async (tokenPublicKey) => {
     }
 }
 
-export { provider, connection, mint, burn, buy, getData, getTokenByHash, setSale, sevensIdl }
+export {
+    provider, connection, sevensIdl,
+    mint, burn,
+    getData, getTokenByHash, getWalletTokens,
+    setSale, buy,
+}

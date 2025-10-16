@@ -42,15 +42,25 @@ class MaterialController extends BaseController
         ]);
     }
 
+    #[Route('/claim', name: 'claim', methods: ['GET'])]
+    public function claim(Request $request): Response
+    {
+        $this->pageService->init('/material/claim');
+
+        return $this->render('base.html.twig', [
+            'main_template' => 'pages/materials-manage/claim.html.twig',
+            'data' => [],
+        ]);
+    }
+
     #[Route('/manage/{token}', name: 'manage_one', methods: ['GET'])]
     public function manage(string $token, Request $request): Response
     {
-        if ($response = $this->requireAuth($request)) {
-            return $response;
-        }
-
         try {
             $material = $this->materialRepository->get($token);
+            if ($response = $this->requireAuth($request, $material->getAuthor()->getId())) {
+                return $response;
+            }
 
             $this->pageService->init('/material/edit', [
                 'token' => $material->getToken(),

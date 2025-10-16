@@ -1,19 +1,9 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { getData, mint } from '@js/blockchain/sevens-token'
+import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 
-export const MintedInfo = ({minted}) => minted && (
-    <div className="alert-success alert text-break p-4 mb-4">
-        <h4 className="text-center">Congratulations !</h4>
-        <p className="text-center">Your token has been successfully minted.</p>
-        <div className="d-flex justify-content-center">
-            <InnerTable data={[
-                ['Token public key', minted.mint],
-                ['Transaction signature', minted.signature],
-            ]} />
-        </div>
-    </div>
-)
-
-export const TryMoreOptions = ({minted, handlerClear}) => minted && (
+export const TryMoreOptions = ({minted, doMaterial, handlerClear}) => !doMaterial && minted && (
     <div className="d-flex flex-column align-items-center gap-2 text-center mb-3">
         <h6>You can try:</h6>
         <div className="d-flex flex-wrap justify-content-center gap-2">
@@ -26,26 +16,47 @@ export const TryMoreOptions = ({minted, handlerClear}) => minted && (
     </div>
 )
 
-export const InnerTable = ({data}) => {
-    const getValue = (value) => {
-        if (Array.isArray(value) && value[1]) {
-            return <span className={value[1]}>{value[0] || '-'}</span>
+export const ButtonCreateToken = ({tokenData, container, setMinted, setErrorMessage}) => {
+    const wallet = useWallet()
+    const [minting, setMinting] = useState(false)
+
+    const handlerCreateToken = async () => {
+        try {
+            setErrorMessage(null)
+            if (!wallet.publicKey?.toString()) {
+                throw new Error('Wallet is not activated')
+            }
+            setMinting(true)
+            const {tokenPublicKey, signature} = await mint({
+                tokenName: tokenData.name,
+                hash: container.hash,
+                author: tokenData.author,
+                description: tokenData.description,
+                canBeBurned: tokenData.burnable,
+                wallet,
+            })
+            const minted = await getData(tokenPublicKey)
+            setMinted({...minted, signature})
+        } catch (error) {
+            setErrorMessage(error.message)
+        } finally {
+            setMinting(false)
         }
-        return value || '-'
     }
 
+    useEffect(() => {
+        setMinting(false)
+        setErrorMessage(false)
+    }, [wallet.publicKey?.toString()])
+
     return (
-        <div className="d-flex justify-content-center">
-            <table className="table-sm w-auto text-start">
-                <tbody>
-                {data.map((row, key) => (
-                    <tr key={key}>
-                        <td className="text-nowrap">{row[0]}:</td>
-                        <td className="ps-3 fw-bold text-break">{getValue(row[1])}</td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-        </div>
+        <ButtonWithProcessing
+            className={'btn-success px-5 py-2'}
+            label={'Create Token'}
+            disabled={minting}
+            onClick={handlerCreateToken}
+            processingLabel={'Waiting wallet signature...'}
+            processing={minting}
+        />
     )
 }

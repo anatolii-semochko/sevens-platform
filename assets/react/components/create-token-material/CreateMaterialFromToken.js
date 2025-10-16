@@ -5,7 +5,6 @@ import { calculateContainerHash, removeExtractedFilesFolder } from './utils/file
 import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
-import { WalletCheckForm } from './components/Wallet/Components'
 import { HashingStatus, SelectContainerFile } from './components/container/Components'
 import { PublishMaterial } from '@react/components/create-token-material/components/material/PublishMaterial'
 import { ButtonClearPickContainer, ShowContainerFiles } from './components/container/DecompressContainer'
@@ -15,9 +14,9 @@ export const CreateMaterialFromToken = () => {
     const [overallHashing, setOverallHashing] = useState(0)
     const [tokenFiles, setTokenFiles] = useState([])
     const [tokenData, setTokenData] = useState(null)
-    const [walletSignature, setWalletSignature] = useState(null)
-    const [errorMessage, setErrorMessage] = useState(null)
     const [decompressionFunction, setDecompressionFunction] = useState(null)
+    const [publishing, setPublishing] = useState(null)
+    const [errorMessage, setErrorMessage] = useState(null)
 
     const onSelectContainer = async (file, providedDownloadsHandle = null) => {
         setContainer({
@@ -29,7 +28,6 @@ export const CreateMaterialFromToken = () => {
         })
         setTokenFiles([])
         setTokenData(null)
-        setWalletSignature(null)
         setErrorMessage(null)
     }
 
@@ -39,7 +37,6 @@ export const CreateMaterialFromToken = () => {
         setContainer(null)
         setOverallHashing(0)
         setTokenData(null)
-        setWalletSignature(null)
         setDecompressionFunction(null)
     }
 
@@ -84,15 +81,11 @@ export const CreateMaterialFromToken = () => {
                 handleStartDecompression,
             }}/>
             <TokenInfo {...{container, tokenData}} />
-            {tokenData && !tokenData.error && (
-                <WalletCheckForm {...{tokenData, walletSignature, setWalletSignature}} />
-            )}
             <MessagesBlock error={errorMessage} />
-            {!walletSignature ? (
-                <ButtonClearPickContainer {...{container, tokenFiles, tokenData, handlerClear}} />
-            ) : (
-                <PublishMaterial {...{container, tokenData, walletSignature}} />
+            {tokenData && !tokenData.error && !errorMessage && (
+                <PublishMaterial {...{container, tokenData, setPublishing}} />
             )}
+            <ButtonClearPickContainer {...{container, tokenFiles, tokenData, handlerClear, hidden: publishing}} />
         </div>
     )
 }
