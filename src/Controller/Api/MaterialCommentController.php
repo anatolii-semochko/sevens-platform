@@ -57,17 +57,17 @@ class MaterialCommentController extends BaseApiController
             return new JsonResponse(['error' => 'Material not found'], 404);
         }
 
-        $data = json_decode($request->getContent(), true);
+        $payload = $request->getPayload();
         $user = $this->getUser();
-        $parentCommentId = isset($data['parentCommentId']) ? (int) $data['parentCommentId'] : null;
+        $parentCommentId = $payload->getInt('parentCommentId');
 
         try {
-            $this->commentService->validateCommentData($data, $user, $parentCommentId);
+            $this->commentService->validateCommentData($payload->all(), $user, $parentCommentId);
         } catch (\InvalidArgumentException $e) {
             return new JsonResponse(['error' => $e->getMessage()], 400);
         }
 
-        $comment = $this->commentService->createComment($token, $data, $user, $request->getClientIp(), $parentCommentId);
+        $comment = $this->commentService->createComment($token, $payload->all(), $user, $request->getClientIp(), $parentCommentId);
 
         return new JsonResponse([
             'success' => true,
@@ -87,10 +87,10 @@ class MaterialCommentController extends BaseApiController
     #[Route('/{token}/vote', name: 'material_vote', methods: ['POST'])]
     public function vote(string $token, Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $voteType = $data['type'] ?? null;
+        $payload = $request->getPayload();
+        $voteType = $payload->get('type');
 
-        if (!in_array($voteType, ['like', 'dislike'])) {
+        if (!in_array($voteType, ['like', 'dislike'], true)) {
             return new JsonResponse(['error' => 'Invalid vote type'], 400);
         }
 

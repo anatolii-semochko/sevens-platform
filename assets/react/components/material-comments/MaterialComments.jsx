@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { route } from '@js/router/routing-with-locale'
 
 const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
     const [comments, setComments] = useState([])
@@ -15,7 +16,8 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
 
     const fetchComments = async () => {
         try {
-            const response = await fetch(`/en/api/material/${materialToken}/comments`)
+            const url = route('api_material_comment_comments_list', { token: materialToken })
+            const response = await fetch(url)
             if (response.ok) {
                 const data = await response.json()
                 setComments(data.comments)
@@ -33,7 +35,8 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
 
         setIsSubmitting(true)
         try {
-            const response = await fetch(`/en/api/material/${materialToken}/comments`, {
+            const url = route('api_material_comment_comment_add', { token: materialToken })
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -62,7 +65,8 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
 
         setIsSubmitting(true)
         try {
-            const response = await fetch(`/en/api/material/${materialToken}/comments`, {
+            const url = route('api_material_comment_comment_add', { token: materialToken })
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,12 +1,10 @@
-<div id="user-auth">
-    {% if app.user %}
-        <div data-user="{{ {
-            'email': app.user.email,
-            'id': app.user.id,
-            'createdAt': app.user.createdAt|date('c'),
-            'profileUrl': path('user_index')
-        }|json_encode|e('html_attr') }}"></div>
-    {% else %}
-        <div data-register-url="{{ path('app_register') }}"></div>
-    {% endif %}
-</div>
+{% if app.user %}
+    <div data-user="{{ {
+        'email': app.user.email,
+        'id': app.user.id,
+        'createdAt': app.user.createdAt|date('c'),
+        'profileUrl': path('user_index')
+    }|json_encode|e('html_attr') }}"></div>
+{% else %}
+    <div data-register-url="{{ path('app_register') }}"></div>
+{% endif %}

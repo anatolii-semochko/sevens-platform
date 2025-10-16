@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { route } from '@js/router/routing-with-locale'
 
 export default function UserDropdown({ user }) {
     const [isOpen, setIsOpen] = useState(false)
@@ -26,16 +27,14 @@ export default function UserDropdown({ user }) {
     const handlePersonalCabinet = (e) => {
         e.preventDefault()
         // Navigate to user profile page using locale-aware route
-        const locale = window.AppConfig?.currentLocale || 'en'
-        window.location.href = user.profileUrl || `/${locale}/user`
+        window.location.href = user.profileUrl || route('user_index')
         setIsOpen(false)
     }
 
     const handleLogout = (e) => {
         e.preventDefault()
         // Navigate to logout using the correct locale-aware route
-        const locale = window.AppConfig?.currentLocale || 'en'
-        window.location.href = `/${locale}/logout`
+        window.location.href = route('app_logout')
     }
 
     return (

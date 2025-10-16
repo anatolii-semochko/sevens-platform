@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { route } from '@js/router/routing-with-locale'
 
 export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' }) {
     const [formData, setFormData] = useState({
@@ -44,13 +45,10 @@ export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' 
         setError('')
 
         try {
-            // Get current locale from AppConfig
-            const locale = window.AppConfig?.currentLocale || 'en'
-            
             // Create a form element to submit to Symfony's login endpoint
             const form = document.createElement('form')
             form.method = 'POST'
-            form.action = `/${locale}/login`
+            form.action = route('app_login')
             form.style.display = 'none'
 
             // Add email field
@@ -91,10 +89,8 @@ export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' 
     }
 
     const handleFacebookLogin = () => {
-        // Get current locale from AppConfig
-        const locale = window.AppConfig?.currentLocale || 'en'
         // Redirect to Facebook OAuth start endpoint
-        window.location.href = `/${locale}/connect/facebook`
+        window.location.href = route('connect_facebook_start')
     }
 
     if (!isOpen) return null

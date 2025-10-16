@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { route } from '@js/router/routing-with-locale'
 
 const CommentsManage = ({ initialComments = [] }) => {
     const [comments, setComments] = useState(initialComments)
@@ -19,7 +20,8 @@ const CommentsManage = ({ initialComments = [] }) => {
         setErrorMessages({ ...errorMessages, [commentId]: false })
 
         try {
-            const response = await fetch(`/en/api/material/${materialToken}/comments`, {
+            const url = route('api_material_comment_comment_add', { token: materialToken })
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -88,7 +90,7 @@ const CommentsManage = ({ initialComments = [] }) => {
                     <div className="card-header bg-light d-flex justify-content-between align-items-center">
                         <div>
                             <strong>Material:</strong>{' '}
-                            <a href={`/en/material/${item.material.token}`} target="_blank" rel="noopener noreferrer">
+                            <a href={route('material_page', { token: item.material.token })} target="_blank" rel="noopener noreferrer">
                                 {item.material.title}
                             </a>
                         </div>
@@ -163,7 +165,7 @@ const CommentsManage = ({ initialComments = [] }) => {
                                     <i className="bi bi-reply"></i> Reply
                                 </button>
                                 <a
-                                    href={`/en/material/${item.material.token}#comment-${item.comment.id}`}
+                                    href={`${route('material_page', { token: item.material.token })}#comment-${item.comment.id}`}
                                     className="btn btn-outline-secondary btn-sm mb-2 ms-2"
                                     target="_blank"
                                     rel="noopener noreferrer"
