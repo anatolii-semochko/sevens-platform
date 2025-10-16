@@ -62,7 +62,7 @@ readonly class TokenService
             return;
         }
 
-        if (!$walletSignature->getSignature()) {
+        if (!$walletSignature?->getSignature()) {
             throw new InvalidArgumentException(
                 'To prevent fraud publication you need to publish material from token container ' .
                 'and sign the token possession by wallet.'

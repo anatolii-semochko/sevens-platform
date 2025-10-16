@@ -16,12 +16,12 @@ export const PriceHistoryChart = ({ history }) => {
         return () => window.removeEventListener('resize', updateWidth)
     }, [])
 
-    if (!history || history.length < 2) {
-        return
-    }
-
     // Filter only entries with prices (not cancellations)
     const priceHistory = history.filter(entry => entry.price && entry.price > 0)
+
+    if (!history || priceHistory.length < 2) {
+        return
+    }
 
     if (priceHistory.length === 0) {
         return (

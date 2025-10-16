@@ -141,7 +141,11 @@ const MaterialsList = ({wallet, materials, selected, setSelected}) => {
                             />
                         </td>
                         <td className="d-none d-lg-table-cell text-break small">{material.token}</td>
-                        <td>{material.title}</td>
+                        <td>
+                            <a href={route('material_page', {token: material.token})} target="_blank">
+                                {material.title || <span className="text-danger">No title</span>}
+                            </a>
+                        </td>
                         <td>{getDateFromDate(material.createdAt)}</td>
                         <td><Status status={material.active}/></td>
                     </tr>

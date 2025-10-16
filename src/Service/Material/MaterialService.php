@@ -170,6 +170,7 @@ readonly class MaterialService
                 $material = $this->finByTokenPublicKey($tokenPublicKey);
                 if ($material) {
                     $material->setAuthor($user);
+                    $material->setWallet($material->getWallet() ?? $walletSignature->getWalletPublicKey());
                     $this->em->persist($material);
                     $this->em->flush();
                 }
