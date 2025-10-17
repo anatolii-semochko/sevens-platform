@@ -10,6 +10,7 @@ use App\Service\NodeServer\NodeServerApiClient;
 use App\Service\NodeServer\NodeServerApiException;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 readonly class TokenService
 {
@@ -90,5 +91,42 @@ readonly class TokenService
         }
 
         return $tokenData;
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getBuyTransaction(string $tokenPublicKey, string $buyerPublicKey): array
+    {
+        $material = $this->materialRepository->get($tokenPublicKey);
+        $transaction = $this->nodeServerApiClient->getBuyTokenTransaction($material->getToken(), $buyerPublicKey);
+
+        // TODO - ADD TRANSACTION TO DB
+
+        return [
+            'transactionId' => '',
+            'transaction' => $transaction['data'],
+        ];
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function buy(?UserInterface $user, string $tokenPublicKey, string $transactionId, string $transaction): void
+    {
+        $material = $this->materialRepository->get($tokenPublicKey);
+
+        // TODO - CHECK TRANSACTION IN DB
+
+        $result = $this->nodeServerApiClient->sendBuyTokenSignedTransaction($transaction);
+
+        if ($result['success'] === true) {
+            if ($user) {
+                $material->setAuthor($user);
+            }
+            $material->setPrice(0);
+            $this->em->persist($material);
+            $this->em->flush();
+        }
     }
 }

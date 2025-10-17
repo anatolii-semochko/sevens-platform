@@ -18,7 +18,6 @@ readonly class NodeServerApiClient
             false,
             $this->getContext('GET'),
         );
-
         $this->checkResponse($response);
 
         return json_decode($response, true);
@@ -41,7 +40,6 @@ readonly class NodeServerApiClient
                 'nonce' => $nonce,
             ])),
         );
-
         $this->checkResponse($response);
 
         return json_decode($response, true);
@@ -53,11 +51,10 @@ readonly class NodeServerApiClient
     public function getTokenMetadata(string $tokenPublicKey): array
     {
         $response = file_get_contents(
-            $this->nodeServerBaseUrl . '/sevens-tokens?' . http_build_query(['publicKey' => $tokenPublicKey]),
+            $this->nodeServerBaseUrl . '/sevens-token?' . http_build_query(['publicKey' => $tokenPublicKey]),
             false,
             $this->getContext('GET'),
         );
-
         $this->checkResponse($response);
 
         return json_decode($response, true);
@@ -69,11 +66,45 @@ readonly class NodeServerApiClient
     public function getTokenAgeMinutes(string $tokenPublicKey): array
     {
         $response = file_get_contents(
-            $this->nodeServerBaseUrl . '/sevens-tokens/age-minutes?' . http_build_query(['publicKey' => $tokenPublicKey]),
+            $this->nodeServerBaseUrl . '/sevens-token/age-minutes?' . http_build_query(['publicKey' => $tokenPublicKey]),
             false,
             $this->getContext('GET'),
         );
+        $this->checkResponse($response);
 
+        return json_decode($response, true);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getBuyTokenTransaction(string $tokenPublicKey, string $buyerPublicKey): array
+    {
+        $response = file_get_contents(
+            $this->nodeServerBaseUrl . '/sevens-token/get-buy-transaction?' . http_build_query([
+                'tokenPublicKey' => $tokenPublicKey,
+                'buyerPublicKey' => $buyerPublicKey,
+            ]),
+            false,
+            $this->getContext('GET'),
+        );
+        $this->checkResponse($response);
+
+        return json_decode($response, true);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function sendBuyTokenSignedTransaction(string $txSignature): array
+    {
+        $response = file_get_contents(
+            $this->nodeServerBaseUrl . '/transaction',
+             false,
+             $this->getContext('POST', json_encode([
+                 'txSignature' => $txSignature,
+             ])),
+        );
         $this->checkResponse($response);
 
         return json_decode($response, true);
