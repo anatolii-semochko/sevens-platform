@@ -88,26 +88,20 @@ const getAnchorErrorText = (error) => {
     // Extract error message from logs if available
     const extractFromLogs = (logs) => {
         if (!logs || !Array.isArray(logs)) {
-            console.log('extractFromLogs: no logs available')
             return null
         }
 
-        console.log('extractFromLogs: processing logs:', logs)
-
         for (const log of logs) {
-            console.log('checking log:', log)
 
             // Check each error pattern against the log
             for (const { pattern, message } of errorPatterns) {
                 const match = log.match(pattern)
                 if (match) {
                     const result = typeof message === 'function' ? message(match) : message
-                    console.log('extractFromLogs: found match:', { pattern, match, result })
                     return result
                 }
             }
         }
-        console.log('extractFromLogs: no patterns matched')
         return null
     }
 

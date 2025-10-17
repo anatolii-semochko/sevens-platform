@@ -1,4 +1,5 @@
 const tokenService = require('../services/sevensTokenService')
+const { getAnchorErrorText } = require('../utils/blockchain')
 
 class SevensTokenController {
     static async getTokens(req, res) {
@@ -77,6 +78,30 @@ class SevensTokenController {
             res.status(404).json({
                 error: 'Not Found',
                 message: 'Token not found',
+            })
+        }
+    }
+
+    static async getBuyTransaction(req, res) {
+        try {
+            const { tokenPublicKey, buyerPublicKey } = req.query
+
+            if (!tokenPublicKey || !buyerPublicKey) {
+                return res.status(400).json({
+                    error: 'Bad Request',
+                    message: 'Both tokenPublicKey and buyerPublicKey query parameters are required',
+                })
+            }
+
+            res.json({
+                success: true,
+                data: await tokenService.getBuyTransaction(tokenPublicKey, buyerPublicKey),
+            })
+        } catch (error) {
+            console.error('Error getting sevens token buy transaction:', error)
+            res.status(500).json({
+                error: 'Failed to create transaction',
+                message: getAnchorErrorText(error),
             })
         }
     }

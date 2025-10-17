@@ -1,4 +1,5 @@
-const { Connection, PublicKey, LAMPORTS_PER_SOL} = require('@solana/web3.js')
+const { Connection, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction} = require('@solana/web3.js')
+const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
 const { getPda, getAnchorErrorText } = require('../utils/blockchain')
 const anchor = require('@coral-xyz/anchor')
 const crypto = require('crypto')
@@ -73,7 +74,7 @@ class SevensTokenService {
 
             const jsonText = typeof response.text === 'function' ? await response.text() : response.text
             this.sevensIdl = JSON.parse(jsonText)
-            console.log('IDL loaded successfully', this.sevensIdl)
+            console.log('IDL loaded successfully')
 
             if (this.sevensIdl && this.sevensIdl.metadata && this.sevensIdl.metadata.address) {
                 this.program = new anchor.Program(
@@ -171,6 +172,65 @@ class SevensTokenService {
         }
     }
 
+    async getAgeMinutes(publicKey) {
+        try {
+            const tokenData = await this.getTokenByPublicKey(publicKey)
+            const blockchainTimestamp = tokenData.metadata.timestamp.toNumber()
+            const currentTimeSeconds = Math.floor(Date.now() / 1000)
+            const ageInSeconds = currentTimeSeconds - blockchainTimestamp
+            const ageInMinutes = Math.floor(ageInSeconds / 60)
+
+            return Math.max(0, ageInMinutes)
+        } catch (error) {
+            throw new Error(`Failed to calculate token age: ${error.message}`)
+        }
+    }
+
+    async getBuyTransaction(tokenPublicKey, buyerPublicKey) {
+        try {
+            const tokenData = await this.getTokenByPublicKey(tokenPublicKey)
+
+            const mint = new PublicKey(tokenPublicKey)
+            const buyer = new PublicKey(buyerPublicKey)
+            const {
+                program,
+                salePda,
+            } = this.getSevensToken(mint)
+
+            const owner = await this.getTokenOwner(mint)
+            const buyerToken = getAssociatedTokenAddressSync(mint, buyer, false, TOKEN_PROGRAM_ID)
+
+            const ix = await program.methods
+                .buyToken(tokenData.sale.price)
+                .accounts({
+                    buyerAccount: buyer,
+                    ownerAccount: owner.publicKey,
+                    buyerTokenAccount: buyerToken,
+                    ownerTokenAccount: owner.tokenAccount,
+                    mint,
+                    sale: salePda,
+                    saleAuthority: salePda,
+                    tokenProgram: TOKEN_PROGRAM_ID,
+                    systemProgram: SystemProgram.programId,
+                    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+                })
+                .instruction()
+
+            const { blockhash } = await this.connection.getLatestBlockhash('confirmed')
+            const tx = new Transaction()
+            tx.add(ix)
+            tx.feePayer = buyer
+            tx.recentBlockhash = blockhash
+
+            return tx
+        } catch (error) {
+            console.error('Raw error in getBuyTransaction:', error)
+            console.error('Error message:', error.message)
+            console.error('Error stack:', error.stack)
+            throw error
+        }
+    }
+
     getSevensToken (publicKey, hash = null){
         if (!this.sevensIdl || !this.sevensIdl.metadata || !this.sevensIdl.metadata.address) {
             throw new Error('IDL not loaded or invalid')
@@ -187,17 +247,18 @@ class SevensTokenService {
         }
     }
 
-    async getAgeMinutes(publicKey) {
-        try {
-            const tokenData = await this.getTokenByPublicKey(publicKey)
-            const blockchainTimestamp = tokenData.metadata.timestamp.toNumber()
-            const currentTimeSeconds = Math.floor(Date.now() / 1000)
-            const ageInSeconds = currentTimeSeconds - blockchainTimestamp
-            const ageInMinutes = Math.floor(ageInSeconds / 60)
+    async getTokenOwner(tokenPublicKey) {
+        const largestAccounts = await this.connection.getTokenLargestAccounts(tokenPublicKey)
+        const largestAccountInfo = largestAccounts.value[0]
+        if (!largestAccountInfo) {
+            throw new Error('No token accounts found for this mint.')
+        }
+        const parsedAccount = await this.connection.getParsedAccountInfo(largestAccountInfo.address)
+        const owner = new PublicKey(parsedAccount.value.data.parsed.info.owner)
 
-            return Math.max(0, ageInMinutes)
-        } catch (error) {
-            throw new Error(`Failed to calculate token age: ${error.message}`)
+        return {
+            tokenAccount: largestAccountInfo.address,
+            publicKey: owner,
         }
     }
 }
