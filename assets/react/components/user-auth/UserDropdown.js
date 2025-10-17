@@ -1,28 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { route } from '@js/router/routing-with-locale'
 
-export default function UserDropdown({ user }) {
-    const [isOpen, setIsOpen] = useState(false)
+export default function UserDropdown({ user, isOpen, setIsOpen }) {
     const dropdownRef = useRef(null)
 
     // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event) {
-            if (!dropdownRef.current?.contains(event.target)) {
+            const toggle = document.getElementById('user-dropdown-toggle')
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target) && event.target !== toggle && !toggle?.contains(event.target)) {
                 setIsOpen(false)
             }
         }
 
-        document.addEventListener('mousedown', handleClickOutside)
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside)
+        }
         return () => {
             document.removeEventListener('mousedown', handleClickOutside)
         }
-    }, [])
-
-    const toggleDropdown = (e) => {
-        e.preventDefault()
-        setIsOpen(!isOpen)
-    }
+    }, [isOpen, setIsOpen])
 
     const handlePersonalCabinet = (e) => {
         e.preventDefault()
@@ -38,17 +35,9 @@ export default function UserDropdown({ user }) {
     }
 
     return (
-        <div className="position-relative" ref={dropdownRef}>
-            <a
-                href="#"
-                className="text-dark d-flex align-items-center"
-                onClick={toggleDropdown}
-            >
-                <i className="bi bi-person fs-4 icon-button"></i>
-            </a>
-
+        <>
             {isOpen && (
-                <div className="dropdown-menu dropdown-menu-end show position-absolute" style={{ top: '100%', right: 0, minWidth: '200px' }}>
+                <div ref={dropdownRef} className="dropdown-menu dropdown-menu-end show position-absolute" style={{ top: '100%', right: 0, minWidth: '200px' }}>
                     <div className="dropdown-header">
                         <div className="d-flex align-items-center">
                             <i className="bi bi-person-circle fs-5 me-2 text-primary"></i>
@@ -90,6 +79,6 @@ export default function UserDropdown({ user }) {
                     </button>
                 </div>
             )}
-        </div>
+        </>
     )
 }

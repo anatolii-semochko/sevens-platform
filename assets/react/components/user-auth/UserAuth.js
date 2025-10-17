@@ -1,42 +1,43 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import UserDropdown from './UserDropdown'
 import LoginPopup from './LoginPopup'
 
 export default function UserAuth({ user = null, registerUrl = '/register' }) {
     const [showLoginPopup, setShowLoginPopup] = useState(false)
+    const [showDropdown, setShowDropdown] = useState(false)
 
-    const handlePersonIconClick = (e) => {
-        e.preventDefault()
-        if (!user) {
-            setShowLoginPopup(true)
+    // Attach click handler to the icon in the template
+    useEffect(() => {
+        const iconToggle = document.getElementById('user-dropdown-toggle')
+        if (iconToggle) {
+            const handleClick = (e) => {
+                e.preventDefault()
+                if (user) {
+                    setShowDropdown(!showDropdown)
+                } else {
+                    setShowLoginPopup(true)
+                }
+            }
+            iconToggle.addEventListener('click', handleClick)
+            return () => iconToggle.removeEventListener('click', handleClick)
         }
-        // If user is logged in, the UserDropdown component handles the click
-    }
+    }, [user, showDropdown])
 
     const handleCloseLoginPopup = () => {
         setShowLoginPopup(false)
     }
 
     if (user) {
-        // User is logged in - show dropdown
-        return <UserDropdown user={user} />
+        // User is logged in - show dropdown menu only
+        return <UserDropdown user={user} isOpen={showDropdown} setIsOpen={setShowDropdown} />
     }
 
-    // User is not logged in - show clickable icon and login popup
+    // User is not logged in - show login popup
     return (
-        <>
-            <a
-                href="#"
-                className="text-dark"
-                onClick={handlePersonIconClick}
-            >
-                <i className="bi bi-person fs-4 icon-button"></i>
-            </a>
-            <LoginPopup
-                isOpen={showLoginPopup}
-                onClose={handleCloseLoginPopup}
-                registerUrl={registerUrl}
-            />
-        </>
+        <LoginPopup
+            isOpen={showLoginPopup}
+            onClose={handleCloseLoginPopup}
+            registerUrl={registerUrl}
+        />
     )
 }
