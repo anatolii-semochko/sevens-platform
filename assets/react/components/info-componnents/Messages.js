@@ -6,7 +6,7 @@ const SuccessMessageBlock = ({ message, className }) => !!message && (
 const InfoMessageBlock = ({ message, className }) => !!message && (
     <div className={getMessageBlockClass('info', className)} role="alert">{getFormattedMessage(message)}</div>
 )
-const ErrorMessageBlock = ({ message, className }) => !!message?.message || !!message && (
+const ErrorMessageBlock = ({ message, className }) => (!!message?.message || !!message) && (
     <div className={getMessageBlockClass('danger', className)} role="alert">
         {getFormattedMessage(message?.message || message)}
     </div>

@@ -6,5 +6,5 @@
         'profileUrl': path('user_index')
     }|json_encode|e('html_attr') }}"></div>
 {% else %}
-    <div data-register-url="{{ path('app_register') }}"></div>
+    <div data-register-url="{{ path('app_register', {'_locale': app.request.locale}) }}"></div>
 {% endif %}

@@ -13,14 +13,14 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        # API login endpoint - no authentication required (it's the login endpoint!)
-        api_login:
-            pattern: ^/\w+/api/auth/login$
-            security: false
         main:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\LoginFormAuthenticator
+            json_login:
+                check_path: api_auth_login
+                username_path: email
+                password_path: password
             logout:
                 path: app_logout
                 target: /

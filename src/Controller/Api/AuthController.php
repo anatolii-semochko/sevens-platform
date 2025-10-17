@@ -4,40 +4,27 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
-use App\Controller\BaseApiController;
-use App\Exception\WrappedHttpException;
-use App\Service\Auth\AuthenticationService;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/auth', name: 'api_auth_')]
-class AuthController extends BaseApiController
+class AuthController extends AbstractController
 {
-    public function __construct(
-        private readonly AuthenticationService $authenticationService,
-    ) {}
-
     /**
-     * @throws HttpException
+     * This endpoint is handled by the json_login authenticator in security.yaml
+     * The authenticator intercepts the request, validates credentials, and creates the session
+     * This controller method is only called on successful authentication
      */
     #[Route('/login', name: 'login', methods: ['POST'])]
-    public function login(Request $request): JsonResponse
+    public function login(): JsonResponse
     {
-        try {
-            $payload = $request->getPayload();
-            $email = $payload->get('email');
-            $password = $payload->get('password');
+        // If we get here, authentication was successful
+        $user = $this->getUser();
 
-            $user = $this->authenticationService->authenticateUser($email, $password, $request);
-
-            return $this->json([
-                'success' => true,
-                'user' => $user,
-            ], context: ['groups' => ['user:read']]);
-        } catch (\Exception $e) {
-            throw new WrappedHttpException($e);
-        }
+        return $this->json([
+            'success' => true,
+            'user' => $user,
+        ], context: ['groups' => ['user:read']]);
     }
 }
