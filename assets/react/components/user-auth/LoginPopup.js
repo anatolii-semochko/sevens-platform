@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { route } from '@js/router/routing-with-locale'
+import AuthApi from '@react/api/authApi'
+import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
+
+const authApi = new AuthApi()
 
 export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' }) {
     const [formData, setFormData] = useState({
@@ -7,7 +11,7 @@ export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' 
         password: ''
     })
     const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState('')
+    const [errorMessage, setErrorMessage] = useState(null)
 
     // Close popup on Escape key
     useEffect(() => {
@@ -36,51 +40,22 @@ export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' 
             [name]: value
         }))
         // Clear error when user starts typing
-        if (error) setError('')
+        if (errorMessage) setErrorMessage(null)
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setErrorMessage(null)
         setIsLoading(true)
-        setError('')
 
-        try {
-            // Create a form element to submit to Symfony's login endpoint
-            const form = document.createElement('form')
-            form.method = 'POST'
-            form.action = route('app_login')
-            form.style.display = 'none'
+        const response = await authApi
+            .login(formData.email, formData.password)
+            .catch(setErrorMessage)
+            .finally(() => setIsLoading(false))
 
-            // Add email field
-            const emailInput = document.createElement('input')
-            emailInput.type = 'email'
-            emailInput.name = 'email'
-            emailInput.value = formData.email
-            form.appendChild(emailInput)
-
-            // Add password field
-            const passwordInput = document.createElement('input')
-            passwordInput.type = 'password'
-            passwordInput.name = 'password'
-            passwordInput.value = formData.password
-            form.appendChild(passwordInput)
-
-            // Add CSRF token
-            const csrfInput = document.createElement('input')
-            csrfInput.type = 'hidden'
-            csrfInput.name = '_csrf_token'
-            csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            form.appendChild(csrfInput)
-
-            // Add form to document and submit
-            document.body.appendChild(form)
-            form.submit()
-            
-            // The form submission will either redirect on success or reload with errors
-            
-        } catch (err) {
-            setError('Network error. Please try again.')
-            setIsLoading(false)
+        if (response?.success) {
+            // Success - reload page to get authenticated state
+            window.location.reload()
         }
     }
 
@@ -110,11 +85,7 @@ export default function LoginPopup({ isOpen, onClose, registerUrl = '/register' 
                             ></button>
                         </div>
                         <div className="modal-body p-4">
-                            {error && (
-                                <div className="alert alert-danger mb-4">
-                                    {error}
-                                </div>
-                            )}
+                            <ErrorMessageBlock message={errorMessage} className="mb-4" />
 
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-3">
