@@ -99,6 +99,7 @@ class SevensTokenService {
                 [Buffer.from('hash'), shortHashBuffer],
                 new PublicKey(programId),
             )
+
             return pda
         } catch (error) {
             console.error('Error getting hash PDA:', error)
@@ -108,127 +109,104 @@ class SevensTokenService {
 
     async getWalletPublicKeyByToken(tokenPublicKey) {
         let walletPublicKey = null
-        try {
-            const publicKey = new PublicKey(tokenPublicKey)
-            const mintInfo = await this.connection.getParsedAccountInfo(publicKey)
-            const supply = mintInfo?.value?.data?.parsed?.info?.supply
 
-            if (supply === '1') {
-                // For NFT (supply = 1), find the token account holder
-                const tokenAccounts = await this.connection.getTokenLargestAccounts(publicKey)
-                if (tokenAccounts?.value?.length > 0) {
-                    const largestAccount = tokenAccounts.value[0]
-                    const tokenAccountInfo = await this.connection.getParsedAccountInfo(largestAccount.address)
-                    walletPublicKey = tokenAccountInfo?.value?.data?.parsed?.info?.owner
-                }
+        const publicKey = new PublicKey(tokenPublicKey)
+        const mintInfo = await this.connection.getParsedAccountInfo(publicKey)
+        const supply = mintInfo?.value?.data?.parsed?.info?.supply
+
+        if (supply === '1') {
+            // For NFT (supply = 1), find the token account holder
+            const tokenAccounts = await this.connection.getTokenLargestAccounts(publicKey)
+            if (tokenAccounts?.value?.length > 0) {
+                const largestAccount = tokenAccounts.value[0]
+                const tokenAccountInfo = await this.connection.getParsedAccountInfo(largestAccount.address)
+                walletPublicKey = tokenAccountInfo?.value?.data?.parsed?.info?.owner
             }
-
-            return walletPublicKey
-        } catch (walletError) {
-            throw new Error(getAnchorErrorText(walletError))
         }
+
+        return walletPublicKey
     }
 
     async getTokenByPublicKey(tokenPublicKey){
-        try {
-            const publicKey = new PublicKey(tokenPublicKey)
-            const {
-                program,
-                metadataPda,
-                salePda,
-            } = this.getSevensToken(publicKey)
+        const publicKey = new PublicKey(tokenPublicKey)
+        const {
+            program,
+            metadataPda,
+            salePda,
+        } = this.getSevensToken(publicKey)
 
-            const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
-            const sale = await program.account.tokenSaleData.fetch(salePda)
+        const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
+        const sale = await program.account.tokenSaleData.fetch(salePda)
 
-            sale.priceLamports = sale.price.toNumber()
-            sale.priceSevens = sale.price.toNumber() / LAMPORTS_PER_SOL
+        sale.priceLamports = sale.price.toNumber()
+        sale.priceSevens = sale.price.toNumber() / LAMPORTS_PER_SOL
 
-            const walletPublicKey = await this.getWalletPublicKeyByToken(tokenPublicKey)
+        const walletPublicKey = await this.getWalletPublicKeyByToken(tokenPublicKey)
 
-            return {
-                tokenPublicKey,
-                walletPublicKey,
-                mintingTime: new Date(metadata.timestamp.toNumber() * 1000).toISOString(),
-                metadata,
-                sale,
-            }
-        } catch (error) {
-            throw new Error(getAnchorErrorText(error))
+        return {
+            tokenPublicKey,
+            walletPublicKey,
+            mintingTime: new Date(metadata.timestamp.toNumber() * 1000).toISOString(),
+            metadata,
+            sale,
         }
     }
 
     async getTokenByHash(hash) {
-        try {
-            const { program } = this.getSevensToken(null, hash)
-            const hashRegistryPda = this.getHashPda(program.programId, hash)
-            const hashRegistry = await program.account.hashRegistry.fetch(hashRegistryPda)
-            const mintPublicKey = hashRegistry.mintKey.toString()
+        const { program } = this.getSevensToken(null, hash)
+        const hashRegistryPda = this.getHashPda(program.programId, hash)
+        const hashRegistry = await program.account.hashRegistry.fetch(hashRegistryPda)
+        const mintPublicKey = hashRegistry.mintKey.toString()
 
-            return await this.getTokenByPublicKey(mintPublicKey)
-        } catch (error) {
-            console.error('Error getting token by hash:', error)
-            throw new Error('Token not found')
-        }
+        return await this.getTokenByPublicKey(mintPublicKey)
     }
 
     async getAgeMinutes(publicKey) {
-        try {
-            const tokenData = await this.getTokenByPublicKey(publicKey)
-            const blockchainTimestamp = tokenData.metadata.timestamp.toNumber()
-            const currentTimeSeconds = Math.floor(Date.now() / 1000)
-            const ageInSeconds = currentTimeSeconds - blockchainTimestamp
-            const ageInMinutes = Math.floor(ageInSeconds / 60)
+        const tokenData = await this.getTokenByPublicKey(publicKey)
+        const blockchainTimestamp = tokenData.metadata.timestamp.toNumber()
+        const currentTimeSeconds = Math.floor(Date.now() / 1000)
+        const ageInSeconds = currentTimeSeconds - blockchainTimestamp
+        const ageInMinutes = Math.floor(ageInSeconds / 60)
 
-            return Math.max(0, ageInMinutes)
-        } catch (error) {
-            throw new Error(`Failed to calculate token age: ${error.message}`)
-        }
+        return Math.max(0, ageInMinutes)
     }
 
     async getBuyTransaction(tokenPublicKey, buyerPublicKey) {
-        try {
-            const tokenData = await this.getTokenByPublicKey(tokenPublicKey)
+        const tokenData = await this.getTokenByPublicKey(tokenPublicKey)
 
-            const mint = new PublicKey(tokenPublicKey)
-            const buyer = new PublicKey(buyerPublicKey)
-            const {
-                program,
-                salePda,
-            } = this.getSevensToken(mint)
+        const mint = new PublicKey(tokenPublicKey)
+        const buyer = new PublicKey(buyerPublicKey)
+        const {
+            program,
+            salePda,
+        } = this.getSevensToken(mint)
 
-            const owner = await this.getTokenOwner(mint)
-            const buyerToken = getAssociatedTokenAddressSync(mint, buyer, false, TOKEN_PROGRAM_ID)
+        const owner = await this.getTokenOwner(mint)
+        const buyerToken = getAssociatedTokenAddressSync(mint, buyer, false, TOKEN_PROGRAM_ID)
 
-            const ix = await program.methods
-                .buyToken(tokenData.sale.price)
-                .accounts({
-                    buyerAccount: buyer,
-                    ownerAccount: owner.publicKey,
-                    buyerTokenAccount: buyerToken,
-                    ownerTokenAccount: owner.tokenAccount,
-                    mint,
-                    sale: salePda,
-                    saleAuthority: salePda,
-                    tokenProgram: TOKEN_PROGRAM_ID,
-                    systemProgram: SystemProgram.programId,
-                    associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-                })
-                .instruction()
+        const ix = await program.methods
+            .buyToken(tokenData.sale.price)
+            .accounts({
+                buyerAccount: buyer,
+                ownerAccount: owner.publicKey,
+                buyerTokenAccount: buyerToken,
+                ownerTokenAccount: owner.tokenAccount,
+                mint,
+                sale: salePda,
+                saleAuthority: salePda,
+                tokenProgram: TOKEN_PROGRAM_ID,
+                systemProgram: SystemProgram.programId,
+                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+            })
+            .instruction()
 
-            const { blockhash } = await this.connection.getLatestBlockhash('confirmed')
-            const tx = new Transaction()
-            tx.add(ix)
-            tx.feePayer = buyer
-            tx.recentBlockhash = blockhash
+        const { blockhash } = await this.connection.getLatestBlockhash('confirmed')
+        const tx = new Transaction()
+        tx.add(ix)
+        tx.feePayer = buyer
+        tx.recentBlockhash = blockhash
 
-            return tx
-        } catch (error) {
-            console.error('Raw error in getBuyTransaction:', error)
-            console.error('Error message:', error.message)
-            console.error('Error stack:', error.stack)
-            throw error
-        }
+        return tx
     }
 
     getSevensToken (publicKey, hash = null){

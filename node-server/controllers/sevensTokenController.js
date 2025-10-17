@@ -21,14 +21,21 @@ class SevensTokenController {
         } catch (error) {
             console.error('Error in getTokens:', error)
             res.status(500).json({
-                error: 'Internal Server Error',
-                message: 'Failed to retrieve token data',
+                error: 'Failed to retrieve token data',
+                message: getAnchorErrorText(error),
             })
         }
     }
 
     static async getByPublicKey(publicKey, res) {
         try {
+            if (!publicKey) {
+                return res.status(400).json({
+                    error: 'Bad Request',
+                    message: 'publicKey query parameter is required',
+                })
+            }
+
             res.json({
                 success: true,
                 data: await tokenService.getTokenByPublicKey(publicKey),
@@ -36,14 +43,21 @@ class SevensTokenController {
         } catch (error) {
             console.error('Error getting token by public key:', error)
             res.status(404).json({
-                error: 'Not Found',
-                message: 'Token not found',
+                error: 'Token not found',
+                message: getAnchorErrorText(error),
             })
         }
     }
 
     static async getByHash(hash, res) {
         try {
+            if (!hash) {
+                return res.status(400).json({
+                    error: 'Bad Request',
+                    message: 'Hash query parameter is required',
+                })
+            }
+
             res.json({
                 success: true,
                 data: await tokenService.getTokenByHash(hash),
@@ -51,8 +65,8 @@ class SevensTokenController {
         } catch (error) {
             console.error('Error getting token by hash:', error)
             res.status(404).json({
-                error: 'Not Found',
-                message: 'Token not found',
+                error: 'Token not found',
+                message: getAnchorErrorText(error),
             })
         }
     }
@@ -69,6 +83,7 @@ class SevensTokenController {
             }
 
             const ageMinutes = await tokenService.getAgeMinutes(publicKey)
+
             res.json({
                 success: true,
                 data: ageMinutes,
@@ -76,8 +91,8 @@ class SevensTokenController {
         } catch (error) {
             console.error('Error getting token age:', error)
             res.status(404).json({
-                error: 'Not Found',
-                message: 'Token not found',
+                error: 'Failed to get token age',
+                message: getAnchorErrorText(error),
             })
         }
     }
