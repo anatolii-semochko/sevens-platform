@@ -56,6 +56,7 @@ class TokenController extends BaseApiController
             $this->tokenService->buy(
                 $this->getUser(),
                 $token,
+                $payload->get('deactivate'),
                 $payload->get('transactionId'),
                 $payload->get('transaction'),
             );

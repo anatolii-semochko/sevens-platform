@@ -117,8 +117,13 @@ readonly class TokenService
     /**
      * @throws NodeServerApiException
      */
-    public function buy(?UserInterface $user, string $tokenPublicKey, string $transactionId, string $transaction): void
-    {
+    public function buy(
+        ?UserInterface $user,
+        string $tokenPublicKey,
+        bool $deactivate,
+        string $transactionId,
+        string $transaction
+    ): void {
         $material = $this->materialRepository->get($tokenPublicKey);
 
         // TODO - CHECK TRANSACTION IN DB
@@ -128,6 +133,9 @@ readonly class TokenService
         if ($result['success'] === true) {
             if ($user) {
                 $material->setUser($user);
+            }
+            if ($deactivate) {
+                $material->setActive(false);
             }
             $material->setPrice(0);
             $this->em->persist($material);

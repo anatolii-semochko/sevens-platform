@@ -19,10 +19,10 @@ export default class TokenApi {
             .catch(throwErrorMessage)
     }
 
-    async postBuyTransaction(token, transactionId, transaction) {
+    async postBuyTransaction(token, deactivate, transactionId, transaction) {
         const url = `${mainUrl}/${token}/buy`
         return await api
-            .post(url, {transactionId, transaction})
+            .post(url, {deactivate, transactionId, transaction})
             .then(response => response.data)
             .catch(throwErrorMessage)
     }
