@@ -118,7 +118,7 @@ export const getKeypair = (walletData, password) => {
         const decryptedBytes = CryptoJS.AES.decrypt(walletData.secret, password)
         const decryptedUtf8 = decryptedBytes.toString(CryptoJS.enc.Utf8)
         if (!decryptedUtf8) {
-            new Error('Empty or invalid decrypted data')
+            throw new Error('Empty or invalid decrypted data')
         }
 
         const secretArray = JSON.parse(decryptedUtf8)
@@ -205,7 +205,7 @@ export const getEstimateCoinsTransferFee = async (toPublicKey, amount, wallet) =
         const {value: feeLamports} = await connection().getFeeForMessage(message)
 
         if (!feeLamports) {
-            new Error('Error occurred')
+            throw new Error('Error occurred')
         }
 
         return feeLamports || 0

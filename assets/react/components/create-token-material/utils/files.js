@@ -244,7 +244,7 @@ export const getFileHash = async (file, setOverallHashing) => {
         }
 
         if (processedBytes === 0) {
-            new Error('No data was read from file')
+            throw new Error('No data was read from file')
         }
 
         setOverallHashing(98)

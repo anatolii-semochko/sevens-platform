@@ -116,7 +116,7 @@ export const readEncryptedWallets = async (password) => {
 
         wallets.map((w) => {
             if (!w.publicKey) {
-                new Error()
+                throw new Error()
             }
         })
 
@@ -160,7 +160,7 @@ export const changePassword = async (currentPassword, newPassword) => {
         }
 
         if (!encryptedWallets) {
-            new Error(t('noEncryptedData'))
+            throw new Error(t('noEncryptedData'))
         }
 
         const decryptedBytes = CryptoJS.AES.decrypt(
@@ -170,7 +170,7 @@ export const changePassword = async (currentPassword, newPassword) => {
         const decryptedData = decryptedBytes.toString(CryptoJS.enc.Utf8)
 
         if (!decryptedData) {
-            new Error(t('invalidPasswordOrData'))
+            throw new Error(t('invalidPasswordOrData'))
         }
 
         const wallets = JSON.parse(decryptedData)
