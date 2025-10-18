@@ -2,14 +2,5 @@
     <a href="#" class="text-dark d-flex align-items-center" id="user-dropdown-toggle">
         <i class="bi bi-person fs-4 icon-button"></i>
     </a>
-    {% if app.user %}
-        <div id="user-dropdown-menu" data-user="{{ {
-            'email': app.user.email,
-            'id': app.user.id,
-            'createdAt': app.user.createdAt|date('c'),
-            'profileUrl': path('user_index')
-        }|json_encode|e('html_attr') }}"></div>
-    {% else %}
-        <div data-register-url="{{ path('app_register', {'_locale': app.request.locale}) }}"></div>
-    {% endif %}
+    <div id="user-auth-react-mount"></div>
 </div>

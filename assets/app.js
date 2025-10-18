@@ -52,14 +52,10 @@ if (checkToken) {
     root.render(<Provider store={store}><CheckToken /></Provider>)
 }
 
-const userAuth = document.getElementById('user-auth')
-if (userAuth) {
-    const userDataElement = userAuth.querySelector('[data-user]')
-    const userData = userDataElement?.dataset?.user ? JSON.parse(userDataElement.dataset.user) : null
-    const registerUrl = userAuth.querySelector('[data-register-url]')?.dataset?.registerUrl || '/register'
-
-    const root = createRoot(userAuth)
-    root.render(<Provider store={store}><UserAuth user={userData} registerUrl={registerUrl} /></Provider>)
+const userAuthMount = document.getElementById('user-auth-react-mount')
+if (userAuthMount) {
+    const root = createRoot(userAuthMount)
+    root.render(<Provider store={store}><UserAuth /></Provider>)
 }
 
 const materialManage = document.getElementById('material-manage')

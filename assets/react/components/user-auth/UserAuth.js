@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux'
+import { route } from '@js/router/routing-with-locale'
 import UserDropdown from './UserDropdown'
 import LoginPopup from './LoginPopup'
 
-export default function UserAuth({ user = null, registerUrl = '/register' }) {
+export default function UserAuth() {
+    const user = useSelector((state) => state.user)
     const [showLoginPopup, setShowLoginPopup] = useState(false)
     const [showDropdown, setShowDropdown] = useState(false)
 
@@ -33,6 +36,7 @@ export default function UserAuth({ user = null, registerUrl = '/register' }) {
     }
 
     // User is not logged in - show login popup
+    const registerUrl = route('app_register')
     return (
         <LoginPopup
             isOpen={showLoginPopup}
