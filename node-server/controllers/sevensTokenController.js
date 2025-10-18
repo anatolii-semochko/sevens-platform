@@ -20,7 +20,7 @@ class SevensTokenController {
             })
         } catch (error) {
             console.error('Error in getTokens:', error)
-            res.status(500).json({
+            res.status(404).json({
                 error: 'Failed to retrieve token data',
                 message: getAnchorErrorText(error),
             })
@@ -114,7 +114,7 @@ class SevensTokenController {
             })
         } catch (error) {
             console.error('Error getting sevens token buy transaction:', error)
-            res.status(500).json({
+            res.status(404).json({
                 error: 'Failed to create transaction',
                 message: getAnchorErrorText(error),
             })

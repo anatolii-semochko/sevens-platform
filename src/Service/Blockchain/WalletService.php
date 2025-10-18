@@ -3,13 +3,19 @@
 namespace App\Service\Blockchain;
 
 use App\Entity\Wallet\WalletMessageSignature;
+use App\Entity\Wallet\WalletTransaction;
+use App\Repository\Wallet\WalletTransactionRepository;
 use App\Service\NodeServer\NodeServerApiClient;
+use App\Service\NodeServer\NodeServerApiException;
+use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
 readonly class WalletService
 {
     public function __construct(
+        private EntityManagerInterface $em,
         private NodeServerApiClient $nodeServerApiClient,
+        private WalletTransactionRepository $walletTransactionRepository,
     ) {}
 
     public function verifyWalletSignature(WalletMessageSignature $walletSignature): void
@@ -53,5 +59,33 @@ readonly class WalletService
         }
 
         return new WalletMessageSignature($data['walletPublicKey'], $data['nonce'], $data['message'], $data['signature']);
+    }
+
+    public function saveTransaction(string $transaction): string
+    {
+        $walletTransaction = new WalletTransaction();
+        $walletTransaction->setTransaction($transaction);
+        $this->em->persist($walletTransaction);
+        $this->em->flush();
+
+        return $walletTransaction->getId();
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function matchTransactionSignature(string $transactionId, string $txSignature): void
+    {
+        $transaction = $this->walletTransactionRepository->get($transactionId);
+        try {
+            $this->nodeServerApiClient->matchTransactionAndSignature($transaction->getTransaction(), $txSignature);
+            $this->em->remove($transaction);
+        } catch (NodeServerApiException $e) {
+            $transaction->setError($e->getMessage());
+            $transaction->setUsedAt(new \DateTime());
+            $this->em->persist($transaction);
+            $this->em->flush();
+            throw new NodeServerApiException($e->getMessage());
+        }
     }
 }

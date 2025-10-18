@@ -59,11 +59,15 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
             setWaitingSignature(false)
 
             setInProgress(true)
-            // TODO - ADD transactionId
-            await tokenApi.postBuyTransaction(tokenPublicKey, deactivate, 'xxx', txSignature.serialize({
-                requireAllSignatures: false,
-                verifySignatures: false,
-            }).toString('base64'))
+            await tokenApi.postBuyTransaction(
+                tokenPublicKey,
+                deactivate,
+                transactionData.transactionId,
+                txSignature.serialize({
+                    requireAllSignatures: false,
+                    verifySignatures: false,
+                }).toString('base64')
+            )
 
             setSold(true)
             openDownloadPopup(tokenPublicKey)

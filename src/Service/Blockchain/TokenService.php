@@ -104,13 +104,15 @@ readonly class TokenService
     public function getBuyTransaction(string $tokenPublicKey, string $buyerPublicKey): array
     {
         $material = $this->materialRepository->get($tokenPublicKey);
-        $transaction = $this->nodeServerApiClient->getBuyTokenTransaction($material->getToken(), $buyerPublicKey);
-
-        // TODO - ADD TRANSACTION TO DB
+        $transaction = $this->nodeServerApiClient->getBuyTokenTransaction(
+            $material->getToken(),
+            $buyerPublicKey,
+        )['data'];
+        $transactionId = $this->walletService->saveTransaction($transaction);
 
         return [
-            'transactionId' => '',
-            'transaction' => $transaction['data'],
+            'transactionId' => $transactionId,
+            'transaction' => $transaction,
         ];
     }
 
@@ -120,24 +122,21 @@ readonly class TokenService
     public function buy(
         ?UserInterface $user,
         string $tokenPublicKey,
-        bool $deactivate,
         string $transactionId,
-        string $transaction
+        string $txSignature,
+        bool $deactivate,
     ): void {
         $material = $this->materialRepository->get($tokenPublicKey);
-
-        // TODO - CHECK TRANSACTION IN DB
-
-        $result = $this->nodeServerApiClient->sendBuyTokenSignedTransaction($transaction);
+        if (!$material->isActive()) {
+            throw new InvalidArgumentException('Material is not active.');
+        }
+        $this->walletService->matchTransactionSignature($transactionId, $txSignature);
+        $result = $this->nodeServerApiClient->sendBuyTokenSignedTransaction($txSignature);
 
         if ($result['success'] === true) {
-            if ($user) {
-                $material->setUser($user);
-            }
-            if ($deactivate) {
-                $material->setActive(false);
-            }
+            $material->setUser($user);
             $material->setPrice(0);
+            $material->setActive(!$deactivate);
             $this->em->persist($material);
             $this->em->flush();
         }
