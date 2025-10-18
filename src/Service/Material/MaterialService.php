@@ -4,7 +4,7 @@ namespace App\Service\Material;
 
 use App\Entity\Material\Material;
 use App\Entity\Token\SevensTokenContainer;
-use App\Entity\Wallet\WalletSignature;
+use App\Entity\Wallet\WalletMessageSignature;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
 use App\Service\Blockchain\WalletService;
@@ -38,16 +38,15 @@ readonly class MaterialService
         UserInterface $user,
         string $tokenPublicKey,
         SevensTokenContainer $sevensTokenContainer,
-        ?WalletSignature $walletSignature,
+        ?WalletMessageSignature $walletMessageSignature,
     ): void {
         // Get token data from blockchain
         $sevensToken = $this->tokenService->getByPublicKey($tokenPublicKey);
         // Check if user owns the token
-        $this->tokenService->checkUserPermissionToPublishMaterial($sevensToken, $walletSignature);
+        $this->tokenService->checkUserPermissionToPublishMaterial($sevensToken, $walletMessageSignature);
         // Create material
         $material = new Material();
         $material->setToken($tokenPublicKey);
-        $material->setWallet($walletSignature?->getWalletPublicKey() ?? $sevensToken->getWalletPublicKey());
         $material->setTitle('');
         $material->setDescription('');
         $material->setTokenData($sevensToken);
@@ -55,7 +54,7 @@ readonly class MaterialService
         $material->setLogo('');
         $material->setCreatedAt(new \DateTime());
         $material->setUpdatedAt(new \DateTime());
-        $material->setAuthor($user);
+        $material->setUser($user);
         $this->em->persist($material);
         $this->em->flush();
     }
@@ -82,12 +81,12 @@ readonly class MaterialService
         $this->em->flush();
     }
 
-    public function getByAuthor(Material $material, int $limit = 10): array
+    public function getByPublisher(Material $material, int $limit = 10): array
     {
         return $this->repository->createQueryBuilder('m')
-            ->where('m.author = :author')
+            ->where('m.user = :author')
             ->andWhere('m.token != :currentToken')
-            ->setParameter('author', $material->getAuthor())
+            ->setParameter('author', $material->getUser())
             ->setParameter('currentToken', $material->getToken())
             ->setMaxResults($limit)
             ->getQuery()
@@ -161,16 +160,14 @@ readonly class MaterialService
         $this->save($material);
     }
 
-    public function claim(UserInterface $user, array $tokens, WalletSignature $walletSignature): void
+    public function claim(UserInterface $user, array $tokens, WalletMessageSignature $walletSignature): void
     {
         $this->walletService->verifyWalletSignature($walletSignature);
         foreach ($tokens as $tokenPublicKey) {
             $tokenData = $this->tokenService->getByPublicKey($tokenPublicKey);
             if ($tokenData->getWalletPublicKey() === $walletSignature->getWalletPublicKey()) {
-                $material = $this->finByTokenPublicKey($tokenPublicKey);
-                if ($material) {
-                    $material->setAuthor($user);
-                    $material->setWallet($material->getWallet() ?? $walletSignature->getWalletPublicKey());
+                if ($material = $this->finByTokenPublicKey($tokenPublicKey)) {
+                    $material->setUser($user);
                     $this->em->persist($material);
                     $this->em->flush();
                 }

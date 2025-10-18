@@ -37,7 +37,7 @@ class MaterialRepository extends ServiceEntityRepository
     public function getMaterialsByUser(string $userId): array
     {
         return $this->createQueryBuilder('m')
-            ->where('m.author = :userId')
+            ->where('m.user = :userId')
             ->setParameter('userId', $userId)
             ->orderBy('m.createdAt', 'DESC')
             ->getQuery()
@@ -52,7 +52,7 @@ class MaterialRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('m')
             ->where('m.token IN (:tokens)')
-            ->andWhere('m.author != :userId')
+            ->andWhere('(m.user != :userId OR m.user IS NULL)')
             ->setParameter('tokens', $tokens)
             ->setParameter('userId', $user->getId())
             ->getQuery()

@@ -56,8 +56,7 @@ export const PublishMaterial = ({container, tokenData, setPublishing}) => {
                 walletSignature || null,
             )
 
-            // TODO - change author ro user
-            if (response.material.author.id === store.getState().user?.id) {
+            if (response.material.user?.id === store.getState().user?.id) {
                 window.location.href = Routing.generate('material_manage_one', {token: tokenData.tokenPublicKey})
             } else {
                 setMaterialExists(true)

@@ -5,7 +5,7 @@
 </div>
 <div id="buyTokenForm"
      data-token="{{ data.material.token }}"
-     data-is-my-material="{% if app.user and app.user.id == data.material.getAuthor().getId() %}true{% else %}false{% endif %}"
+     data-is-my-material="{% if app.user and data.material.getUser() and app.user.id == data.material.getUser().getId() %}true{% else %}false{% endif %}"
 ></div>
 {% else %}
     <h3 class="text-primary mt-3">Token is not for sale</h3>

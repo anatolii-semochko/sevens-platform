@@ -2,7 +2,7 @@
 
 namespace App\Service\Blockchain;
 
-use App\Entity\Wallet\WalletSignature;
+use App\Entity\Wallet\WalletMessageSignature;
 use App\Service\NodeServer\NodeServerApiClient;
 use InvalidArgumentException;
 
@@ -12,7 +12,7 @@ readonly class WalletService
         private NodeServerApiClient $nodeServerApiClient,
     ) {}
 
-    public function verifyWalletSignature(WalletSignature $walletSignature): void
+    public function verifyWalletSignature(WalletMessageSignature $walletSignature): void
     {
         try {
             $response = $this->nodeServerApiClient->validateSignature(
@@ -33,7 +33,7 @@ readonly class WalletService
         }
     }
 
-    public function getSignatureFromArray(?array $data): ?WalletSignature
+    public function getSignatureFromArray(?array $data): ?WalletMessageSignature
     {
         if (!$data) {
             return null;
@@ -52,6 +52,6 @@ readonly class WalletService
             throw new \InvalidArgumentException('Wallet signature not specified.');
         }
 
-        return new WalletSignature($data['walletPublicKey'], $data['nonce'], $data['message'], $data['signature']);
+        return new WalletMessageSignature($data['walletPublicKey'], $data['nonce'], $data['message'], $data['signature']);
     }
 }
