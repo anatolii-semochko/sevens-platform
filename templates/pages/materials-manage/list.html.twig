@@ -34,7 +34,11 @@
                                 <td class="d-none d-lg-table-cell text-break small">{{ material.token }}</td>
                                 <td>
                                     <a href="{{ path('material_page', {'_locale': app.request.locale, token: material.getToken()}) }}">
-                                        {{ material.title }}
+                                        {% if material.title %}
+                                            {{ material.title }}
+                                        {% else %}
+                                            <span class="text-danger">No title</span>
+                                        {% endif %}
                                     </a>
                                 </td>
                                 <td class="text-nowrap">

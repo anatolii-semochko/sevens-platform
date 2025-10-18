@@ -2,7 +2,7 @@
 
 namespace App\Entity\Wallet;
 
-class WalletSignature
+class WalletMessageSignature
 {
     private string $walletPublicKey;
     private string $nonce;

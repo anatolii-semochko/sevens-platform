@@ -58,7 +58,7 @@ class MaterialController extends BaseController
     {
         try {
             $material = $this->materialRepository->get($token);
-            if ($response = $this->requireAuth($request, $material->getAuthor()->getId())) {
+            if ($response = $this->requireAuth($request, $material->getUser()?->getId())) {
                 return $response;
             }
 
@@ -93,16 +93,6 @@ class MaterialController extends BaseController
             return $this->page404($this->pageService, $this->materialService);
         }
 
-        // If material has been sold
-        if ($material->isSold()) {
-            return $this->render('base.html.twig', [
-                'main_template' => 'pages/material/main/material-sold.html.twig',
-                'data' => [
-                    'material' => $material,
-                ],
-            ]);
-        }
-
         // If material is not active
         if (!$material->isActive()) {
             return $this->render('base.html.twig', [
@@ -121,7 +111,7 @@ class MaterialController extends BaseController
             'data' => [
                 'material' => $material,
                 'materialsHighestRated' => $this->materialService->getHighestRated(50, $material->getToken()),
-                'materialsByAuthor' => $this->materialService->getByAuthor($material, 10),
+                'materialsByPublisher' => $this->materialService->getByPublisher($material, 10),
                 'likeCount' => $this->voteRepository->countLikes($material->getToken()),
                 'dislikeCount' => $this->voteRepository->countDislikes($material->getToken()),
 

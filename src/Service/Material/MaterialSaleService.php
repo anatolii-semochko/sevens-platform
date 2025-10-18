@@ -26,17 +26,6 @@ readonly class MaterialSaleService
         $tokenPublicKey = $tokenData['tokenPublicKey'];
         $walletPublicKey = $tokenData['walletPublicKey'];
 
-        if (!$material->getWallet()) {
-            $material->setWallet($walletPublicKey);
-            $this->em->persist($material);
-            $this->em->flush();
-        } elseif ($material->getWallet() !== $walletPublicKey) {
-            $material->setNewWallet($walletPublicKey);
-            $material->setActive(false);
-            $this->em->persist($material);
-            $this->em->flush();
-        }
-
         if ($material->getPrice() !== $tokenPrice) {
             $material->setPrice($tokenPrice);
             $this->em->persist($material);

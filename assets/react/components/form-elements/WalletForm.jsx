@@ -3,6 +3,7 @@ import bs58 from 'bs58'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { fetchNonce } from '@react/api/nodeApi'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 
 
 
@@ -28,15 +29,17 @@ const walletConnection = (wallet) => {
 
 
 
-
-
-
+export const wallets = [
+    new SevensWalletAdapter(),
+    // new PhantomWalletAdapter()
+]
 
 const texts = {
     mint: 'Creating a token requires using a wallet to store it and pay the transaction fee. Select and activate a wallet to mint the token.',
     publish: 'Publishing material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
     claim: 'Claiming material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
     sale: "Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a blockchain fee — the amount will be displayed in the wallet before it's signed.",
+    buy: "To purchase a token, you need to activate your wallet and sign the transaction. You'll see the expected coin spend amount before signing the transaction."
 }
 
 export const signNonce = async (wallet) => {
@@ -95,42 +98,6 @@ export const WalletForm = ({operation, error, expectedPublicKey, waitingSignatur
             <h6 className="lh-base mb-3">{texts[operation]}</h6>
             <PublicKeyText {...{wallet, expectedPublicKey}} />
             <SignatureText waitingSignature={waitingSignature} />
-            <ErrorText error={error} />
-            <div className="d-flex justify-content-center gap-2">
-                <WalletMultiButton />
-            </div>
-        </div>
-    )
-}
-
-
-
-
-
-
-
-
-
-
-// TODO - to remove
-const WaitingSignatureText = ({publicKey}) => !!publicKey && (
-    <p className="text-danger">Waiting wallet signature</p>
-)
-
-export const WalletSaleToken = ({operation, expectedPublicKey, error}) => {
-    const wallet = useWallet()
-    const publicKey = () => wallet?.publicKey?.toString()
-
-    useEffect(() => {
-        walletConnection(wallet)
-    }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
-
-    return (
-        <div className="alert-success bg-light alert border text-center">
-            <h3>Wallet</h3>
-            <h6 className="lh-base mb-3">{texts[operation]}</h6>
-            <PublicKeyText {...{wallet, expectedPublicKey}} />
-            <WaitingSignatureText publicKey={publicKey()} />
             <ErrorText error={error} />
             <div className="d-flex justify-content-center gap-2">
                 <WalletMultiButton />

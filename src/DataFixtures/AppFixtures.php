@@ -123,7 +123,7 @@ class AppFixtures extends Fixture
             $material->setTitle($materialData[1]);
             $material->setDescription($materialData[2]);
             $material->setLogo($materialData[3]);
-            $material->setAuthor($user);
+            $material->setUser($user);
             $material->setCreatedAt(new \DateTime());
             $material->setContractAddress('0x' . bin2hex(random_bytes(20)));
             if (isset($materialData[4])) {

@@ -1,24 +1,29 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react'
-import MaterialSaleApi from '@react/api/materialSaleApi'
 import store from '@react/store'
+import React, { useEffect, useRef, useState } from 'react'
+import MaterialSaleApi from '@react/api/materialSaleApi'
+import TokenApi from '@react/api/tokenApi'
+import { Transaction } from '@solana/web3.js'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
+import { wallets, WalletForm } from '@react/components/form-elements/WalletForm'
 import { createRoot } from 'react-dom/client'
 import { route } from '@js/router/routing-with-locale'
 import { buy } from '@js/blockchain/sevens-token'
+import { callUserAuthorization } from '@react/components/form-elements/UserAuthorization'
+import { getAnchorErrorText } from '@js/blockchain/sevens'
 import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
-import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
-import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
-import { WalletSaleToken } from '@react/components/form-elements/WalletForm'
 import { DownloadContainer } from '@react/components/download-container/DownloadContainer'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
+import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 
 const materialSaleApi = new MaterialSaleApi()
+const tokenApi = new TokenApi()
 
 const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
     const wallet = useWallet()
     const [tokenData, setTokenData] = useState(null)
     const [fee, setFee] = useState(null)
+    const [waitingSignature, setWaitingSignature] = useState(false)
     const [inProgress, setInProgress] = useState(false)
     const [sold, setSold] = useState(false)
     const [error, setError] = useState(null)
@@ -33,33 +38,50 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
 
     const handlerBuy = async () => {
         try {
-            setError(null)
-            if (tokenData.walletPublicKey === wallet.publicKey.toString()) {
-                setError('This wallet already possesses current token !')
-                return
+            if (!wallet.publicKey?.toString()) {
+                throw new Error('Wallet is not active.')
             }
+            if (tokenData.walletPublicKey === wallet.publicKey.toString()) {
+                throw new Error('This wallet already possesses current token !')
+            }
+            setError(null)
+
             setInProgress(true)
-            await buy({tokenPublicKey, price: tokenData.sale.priceSevens, wallet})
-            await materialSaleApi.refresh(tokenPublicKey)
+            const transactionData = await tokenApi.getBuyTransaction(tokenPublicKey, wallet.publicKey.toString())
+            setInProgress(false)
+
+            setWaitingSignature(true)
+            const txSignature = await wallet.signTransaction(Transaction.from(Buffer.from(
+                transactionData.transaction,
+                'base64'
+            )))
+            setWaitingSignature(false)
+
+            setInProgress(true)
+            await tokenApi.postBuyTransaction(tokenPublicKey, 'xxx', txSignature.serialize({
+                requireAllSignatures: false,
+                verifySignatures: false,
+            }).toString('base64'))
+
+            // await materialSaleApi.refresh(tokenPublicKey) // TODO - CHECK IF IS NEEDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
             setSold(true)
             openDownloadPopup(tokenPublicKey)
         } catch (error) {
-            setError(error.message)
+            setError(getAnchorErrorText(error))
         } finally {
+            setWaitingSignature(false)
             setInProgress(false)
         }
     }
 
     useEffect(() => {
-        console.log({tokenPublicKey, isMyMaterial})
         fetchSevensTokenByPublicKey(tokenPublicKey).then(setTokenData).catch(setError)
     }, [])
 
     useEffect(() => {
-        if (!sold && !inProgress&& wallet?.publicKey) {
-            handlerBuy().catch()
-        }
-    }, [wallet?.publicKey])
+        setError(null)
+    }, [wallet.publicKey?.toString()])
 
     if (isMyMaterial === 'true') return (
         <div>
@@ -80,14 +102,31 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
 
     return !sold && (
         <div className="mt-3">
-            <WalletSaleToken error={error}/>
+            <NotAuthorizedMessage />
+            <WalletForm operation={'buy'} waitingSignature={waitingSignature}/>
+            <ErrorMessageBlock message={error} className={'mt-b'} />
+            <ButtonWithProcessing
+                className={'btn-success w-100 mb-3'}
+                label={'Buy token'}
+                processing={waitingSignature || inProgress}
+                processingLabel={waitingSignature ? 'Waiting signature...' : 'Processing...'}
+                onClick={handlerBuy}
+            />
             <ButtonClose root={root} />
         </div>
     )
 }
 
+const NotAuthorizedMessage = () => !store.getState().user?.id && (
+    <div className="alert-info alert text-center text-break p-4 mb-3">
+        You are purchasing a token as a guest. This means the publication will not be automatically transferred to your personal account,
+        and you can request it later on the <a href={route('material_claim')}>Request Materials</a> page.
+        Alternatively, please <button className="btn btn-link align-baseline p-0" onClick={callUserAuthorization}>Log In</button> before purchasing.
+    </div>
+)
+
 const ButtonClose = ({root}) => (
-    <button className="btn btn-danger w-100" onClick={() => root.unmount()}>Close</button>
+    <button className="btn btn-danger w-100" onClick={() => root.unmount()}>Cancel</button>
 )
 
 const DownloadFilesContainer = ({ tokenPublicKey }) => {
@@ -131,22 +170,14 @@ const DownloadFilesContainer = ({ tokenPublicKey }) => {
     )
 }
 
-export const BuyToken = ({root, token, isMyMaterial}) => {
-    const endpoint = process.env.ANCHOR_PROVIDER_URL
-    const wallets = useMemo(() => [
-        new SevensWalletAdapter(),
-        new PhantomWalletAdapter()
-    ], [])
-
-    return (
-        <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} autoConnect={true}>
-                <WalletModalProvider>
-                    <BuyTokenInner tokenPublicKey={token} root={root} isMyMaterial={isMyMaterial} />
-                </WalletModalProvider>
-            </WalletProvider>
-        </ConnectionProvider>
-    )
-}
+export const BuyToken = ({root, token, isMyMaterial}) => (
+    <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
+        <WalletProvider wallets={wallets} autoConnect={true}>
+            <WalletModalProvider>
+                <BuyTokenInner tokenPublicKey={token} root={root} isMyMaterial={isMyMaterial} />
+            </WalletModalProvider>
+        </WalletProvider>
+    </ConnectionProvider>
+)
 
 export default BuyToken

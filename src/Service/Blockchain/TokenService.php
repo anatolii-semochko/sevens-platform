@@ -3,13 +3,14 @@
 namespace App\Service\Blockchain;
 
 use App\Entity\Token\SevensToken;
-use App\Entity\Wallet\WalletSignature;
+use App\Entity\Wallet\WalletMessageSignature;
 use App\Exception\NotFoundException;
 use App\Repository\Material\MaterialRepository;
 use App\Service\NodeServer\NodeServerApiClient;
 use App\Service\NodeServer\NodeServerApiException;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 readonly class TokenService
 {
@@ -42,34 +43,39 @@ readonly class TokenService
         }
     }
 
-    public function checkPossessionByWalletSignature(SevensToken $token, WalletSignature $walletSignature): void {
+    public function checkPossessionByWalletSignature(
+        SevensToken $token,
+        WalletMessageSignature $walletMessageSignature,
+    ): void {
         // Check if wallet possess this token
-        if ($token->getWalletPublicKey() !== $walletSignature->getWalletPublicKey()) {
+        if ($token->getWalletPublicKey() !== $walletMessageSignature->getWalletPublicKey()) {
             throw new InvalidArgumentException('This token does not belong to the current wallet.');
         }
         // Check wallet signature
-        $this->walletService->verifyWalletSignature($walletSignature);
+        $this->walletService->verifyWalletSignature($walletMessageSignature);
     }
 
     /**
      * @throws NodeServerApiException
      */
-    public function checkUserPermissionToPublishMaterial(SevensToken $token, ?WalletSignature $walletSignature): void
-    {
+    public function checkUserPermissionToPublishMaterial(
+        SevensToken $token,
+        ?WalletMessageSignature $walletMessageSignature,
+    ): void {
         // We suppose that token possession is confirmed if token has been minted now
         $ageMinutes = $this->nodeServerApiClient->getTokenAgeMinutes($token->getTokenPublicKey())['data'];
-        if (!$walletSignature && $ageMinutes <= $this->allowedPublishingTimeWithoutSignatureMinutes) {
+        if (!$walletMessageSignature && $ageMinutes <= $this->allowedPublishingTimeWithoutSignatureMinutes) {
             return;
         }
 
-        if (!$walletSignature->getSignature()) {
+        if (!$walletMessageSignature?->getSignature()) {
             throw new InvalidArgumentException(
                 'To prevent fraud publication you need to publish material from token container ' .
                 'and sign the token possession by wallet.'
             );
         }
 
-        $this->checkPossessionByWalletSignature($token, $walletSignature);
+        $this->checkPossessionByWalletSignature($token, $walletMessageSignature);
     }
 
     /**
@@ -90,5 +96,42 @@ readonly class TokenService
         }
 
         return $tokenData;
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getBuyTransaction(string $tokenPublicKey, string $buyerPublicKey): array
+    {
+        $material = $this->materialRepository->get($tokenPublicKey);
+        $transaction = $this->nodeServerApiClient->getBuyTokenTransaction($material->getToken(), $buyerPublicKey);
+
+        // TODO - ADD TRANSACTION TO DB
+
+        return [
+            'transactionId' => '',
+            'transaction' => $transaction['data'],
+        ];
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function buy(?UserInterface $user, string $tokenPublicKey, string $transactionId, string $transaction): void
+    {
+        $material = $this->materialRepository->get($tokenPublicKey);
+
+        // TODO - CHECK TRANSACTION IN DB
+
+        $result = $this->nodeServerApiClient->sendBuyTokenSignedTransaction($transaction);
+
+        if ($result['success'] === true) {
+            if ($user) {
+                $material->setUser($user);
+            }
+            $material->setPrice(0);
+            $this->em->persist($material);
+            $this->em->flush();
+        }
     }
 }

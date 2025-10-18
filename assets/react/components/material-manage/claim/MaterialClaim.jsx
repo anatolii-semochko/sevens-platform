@@ -1,12 +1,10 @@
-import React, {useEffect, useMemo, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import MaterialClaimApi from '@react/api/materialClaimApi'
 import store from '@react/store'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
-import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { route } from '@js/router/routing-with-locale'
-import { signNonce, WalletForm } from '@react/components/form-elements/WalletForm'
+import { signNonce, WalletForm, wallets } from '@react/components/form-elements/WalletForm'
 import { getDateFromDate } from '@js/utils/time'
 import { getWalletTokens } from '@js/blockchain/sevens-token'
 import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
@@ -141,7 +139,11 @@ const MaterialsList = ({wallet, materials, selected, setSelected}) => {
                             />
                         </td>
                         <td className="d-none d-lg-table-cell text-break small">{material.token}</td>
-                        <td>{material.title}</td>
+                        <td>
+                            <a href={route('material_page', {token: material.token})} target="_blank">
+                                {material.title || <span className="text-danger">No title</span>}
+                            </a>
+                        </td>
                         <td>{getDateFromDate(material.createdAt)}</td>
                         <td><Status status={material.active}/></td>
                     </tr>
@@ -152,21 +154,14 @@ const MaterialsList = ({wallet, materials, selected, setSelected}) => {
     )
 }
 
-const MaterialClaim = () => {
-    const wallets = useMemo(() => [
-        new SevensWalletAdapter(),
-        new PhantomWalletAdapter()
-    ], [])
-
-    return (
-        <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
-            <WalletProvider wallets={wallets} autoConnect={true}>
-                <WalletModalProvider>
-                    <MaterialClaimInner />
-                </WalletModalProvider>
-            </WalletProvider>
-        </ConnectionProvider>
-    )
-}
+const MaterialClaim = () => (
+    <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
+        <WalletProvider wallets={wallets} autoConnect={true}>
+            <WalletModalProvider>
+                <MaterialClaimInner />
+            </WalletModalProvider>
+        </WalletProvider>
+    </ConnectionProvider>
+)
 
 export default MaterialClaim

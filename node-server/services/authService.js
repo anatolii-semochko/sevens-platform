@@ -23,7 +23,7 @@ class AuthService {
 
             await this.cleanupExpiredNonces()
 
-            const existingNonce = await db.findOne('nonces', {
+            const existingNonce = await db.findOne('wallet_message_nonces', {
                 wallet_address: walletAddress,
                 is_used: 0,
             })
@@ -43,7 +43,7 @@ class AuthService {
             const nowRounded = new Date(Math.floor(now.getTime() / 1000) * 1000)
             const expiresAt = new Date(nowRounded.getTime() + this.nonceExpiration)
 
-            const nonceId = await db.insert('nonces', {
+            const nonceId = await db.insert('wallet_message_nonces', {
                 nonce: nonce,
                 wallet_address: walletAddress,
                 created_at: nowRounded,
@@ -71,7 +71,7 @@ class AuthService {
                 throw new Error('Invalid Solana wallet address')
             }
 
-            const nonceRecord = await db.findOne('nonces', {
+            const nonceRecord = await db.findOne('wallet_message_nonces', {
                 nonce: nonce,
                 wallet_address: walletAddress,
             })
@@ -100,7 +100,7 @@ class AuthService {
                 throw new Error('Invalid signature')
             }
 
-            await db.update('nonces', {
+            await db.update('wallet_message_nonces', {
                 is_used: 1,
                 used_at: new Date(),
                 signature: signature,
@@ -155,11 +155,11 @@ Timestamp: ${timestamp}`
     }
 
     async getNonceInfo(nonce) {
-        return await db.findOne('nonces', { nonce })
+        return await db.findOne('wallet_message_nonces', { nonce })
     }
 
     async getUserNonces(walletAddress, limit = 10) {
-        return await db.findAll('nonces',
+        return await db.findAll('wallet_message_nonces',
             { wallet_address: walletAddress },
             '*',
             'created_at DESC',

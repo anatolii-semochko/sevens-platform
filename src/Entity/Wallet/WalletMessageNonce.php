@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Wallet;
 
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
-#[ORM\Table(name: 'nonces')]
-class Nonces
+#[ORM\Table(name: 'wallet_message_nonces')]
+class WalletMessageNonce
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]

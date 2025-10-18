@@ -21,14 +21,6 @@ class Material
     #[Groups(['material:read'])]
     private string $token;
 
-    #[ORM\Column(type: 'string', length: 44)]
-    #[Groups(['material:read'])]
-    private string $wallet;
-
-    #[ORM\Column(type: 'string', length: 44, nullable: true)]
-    #[Groups(['material:read'])]
-    private ?string $newWallet = null;
-
     #[ORM\Column(type: 'boolean')]
     #[Groups(['material:read'])]
     private bool $active = true;
@@ -54,9 +46,9 @@ class Material
     private array $tokenContainer = [];
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['material:read'])]
-    private User $author;
+    private ?User $user = null;
 
     #[ORM\Column(type: 'datetime')]
     #[Groups(['material:read'])]
@@ -107,26 +99,6 @@ class Material
     public function setToken(string $token): void
     {
         $this->token = $token;
-    }
-
-    public function getWallet(): ?string
-    {
-        return $this->wallet;
-    }
-
-    public function setWallet(string $walletPublicKey): void
-    {
-        $this->wallet = $walletPublicKey;
-    }
-
-    public function getNewWallet(): ?string
-    {
-        return $this->newWallet;
-    }
-
-    public function setNewWallet(?string $newWalletPublicKey): void
-    {
-        $this->newWallet = $newWalletPublicKey;
     }
 
     public function getTitle(): ?string
@@ -204,14 +176,14 @@ class Material
         ];
     }
 
-    public function getAuthor(): User
+    public function getUser(): ?UserInterface
     {
-        return $this->author;
+        return $this->user;
     }
 
-    public function setAuthor(User|UserInterface $author): void
+    public function setUser(?UserInterface $user): void
     {
-        $this->author = $author;
+        $this->user = $user;
     }
 
     public function getCreatedAt(): \DateTimeInterface
@@ -267,11 +239,6 @@ class Material
     public function getPrice(): ?float
     {
         return $this->price;
-    }
-
-    public function isSold(): bool
-    {
-        return $this->newWallet && $this->newWallet !== $this->wallet;
     }
 
     public function setPrice(?float $price): void

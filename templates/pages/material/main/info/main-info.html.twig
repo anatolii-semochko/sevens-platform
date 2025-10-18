@@ -1,7 +1,11 @@
-<div class="mp-author">
+<div class="mp-user">
     <!-- Avatar temporarily disabled - no avatars available yet -->
     <!-- <img src="assets/img/logo-sample.svg" alt="avatar" style="width:40px;height:40px;border-radius:50%;"> -->
-    <span class="mp-username">@{{ data.material.getAuthor().getFirstName() }} {{ data.material.getAuthor().getLastName() }}</span>
+    <span class="mp-username">
+        {% if data.material.getUser() %}
+            @{{ data.material.getUser().getFirstName() ?? 'Unknown' }} {{ data.material.getUser().getLastName() ?? 'Publisher' }}
+        {% endif %}
+    </span>
 </div>
 
 <h1 class="mp-title">{{ data.material.getTitle }}</h1>

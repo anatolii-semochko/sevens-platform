@@ -31,7 +31,7 @@ class MaterialController extends BaseApiController
     {
         try {
             $material = $this->materialRepository->get($token);
-            $this->checkAuthorization($material->getAuthor()->getId());
+            $this->checkAuthorization($material->getUser()?->getId());
 
             return $this->json([
                 'material' => $material,
@@ -84,7 +84,7 @@ class MaterialController extends BaseApiController
     {
         try {
             $material = $this->materialRepository->get($token);
-            $this->checkAuthorization($material->getAuthor()->getId());
+            $this->checkAuthorization($material->getUser()?->getId());
             $this->materialService->updateMaterial($material, $request->getPayload()->all());
 
             return $this->json(null);

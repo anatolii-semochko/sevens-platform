@@ -2,30 +2,28 @@ import React, { useEffect } from 'react'
 import store from '@react/store'
 import { InfoMessageBlock } from '@react/components/info-componnents/Messages'
 
+export const callUserAuthorization = () => {
+    const link = document.querySelector('#user-auth a')
+    if (link) {
+        link.click()
+        return true
+    }
+    return false
+}
+
 export const UserAuthorization = ({message}) => {
     useEffect(() => {
-        if (store.getState().user) return
-
-        const tryClick = () => {
-            const link = document.querySelector('#user-auth a')
-            if (link) {
-                link.click()
-                return true
-            }
-            return false
+        if (store.getState().user) {
+            return
         }
-
-        // Try click
-        if (tryClick()) return
-
-        // Or wait the element
+        if (callUserAuthorization()) {
+            return
+        }
         const observer = new MutationObserver(() => {
-            if (tryClick()) observer.disconnect()
+            if (callUserAuthorization()) observer.disconnect()
         })
-
         observer.observe(document.body, { childList: true, subtree: true })
 
-        // Demount observer
         return () => observer.disconnect()
     }, [])
 

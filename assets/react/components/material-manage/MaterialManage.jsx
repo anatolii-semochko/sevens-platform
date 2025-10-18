@@ -99,7 +99,15 @@ const MaterialManage = ({token}) => {
                         </div>
                     </div>
                     <div className="row mb-3">
-                        <div className="col-8">Edit material:</div>
+                        <div className="col-8">Token sales management:</div>
+                        <div className="col-4">
+                            <button className="btn btn-primary w-100" onClick={() => setMaterialForm('MaterialSale')}>
+                                Sales management
+                            </button>
+                        </div>
+                    </div>
+                    <div className="row mb-3">
+                        <div className="col-8">Edit publication:</div>
                         <div className="col-4">
                             <button className="btn btn-primary w-100" onClick={() => setMaterialForm('MaterialEdit')}>
                                 Edit publication
@@ -107,23 +115,15 @@ const MaterialManage = ({token}) => {
                         </div>
                     </div>
                     <div className="row mb-3">
-                        <div className="col-8">Sale material:</div>
-                        <div className="col-4">
-                            <button className="btn btn-primary w-100" onClick={() => setMaterialForm('MaterialSale')}>
-                                Change sale status
-                            </button>
-                        </div>
-                    </div>
-                    <div className="row mb-3">
-                        <div className="col-8">Remove material:</div>
+                        <div className="col-8">Remove publication from site:</div>
                         <div className="col-4">
                             <button className="btn btn-primary w-100">
-                                Remove material
+                                Remove publication
                             </button>
                         </div>
                     </div>
                     <div className="row mb-4">
-                        <div className="col-8">Burn token and remove material:</div>
+                        <div className="col-8">Burn token and remove publication:</div>
                         <div className="col-4">
                             <button className="btn btn-primary w-100">
                                 Burn token
