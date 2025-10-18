@@ -29,7 +29,6 @@ const walletConnection = (wallet) => {
 
 
 
-// TODO - ADD TO ALL THE WALLETS USING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 export const wallets = [
     new SevensWalletAdapter(),
     // new PhantomWalletAdapter()

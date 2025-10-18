@@ -9,6 +9,7 @@ import { wallets, WalletForm } from '@react/components/form-elements/WalletForm'
 import { createRoot } from 'react-dom/client'
 import { route } from '@js/router/routing-with-locale'
 import { buy } from '@js/blockchain/sevens-token'
+import { callUserAuthorization } from '@react/components/form-elements/UserAuthorization'
 import { getAnchorErrorText } from '@js/blockchain/sevens'
 import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
 import { DownloadContainer } from '@react/components/download-container/DownloadContainer'
@@ -101,6 +102,7 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
 
     return !sold && (
         <div className="mt-3">
+            <NotAuthorizedMessage />
             <WalletForm operation={'buy'} waitingSignature={waitingSignature}/>
             <ErrorMessageBlock message={error} className={'mt-b'} />
             <ButtonWithProcessing
@@ -114,6 +116,14 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
         </div>
     )
 }
+
+const NotAuthorizedMessage = () => !store.getState().user?.id && (
+    <div className="alert-info alert text-center text-break p-4 mb-3">
+        You are purchasing a token as a guest. This means the publication will not be automatically transferred to your personal account,
+        and you can request it later on the <a href={route('material_claim')}>Request Materials</a> page.
+        Alternatively, please <button className="btn btn-link align-baseline p-0" onClick={callUserAuthorization}>Log In</button> before purchasing.
+    </div>
+)
 
 const ButtonClose = ({root}) => (
     <button className="btn btn-danger w-100" onClick={() => root.unmount()}>Cancel</button>
