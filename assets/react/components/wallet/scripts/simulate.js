@@ -1,5 +1,4 @@
 import {
-    Connection,
     PublicKey,
     SystemProgram,
     SystemInstruction,
@@ -297,8 +296,7 @@ export async function simulateAndSummarize(connection, txOrVtx, opts = {}) {
         fee: {
             baseFeeLamports,                 // базова плата за підписи
             priorityFeeLamports,             // оцінка пріоритетної (за CU)
-            estimatedTotalLamports:
-                (baseFeeLamports ?? 0) + (priorityFeeLamports ?? 0),
+            estimatedTotalLamports: (baseFeeLamports ?? 0) + (priorityFeeLamports ?? 0),
             lamportsPerSignature: null,      // за бажанням: витягни через getRecentPrioritizationFees/feeCalculator (нестабільно)
             signaturesCount: v0Message.header.numRequiredSignatures,
         },

@@ -1,36 +1,20 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import bs58 from 'bs58'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { fetchNonce } from '@react/api/nodeApi'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
 
 
 
 
-// TODO - investigate connection issues and fix them
-// Force connection check for Sevens Wallet
-const walletConnection = (wallet) => {
-    if (wallet.wallet?.adapter?.name === 'Sevens Wallet' && !wallet.connected && !wallet.connecting) {
-        const adapter = wallet.wallet.adapter
-        console.log('🔍 Sevens Wallet selected but not connected, forcing connection check')
 
-        // TODO - Check if adapter has a wallet but React hasn't updated
-        if (adapter._wallet && adapter._publicKey) {
-            console.log('🔄 Adapter has wallet, forcing connect call')
-            setTimeout(() => {
-                wallet.connect().catch(console.error)
-            }, 100)
-        }
-    }
-}
 
 
 
 
 
 export const wallets = [
-    new SevensWalletAdapter(),
+    // new SevensWalletAdapter(),
     // new PhantomWalletAdapter()
 ]
 
@@ -88,9 +72,6 @@ const ErrorText = ({error}) => !!error && (
 export const WalletForm = ({operation, error, expectedPublicKey, waitingSignature}) => {
     const wallet = useWallet()
 
-    useEffect(() => {
-        walletConnection(wallet)
-    }, [wallet.wallet, wallet.connected, wallet.connecting, wallet.connect])
 
     return (
         <div className="alert-success bg-light alert border text-center">
@@ -105,3 +86,14 @@ export const WalletForm = ({operation, error, expectedPublicKey, waitingSignatur
         </div>
     )
 }
+
+
+// export const BuyToken = ({root, token, isMyMaterial}) => (
+//     <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
+//         <WalletProvider wallets={wallets} autoConnect={true}>
+//             <WalletModalProvider>
+//                 <BuyTokenInner tokenPublicKey={token} root={root} isMyMaterial={isMyMaterial} />
+//             </WalletModalProvider>
+//         </WalletProvider>
+//     </ConnectionProvider>
+// )
