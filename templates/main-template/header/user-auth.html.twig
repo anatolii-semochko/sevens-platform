@@ -1,12 +1,6 @@
-<div id="user-auth">
-    {% if app.user %}
-        <div data-user="{{ {
-            'email': app.user.email,
-            'id': app.user.id,
-            'createdAt': app.user.createdAt|date('c'),
-            'profileUrl': path('user_index')
-        }|json_encode|e('html_attr') }}"></div>
-    {% else %}
-        <div data-register-url="{{ path('app_register') }}"></div>
-    {% endif %}
+<div class="position-relative">
+    <a href="#" class="text-dark d-flex align-items-center" id="user-dropdown-toggle">
+        <i class="bi bi-person fs-4 icon-button"></i>
+    </a>
+    <div id="user-auth-react-mount"></div>
 </div>

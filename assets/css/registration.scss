@@ -1,0 +1,87 @@
+// Registration form specific styles
+// Scoped to registration page only
+
+.registration-page {
+    .password-toggle {
+        border: none;
+        background: none;
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        z-index: 10;
+
+        &:hover {
+            text-decoration: none;
+        }
+
+        &:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        i {
+            font-size: 1.2rem;
+        }
+    }
+
+    // Add padding-right to password inputs to make room for the toggle button
+    .password-input-wrapper {
+        .form-control {
+            padding-right: 2.5rem;
+        }
+    }
+
+    // Style form validation errors as Bootstrap alerts
+    // Target plain <ul> elements that appear after form widgets (Symfony default error rendering)
+    .mb-3 > ul {
+        display: block;
+        margin: 0.5rem 0 0 0;
+        padding: 0.75rem 1rem;
+        background-color: #f8d7da;
+        border: 1px solid #f5c2c7;
+        border-radius: 0.375rem;
+        color: #842029;
+        font-size: 0.875rem;
+        list-style: none;
+
+        li {
+            margin-bottom: 0.25rem;
+            padding-left: 0;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+
+            &:before {
+                content: "⚠ ";
+                margin-right: 0.5rem;
+            }
+        }
+    }
+
+    // Also target invalid-feedback if Bootstrap validation is used
+    .invalid-feedback {
+        display: block;
+        margin-top: 0.5rem;
+        padding: 0.75rem 1rem;
+        background-color: #f8d7da;
+        border: 1px solid #f5c2c7;
+        border-radius: 0.375rem;
+        color: #842029;
+        font-size: 0.875rem;
+    }
+
+    // Add red border to invalid fields
+    .form-control.is-invalid {
+        border-color: #dc3545;
+    }
+
+    // Style help text (password requirements hint)
+    .form-text {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+}

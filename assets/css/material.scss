@@ -185,6 +185,7 @@ MATERIAL INDIVIDUAL PAGE
 
 .mp-below { display:flex; align-items:flex-start; gap:2rem; margin-top:1.75rem; }
 .mp-left-block { flex:0 0 40%; max-width:40%; }
+.mp-full-block { flex:1 1 100%; max-width:100%; }
 
 /* ---------- Description block ---------- */
 .mp-desc{
@@ -197,6 +198,9 @@ MATERIAL INDIVIDUAL PAGE
 /* ---------- Comments block ---------- */
 .mp-comments {
   h4{ font-weight:800; font-size:1.05rem; margin:0 0 .75rem; }
+
+  .mp-comment-thread{ margin-bottom:1.5rem; }
+
   .mp-comment{
     display:grid;
     grid-template-columns:38px 1fr;
@@ -211,13 +215,36 @@ MATERIAL INDIVIDUAL PAGE
     .mp-reply{ color:#6b7280; font-size:.95rem; cursor:pointer; user-select:none; }
     .mp-reply:hover{ color:#111827; }
   }
+
+  /* Replies container */
+  .mp-replies{
+    margin-left:3rem;
+    margin-top:.75rem;
+
+    .mp-comment{
+      grid-template-columns:32px 1fr;
+      margin-bottom:1rem;
+
+      .mp-avatar{ width:32px; height:32px; }
+      .mp-bubble{ background:#fff; }
+    }
+  }
+
+  /* Reply form */
+  .mp-reply-form{
+    margin-left:3rem;
+    margin-top:.75rem;
+  }
+
   .mp-see-more{ display:inline-flex; align-items:center; gap:.4rem; color:#6b7280; font-size:.92rem; cursor:pointer; margin-top:.5rem; }
 
   /* comment input */
-  .mp-comment-input{ display:grid; grid-template-columns:1fr 44px; gap:.5rem; margin-top:1rem; }
+  .mp-comment-input{ display:grid; grid-template-columns:1fr 44px 44px; gap:.5rem; margin-top:1rem; }
   .mp-comment-input input[type="text"]{ width:100%; border:1px solid var(--mp-border); border-radius:999px; padding:.65rem .9rem; outline:none; }
   .mp-comment-input button{ border:1px solid var(--mp-border); border-radius:999px; background:#fff; cursor:pointer; }
   .mp-comment-input button:hover{ background:#f3f4f6; }
+  .mp-comment-input .btn-cancel{ background:#f8fafc; }
+  .mp-comment-input .btn-cancel:hover{ background:#f3f4f6; }
 }
 
 .mp-stats, .mp-rating { margin-left:0; }
@@ -302,3 +329,25 @@ MATERIAL INDIVIDUAL PAGE
 .mp-modal-close:hover{ background:rgba(255,255,255,1); }
 
 @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+/* =========================================================
+   COMMENTS MANAGE PAGE
+========================================================= */
+.comments-manage-page {
+  padding: 2rem 0;
+
+  .cm-card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+  }
+
+  .cm-card-header {
+    font-size: 0.9rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .bi {
+    margin-right: 0.25rem;
+  }
+}

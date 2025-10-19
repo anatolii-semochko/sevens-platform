@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { route } from '@js/router/routing-with-locale'
 
 const MaterialVotes = ({ materialToken, initialLikes, initialDislikes, viewCount }) => {
     const [likeCount, setLikeCount] = useState(initialLikes)
@@ -25,23 +26,24 @@ const MaterialVotes = ({ materialToken, initialLikes, initialDislikes, viewCount
 
     const handleVote = async (voteType) => {
         if (isLoading) return
-        
+
         setIsLoading(true)
-        
+
         try {
-            const response = await fetch(`/en/api/material/${materialToken}/vote`, {
+            const url = route('api_material_comment_material_vote', { token: materialToken })
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ type: voteType })
             })
-            
+
             if (response.ok) {
                 const data = await response.json()
                 setLikeCount(data.likeCount)
                 setDislikeCount(data.dislikeCount)
-                
+
                 // Toggle user vote state
                 setUserVote(userVote === voteType ? null : voteType)
             } else {

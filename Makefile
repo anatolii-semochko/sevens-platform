@@ -127,10 +127,11 @@ push:
 	docker push ${REGISTRY}/${IMAGE_NAME}-php-cli:${IMAGE_TAG}
 	docker push ${REGISTRY}/${IMAGE_NAME}-postgres-backup:${IMAGE_TAG}
 
-app-build: routes
+app-build:
 	docker compose run --rm --user root ${APP_PHP_CLI} composer install
 	docker compose run --rm -w /app web-node npm install
 	docker compose run --rm -w /app web-node yarn build
+	routes
 
 routes:
 	docker compose exec -T php-fpm php bin/console fos:js-routing:dump --target=public/build/fos_js_routes.json --format=json

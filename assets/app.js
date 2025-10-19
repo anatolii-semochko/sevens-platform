@@ -6,9 +6,11 @@ import '@css/custom.scss'
 import '@css/material.scss'
 import '@css/gallery.scss'
 import '@css/404.scss'
+import '@css/registration.scss'
 import '@js/help-link'
 import '@js/material-slider'
 import '@js/toast'
+import '@js/registration/password-toggle'
 import React from 'react'
 import ReactDOM, { createRoot } from 'react-dom/client'
 import store from '@react/store/index'
@@ -28,6 +30,7 @@ import MaterialManage from '@react/components/material-manage/MaterialManage'
 import MaterialClaim from '@react/components/material-manage/claim/MaterialClaim'
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
+import CommentsManage from '@react/components/comments-manage/CommentsManage'
 
 window.bootstrap = bootstrap
 window.Buffer = Buffer
@@ -51,14 +54,10 @@ if (checkToken) {
     root.render(<Provider store={store}><CheckToken /></Provider>)
 }
 
-const userAuth = document.getElementById('user-auth')
-if (userAuth) {
-    const userDataElement = userAuth.querySelector('[data-user]')
-    const userData = userDataElement?.dataset?.user ? JSON.parse(userDataElement.dataset.user) : null
-    const registerUrl = userAuth.querySelector('[data-register-url]')?.dataset?.registerUrl || '/register'
-
-    const root = createRoot(userAuth)
-    root.render(<Provider store={store}><UserAuth user={userData} registerUrl={registerUrl} /></Provider>)
+const userAuthMount = document.getElementById('user-auth-react-mount')
+if (userAuthMount) {
+    const root = createRoot(userAuthMount)
+    root.render(<Provider store={store}><UserAuth /></Provider>)
 }
 
 const materialManage = document.getElementById('material-manage')
@@ -97,6 +96,13 @@ if (materialComments) {
         const root = createRoot(materialComments)
         root.render(<MaterialComments materialToken={materialToken} isLoggedIn={isLoggedIn} />)
     }
+}
+
+const commentsManage = document.getElementById('comments-manage')
+if (commentsManage) {
+    const comments = JSON.parse(commentsManage.dataset.comments || '[]')
+    const root = createRoot(commentsManage)
+    root.render(<CommentsManage initialComments={comments} />)
 }
 
 document.addEventListener('DOMContentLoaded', function () {
