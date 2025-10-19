@@ -1,13 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import MaterialSaleApi from '@react/api/materialSaleApi'
-import { setSale } from '@js/blockchain/sevens-token'
-import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
-import { SevensWalletAdapter } from '@react/components/wallet/WalletAdapter'
+import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
+import { wallets, WalletForm } from '@react/components/form-elements/WalletForm'
+import { setSale } from '@js/blockchain/sevens-token'
 import { Number } from '@react/components/form-elements/Inputs'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
-import { WalletForm } from '@react/components/form-elements/WalletForm'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 
@@ -112,7 +110,7 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
                     <h4 className="text-center mb-4">
                         {type === 'sale' ? `Put the token up for sale at ${price} $SEV` : 'Remove a token from sale'}
                     </h4>
-                    <WalletForm operation={'sale'} expectedPublicKey={tokenData.walletPublicKey} waitingSignature={waitingSignature} />
+                    <WalletForm {...{operation: 'sale', expectedPublicKey: tokenData.walletPublicKey, waitingSignature}} />
                 </div>
             )}
             {type && !busy() && (
@@ -129,20 +127,12 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
     )
 }
 
-export const MaterialSale = (props) => {
-    const endpoint = process.env.ANCHOR_PROVIDER_URL
-    const wallets = useMemo(() => [
-        new SevensWalletAdapter(),
-        new PhantomWalletAdapter()
-    ], [])
-
-    return (
-        <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} autoConnect={true}>
-                <WalletModalProvider>
-                    <MaterialSaleInner {...props} />
-                </WalletModalProvider>
-            </WalletProvider>
-        </ConnectionProvider>
-    )
-}
+export const MaterialSale = (props) => (
+    <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
+        <WalletProvider wallets={wallets} autoConnect={true}>
+            <WalletModalProvider>
+                <MaterialSaleInner {...props} />
+            </WalletModalProvider>
+        </WalletProvider>
+    </ConnectionProvider>
+)

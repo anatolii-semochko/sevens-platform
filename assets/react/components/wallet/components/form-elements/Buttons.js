@@ -4,20 +4,24 @@ import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import { t } from '@react/components/wallet/translations/translations'
 import { closeWallet } from '@js/wallet'
 import {
-    AlignJustify, Plus, Clipboard, ArrowLeft, Lock, Signature,
+    House, AlignJustify, Plus, Clipboard, ArrowLeft, Lock, Signature,
     Sparkles, RotateCcw, KeyRound, CircleDollarSign, Send, FlameKindling,
     NotebookPen, Save, Repeat, Handshake, Trash2, CornerRightDown,
     FolderPen, Eye, Settings, EyeOff, RefreshCw, Wallet, GlobeLock,
 } from 'lucide-react'
-import ChangePassword from "@react/components/wallet/components/settings/components/ChangePassword";
 
-const iconSize = 16
+export const iconSize = 16
 
-const ButtonWalletClose = () => (
-    <button className="btn-close ms-auto" aria-label="Close" onClick={() => closeWallet()} />
-)
+export const ButtonWalletClose = () => {
 
-const ButtonWalletUnLock = ({label, icon, disabled, className}) => (
+    // TODO - close wallet connection
+
+    return (
+        <button className="btn-close ms-auto" aria-label="Close" onClick={() => closeWallet()} />
+    )
+}
+
+export const ButtonWalletUnLock = ({label, icon, disabled, className}) => (
     <WalletButton
         label={label}
         className={clsx('btn-primary w-100', className)}
@@ -26,16 +30,16 @@ const ButtonWalletUnLock = ({label, icon, disabled, className}) => (
     />
 )
 
-const ButtonWalletLock = ({onClick, className}) => (
+export const ButtonWalletLock = ({onClick, className}) => (
     <WalletButton
         label={t('lockWallet')}
         onClick={onClick}
-        className={clsx('btn-warning w-100', className)}
+        className={clsx('btn-warning flex-grow-1 d-flex align-items-center justify-content-center gap-2', className)}
         icon={<Lock size={iconSize} />}
     />
 )
 
-const ButtonBack = ({label, onClick, className}) => {
+export const ButtonBack = ({label, onClick, className}) => {
     const { setShowComponent } = useWalletContext()
     return (
         <WalletButton
@@ -48,7 +52,7 @@ const ButtonBack = ({label, onClick, className}) => {
     )
 }
 
-const ButtonWalletSelect = ({className}) => {
+export const ButtonWalletSelect = ({className}) => {
     const { walletsList, setShowComponent } = useWalletContext()
     return (
         <WalletButton
@@ -60,7 +64,7 @@ const ButtonWalletSelect = ({className}) => {
     )
 }
 
-const ButtonListActions = ({onClick, className}) => (
+export const ButtonListActions = ({onClick, className}) => (
     <WalletButton
         onClick={onClick}
         className={clsx('btn-white', className)}
@@ -68,7 +72,7 @@ const ButtonListActions = ({onClick, className}) => (
     />
 )
 
-const ButtonSave = ({label, onClick, className}) => (
+export const ButtonSave = ({label, onClick, className}) => (
     <WalletButton
         key={label}
         label={label ? label : t('save')}
@@ -78,7 +82,7 @@ const ButtonSave = ({label, onClick, className}) => (
     />
 )
 
-const ButtonSaved = ({label, onClick, className}) => (
+export const ButtonSaved = ({label, onClick, className}) => (
     <WalletButton
         label={label}
         onClick={onClick}
@@ -87,7 +91,7 @@ const ButtonSaved = ({label, onClick, className}) => (
     />
 )
 
-const ButtonConfirm = ({label, onClick, className}) => (
+export const ButtonConfirm = ({label, onClick, className}) => (
     <WalletButton
         key={label}
         label={label ? label : t('confirm')}
@@ -97,17 +101,7 @@ const ButtonConfirm = ({label, onClick, className}) => (
     />
 )
 
-const ButtonRemove = ({label, onClick, className}) => (
-    <WalletButton
-        key={label}
-        label={label ? label : t('remove')}
-        onClick={onClick}
-        className={clsx('btn-danger w-100', className)}
-        icon={<Trash2 size={iconSize} />}
-    />
-)
-
-const ButtonRepeat = ({label, onClick, className}) => (
+export const ButtonRepeat = ({label, onClick, className}) => (
     <WalletButton
         key={label}
         label={label || t('repeat')}
@@ -117,7 +111,7 @@ const ButtonRepeat = ({label, onClick, className}) => (
     />
 )
 
-const ButtonCopy = ({label, onClick, className}) => (
+export const ButtonCopy = ({label, onClick, className}) => (
     <WalletButton
         key={label}
         label={label || t('copyAddress')}
@@ -127,7 +121,7 @@ const ButtonCopy = ({label, onClick, className}) => (
     />
 )
 
-const ButtonReloadWallet = ({className}) => {
+export const ButtonReloadWallet = ({className}) => {
     const {walletReload} = useWalletContext()
     return (
         <WalletButton
@@ -139,7 +133,7 @@ const ButtonReloadWallet = ({className}) => {
     )
 }
 
-const ButtonSendCoins = ({onClick, className}) => (
+export const ButtonSendCoins = ({onClick, className}) => (
     <WalletButton
         label={<>{t('send')} <span className="fst-italic">$SEV</span></>}
         onClick={onClick}
@@ -148,7 +142,7 @@ const ButtonSendCoins = ({onClick, className}) => (
     />
 )
 
-const ButtonBuyCoins = ({onClick, className}) => (
+export const ButtonBuyCoins = ({onClick, className}) => (
     <WalletButton
         label={t('buySevens')}
         onClick={onClick}
@@ -157,7 +151,7 @@ const ButtonBuyCoins = ({onClick, className}) => (
     />
 )
 
-const ButtonSellCoins = ({onClick, className}) => (
+export const ButtonSellCoins = ({onClick, className}) => (
     <WalletButton
         label={t('sellSevens')}
         onClick={onClick}
@@ -166,7 +160,7 @@ const ButtonSellCoins = ({onClick, className}) => (
     />
 )
 
-const ButtonReceiveCrypto = ({className}) => {
+export const ButtonReceiveCrypto = ({className}) => {
     const { setShowComponent } = useWalletContext()
     return (
         <WalletButton
@@ -178,7 +172,7 @@ const ButtonReceiveCrypto = ({className}) => {
     )
 }
 
-const ButtonSignTransaction = ({onClick, className}) => (
+export const ButtonSignTransaction = ({onClick, className}) => (
     <WalletButton
         label={t('signTransaction')}
         onClick={onClick}
@@ -187,7 +181,7 @@ const ButtonSignTransaction = ({onClick, className}) => (
     />
 )
 
-const ButtonWalletAdd = ({onClick, className}) => (
+export const ButtonWalletAdd = ({onClick, className}) => (
     <WalletButton
         label={t('addWallet')}
         onClick={onClick}
@@ -196,7 +190,7 @@ const ButtonWalletAdd = ({onClick, className}) => (
     />
 )
 
-const ButtonShowPrivateKey = ({onClick, className}) => (
+export const ButtonShowPrivateKey = ({onClick, className}) => (
     <WalletButton
         label={t('showPrivateKey')}
         onClick={onClick}
@@ -205,7 +199,7 @@ const ButtonShowPrivateKey = ({onClick, className}) => (
     />
 )
 
-const ButtonWalletRename = ({onClick, className}) => (
+export const ButtonWalletRename = ({onClick, className}) => (
     <WalletButton
         label={t('renameWallet')}
         onClick={onClick}
@@ -214,7 +208,7 @@ const ButtonWalletRename = ({onClick, className}) => (
     />
 )
 
-const ButtonWalletRemove = ({onClick, className}) => (
+export const ButtonWalletRemove = ({onClick, className}) => (
     <WalletButton
         label={t('removeWallet')}
         onClick={onClick}
@@ -223,7 +217,7 @@ const ButtonWalletRemove = ({onClick, className}) => (
     />
 )
 
-const ButtonContinue = ({onClick, className}) => (
+export const ButtonContinue = ({onClick, className}) => (
     <WalletButton
         label={t('continue')}
         onClick={onClick}
@@ -232,7 +226,7 @@ const ButtonContinue = ({onClick, className}) => (
     />
 )
 
-const ButtonGenerateNewWallet = ({label, onClick, className}) => (
+export const ButtonGenerateNewWallet = ({label, onClick, className}) => (
     <WalletButton
         key={label}
         label={label || t('generateNewWallet')}
@@ -242,7 +236,7 @@ const ButtonGenerateNewWallet = ({label, onClick, className}) => (
     />
 )
 
-const ButtonRestoreWalletFromSeed = ({onClick, className}) => (
+export const ButtonRestoreWalletFromSeed = ({onClick, className}) => (
     <WalletButton
         label={t('restoreWalletFromSeedPhrase')}
         onClick={onClick}
@@ -251,7 +245,7 @@ const ButtonRestoreWalletFromSeed = ({onClick, className}) => (
     />
 )
 
-const ButtonTokenTransfer = ({onClick, className}) => (
+export const ButtonTokenTransfer = ({onClick, className}) => (
     <WalletButton
         label={t('transferTokenToAnotherWallet')}
         onClick={onClick}
@@ -260,7 +254,7 @@ const ButtonTokenTransfer = ({onClick, className}) => (
     />
 )
 
-const ButtonTokenBurn = ({label, onClick, className}) => (
+export const ButtonTokenBurn = ({label, onClick, className}) => (
     <WalletButton
         label={label || t('burnToken')}
         onClick={onClick}
@@ -269,16 +263,31 @@ const ButtonTokenBurn = ({label, onClick, className}) => (
     />
 )
 
-const ButtonSettings = ({onClick,className}) => (
-    <WalletButton
-        label={t('settings')}
-        onClick={onClick}
-        className={clsx('btn-warning', className)}
-        icon={<Settings  size={iconSize} />}
-    />
-)
+export const ButtonHome = ({className}) => {
+    const {setShowComponent} = useWalletContext()
+    return (
+        <WalletButton
+            title={'Home'}
+            onClick={() => setShowComponent(null)}
+            className={clsx('btn-warning d-flex align-items-center justify-content-center gap-2', className)}
+            icon={<House  size={iconSize} />}
+        />
+    )
+}
 
-const ButtonBalancesVisibility = ({className}) => {
+export const ButtonSettings = ({className}) => {
+    const {setShowComponent} = useWalletContext()
+    return (
+        <WalletButton
+            title={'Settings'}
+            onClick={() => setShowComponent({component: 'Settings'})}
+            className={clsx('btn-warning d-flex align-items-center justify-content-center gap-2', className)}
+            icon={<Settings  size={iconSize} />}
+        />
+    )
+}
+
+export const ButtonBalancesVisibility = ({className}) => {
     const {hideBalances, setHideBalances} = useWalletContext()
     return (
         <WalletButton
@@ -290,7 +299,7 @@ const ButtonBalancesVisibility = ({className}) => {
     )
 }
 
-const ButtonChangeConnection = ({className}) => {
+export const ButtonChangeConnection = ({className}) => {
     const {setShowComponent} = useWalletContext()
     return (
         <WalletButton
@@ -302,7 +311,7 @@ const ButtonChangeConnection = ({className}) => {
     )
 }
 
-const ButtonChangePassword = ({onClick, className}) => {
+export const ButtonChangePassword = ({onClick, className}) => {
     const {setShowComponent} = useWalletContext()
     return (
         <WalletButton
@@ -314,7 +323,7 @@ const ButtonChangePassword = ({onClick, className}) => {
     )
 }
 
-const ButtonClearWallet = ({onClick, className}) => {
+export const ButtonClearWallet = ({onClick, className}) => {
     const {setShowComponent} = useWalletContext()
     return (
         <WalletButton
@@ -326,24 +335,13 @@ const ButtonClearWallet = ({onClick, className}) => {
     )
 }
 
-const WalletButton = ({label, disabled, onClick, className, icon }) => (
+const WalletButton = ({label, title, disabled, onClick, className, icon }) => (
     <button
         className={clsx(className, 'btn cursor-pointer d-flex align-items-center justify-content-center gap-2')}
+        title={title}
         disabled={disabled}
         onClick={onClick}
     >
         {icon} {label}
     </button>
 )
-
-export {
-    iconSize,
-    ButtonWalletUnLock, ButtonWalletLock, ButtonWalletClose, ButtonBack, ButtonListActions,
-    ButtonWalletSelect, ButtonGenerateNewWallet, ButtonRestoreWalletFromSeed,
-    ButtonWalletAdd, ButtonShowPrivateKey, ButtonWalletRename, ButtonWalletRemove,
-    ButtonSave, ButtonSaved, ButtonConfirm, ButtonContinue, ButtonRepeat, ButtonCopy, ButtonRemove,
-    ButtonSendCoins, ButtonBuyCoins, ButtonSellCoins,  ButtonReceiveCrypto,
-    ButtonReloadWallet, ButtonTokenTransfer, ButtonTokenBurn,
-    ButtonSettings, ButtonBalancesVisibility, ButtonChangePassword, ButtonClearWallet,
-    ButtonChangeConnection, ButtonSignTransaction,
-}

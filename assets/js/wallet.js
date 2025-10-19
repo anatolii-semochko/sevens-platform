@@ -23,10 +23,15 @@ const openWallet = () => {
 }
 
 const closeWallet = () => {
+
+
+
     // Notify adapters that wallet is being closed
     const eventBus = getWalletEventBus()
     eventBus.emit('sevens-wallet-closed', { forceDisconnect: true })
-    
+
+
+
     container.classList.remove('open')
     document.body.classList.remove('panel-opened')
 

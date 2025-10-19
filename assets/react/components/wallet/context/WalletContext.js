@@ -129,6 +129,22 @@ const WalletContextProvider = ({ children }) => {
 
 
 
+    const handleReloadRequest = (event) => {
+        if (password && walletReload) {
+            setTimeout(() => {
+                walletReload().catch()
+            }, config.RELOAD_AFTER_CHANGES_SECONDS)
+        }
+    }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -236,33 +252,6 @@ const WalletContextProvider = ({ children }) => {
             }
         }
 
-        const handleReloadRequest = (event) => {
-            // console.log('🔄 [Context] Wallet reload request received')
-            if (password && walletReload) {
-                // Perform 3 sequential reloads with 1-second intervals
-                const performReloads = async () => {
-                    try {
-                        for (let i = 1; i <= 3; i++) {
-                            // console.log(`🔄 [Context] Wallet reload attempt ${i}/3`)
-                            await walletReload()
-
-                            // Wait 1 second between reloads (except after the last one)
-                            if (i < 3) {
-                                await new Promise(resolve => setTimeout(resolve, 1000))
-                            }
-                        }
-                        // console.log('✅ [Context] All wallet reloads completed successfully')
-                    } catch (error) {
-                        // console.error('❌ [Context] Wallet reload failed:', error)
-                    }
-                }
-
-                // Start the reload sequence after a short initial delay
-                setTimeout(() => {
-                    performReloads().catch()
-                }, 500)
-            }
-        }
 
         eventBus.on('sevens-wallet-connect-request', handleConnectRequest)
         eventBus.on('sevens-wallet-disconnect-request', handleDisconnectRequest)

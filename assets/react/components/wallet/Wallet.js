@@ -10,7 +10,7 @@ import { WalletContextProvider } from '@react/components/wallet/context/WalletCo
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { hasEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 import { showModal } from '@js/modal'
-import { ButtonWalletLock } from '@react/components/wallet/components/form-elements/Buttons'
+import { ButtonWalletLock, ButtonHome, ButtonSettings } from '@react/components/wallet/components/form-elements/Buttons'
 import { WalletHeader, WalletLoading } from '@react/components/wallet/components/form-elements/Blocks'
 import Content from '@react/components/wallet/components/Content'
 import WalletCreate from '@react/components/wallet/components/authorization/WalletCreate'
@@ -69,8 +69,10 @@ const WalletInner = () => {
                     </ConnectionProvider>
                 </div>
             </div>
-            <div className="panel-footer p-3">
+            <div className="panel-footer p-3 d-flex gap-2">
+                <ButtonHome />
                 <ButtonWalletLock onClick={lock} />
+                <ButtonSettings />
             </div>
         </Provider>
     )

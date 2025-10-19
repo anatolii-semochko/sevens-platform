@@ -8,14 +8,14 @@ import CurrentLanguage from '@react/components/wallet/components/settings/compon
 
 const Settings = () => (
     <div>
-        <BlockTitle title={t('walletSettings')} className={'mb-4'}/>
+        <BlockTitle title={t('walletSettings')} className={'mb-4'} />
         <div className={'d-grid gap-3'}>
             <CurrentLanguage />
             <ButtonChangeConnection />
             <ButtonBalancesVisibility />
             <ButtonChangePassword />
             <ButtonClearWallet />
-            <ButtonBack />
+            <ButtonBack label={t('backToWallet')} />
         </div>
     </div>
 )
