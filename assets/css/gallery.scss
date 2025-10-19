@@ -146,3 +146,50 @@
   color: #666;
   margin: 0;
 }
+
+
+
+
+/* Tablet phase 1: 481–640px — 2 columns */
+@media (min-width: 481px) and (max-width: 640px) {
+  .main-gallery-section .gallery-wrapper {
+    column-count: 2;
+  }
+
+  .main-gallery-section .gallery-grid {
+    column-count: 2;
+  }
+}
+
+/* Tablet phase 2: 641–900px — 3 columns */
+@media (min-width: 641px) and (max-width: 900px) {
+  .main-gallery-section .gallery-wrapper {
+    column-count: 3;
+  }
+
+  .main-gallery-section .gallery-grid {
+    column-count: 3;
+  }
+}
+
+/* Tablet phase 3: 901–1200px*/
+@media (min-width: 901px) and (max-width: 1200px) {
+  .main-gallery-section .gallery-wrapper {
+    column-count: 4;
+  }
+
+  .main-gallery-section .gallery-grid {
+    column-count: 4;
+  }
+}
+
+/* Mobile: ≤480px */
+@media (max-width: 480px) {
+  .main-gallery-section .gallery-wrapper {
+    column-count: 2;
+  }
+
+  .main-gallery-section .gallery-grid {
+    column-count: 2;
+  }
+}

@@ -7,14 +7,17 @@
   <body>
     <div>
       {% include 'main-template/header.html.twig' %}
-      <div class="layout-wrapper d-flex">
-        {% include 'main-template/sidebar.html.twig' %}
-        <main class="main-container d-flex flex-column">
-          {% include main_template with data %}
-          {% include 'main-template/footer.html.twig' %}
-        </main>
-      </div>
-      <div id="wallet-panel" class="right-slide-panel"></div>
+
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <div class="layout-wrapper">
+            {% include 'main-template/sidebar.html.twig' %}
+            <main class="main-container d-flex flex-column">
+                {% include main_template with data %}
+            </main>
+                {% include 'main-template/footer.html.twig' %}
+        </div>
+        <div id="wallet-panel" class="right-slide-panel"></div>
     </div>
     {% block javascripts %}
     {{ encore_entry_script_tags('app') }}
