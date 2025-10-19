@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { route } from '@js/router/routing-with-locale'
+import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 
 const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
     const [comments, setComments] = useState([])
@@ -9,6 +10,8 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
     const [showAll, setShowAll] = useState(false)
     const [replyingTo, setReplyingTo] = useState(null)
     const [replyFormData, setReplyFormData] = useState({ name: '', email: '', comment: '' })
+    const [errorMessage, setErrorMessage] = useState(null)
+    const [replyErrorMessage, setReplyErrorMessage] = useState(null)
 
     useEffect(() => {
         fetchComments()
@@ -33,6 +36,7 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
         e.preventDefault()
         if (isSubmitting) return
 
+        setErrorMessage(null)
         setIsSubmitting(true)
         try {
             const url = route('api_material_comment_comment_add', { token: materialToken })
@@ -49,11 +53,13 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
                 const newComment = { ...data.comment, replies: [] }
                 setComments([newComment, ...comments])
                 setFormData({ name: '', email: '', comment: '' })
+                setErrorMessage(null)
             } else {
-                console.error('Comment submission failed')
+                const errorData = await response.json()
+                setErrorMessage(errorData.error || 'Failed to submit comment')
             }
         } catch (error) {
-            console.error('Error submitting comment:', error)
+            setErrorMessage('An error occurred while submitting your comment')
         } finally {
             setIsSubmitting(false)
         }
@@ -63,6 +69,7 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
         e.preventDefault()
         if (isSubmitting) return
 
+        setReplyErrorMessage(null)
         setIsSubmitting(true)
         try {
             const url = route('api_material_comment_comment_add', { token: materialToken })
@@ -88,32 +95,38 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
                 }))
                 setReplyFormData({ name: '', email: '', comment: '' })
                 setReplyingTo(null)
+                setReplyErrorMessage(null)
             } else {
-                console.error('Reply submission failed')
+                const errorData = await response.json()
+                setReplyErrorMessage(errorData.error || 'Failed to submit reply')
             }
         } catch (error) {
-            console.error('Error submitting reply:', error)
+            setReplyErrorMessage('An error occurred while submitting your reply')
         } finally {
             setIsSubmitting(false)
         }
     }
 
     const handleChange = (e) => {
+        setErrorMessage(null)
         setFormData({ ...formData, [e.target.name]: e.target.value })
     }
 
     const handleReplyChange = (e) => {
+        setReplyErrorMessage(null)
         setReplyFormData({ ...replyFormData, [e.target.name]: e.target.value })
     }
 
     const handleReplyClick = (commentId) => {
         setReplyingTo(commentId)
         setReplyFormData({ name: '', email: '', comment: '' })
+        setReplyErrorMessage(null)
     }
 
     const handleCancelReply = () => {
         setReplyingTo(null)
         setReplyFormData({ name: '', email: '', comment: '' })
+        setReplyErrorMessage(null)
     }
 
     const totalComments = comments.reduce((total, comment) => total + 1 + comment.replies.length, 0)
@@ -165,6 +178,7 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
                     {/* Reply form */}
                     {replyingTo === comment.id && (
                         <div className="mp-reply-form">
+                            {replyErrorMessage && <ErrorMessageBlock message={replyErrorMessage} />}
                             <form onSubmit={(e) => handleReplySubmit(e, comment.id)}>
                                 <div className="mp-comment-input">
                                     <input
@@ -221,6 +235,7 @@ const MaterialComments = ({ materialToken, isLoggedIn = false }) => {
                 </div>
             )}
 
+            {errorMessage && <ErrorMessageBlock message={errorMessage} />}
             <form onSubmit={handleSubmit}>
                 <div className="mp-comment-input" style={{gridTemplateColumns: '1fr 44px'}}>
                     <input

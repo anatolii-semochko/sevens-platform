@@ -5,14 +5,16 @@ namespace App\Service\Material;
 use App\Entity\Material\MaterialComment;
 use App\Entity\User;
 use App\Repository\Material\MaterialCommentRepository;
-
 use App\Repository\Material\MaterialRepository;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 readonly class MaterialCommentService
 {
     public function __construct(
         private MaterialCommentRepository $commentRepository,
         private MaterialRepository $materialRepository,
+        private ValidatorInterface $validator,
     ) {}
 
     /**
@@ -58,8 +60,20 @@ readonly class MaterialCommentService
         }
 
         // For anonymous users, require name and email
-        if (!$user && (empty($data['name']) || empty($data['email']))) {
-            throw new \InvalidArgumentException('Name and email are required for anonymous comments');
+        if (!$user) {
+            if (empty($data['name']) || empty($data['email'])) {
+                throw new \InvalidArgumentException('Name and email are required for anonymous comments');
+            }
+
+            // Validate email format using Symfony Validator
+            $emailConstraint = new Assert\Email([
+                'message' => 'Please enter a valid email address',
+            ]);
+            $violations = $this->validator->validate($data['email'], $emailConstraint);
+
+            if (count($violations) > 0) {
+                throw new \InvalidArgumentException((string) $violations->get(0)->getMessage());
+            }
         }
 
         // Validate parent comment if provided

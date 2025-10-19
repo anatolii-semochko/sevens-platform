@@ -59,7 +59,7 @@ class MaterialCommentController extends BaseApiController
 
         $payload = $request->getPayload();
         $user = $this->getUser();
-        $parentCommentId = $payload->getInt('parentCommentId');
+        $parentCommentId = $payload->getInt('parentCommentId') ?: null;
 
         try {
             $this->commentService->validateCommentData($payload->all(), $user, $parentCommentId);
