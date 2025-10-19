@@ -3,18 +3,19 @@
 
         <!-- Left side: Burger + Logo + Search + Categories -->
         <div class="d-flex align-items-center gap-3 header-left">
-            <button class="menu-toggle d-md-none" id="menuToggle"><i class="bi bi-list"></i></button>
+            <button class="menu-toggle d-md-none" id="menuToggle">
+                <i class="bi bi-list"></i>
+            </button>
 
             <a href="{{ path('home_page', {'_locale': app.request.locale}) }}">
                 <img src="{{ '/storage/images/sevens-logo.svg' }}" alt="Logo" height="40">
             </a>
 
-
             <div class="position-relative search-wrapper header-search">
                 <input type="text"
                        class="form-control rounded-pill ps-5 w-100"
                        placeholder="Search...">
-                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y text-muted"></i>
             </div>
 
             <nav class="d-none d-md-flex align-items-center gap-2 header-nav">
@@ -32,10 +33,11 @@
             </a>
             {% include 'main-template/header/create.html.twig' %}
             {% include 'main-template/header/language-selector.html.twig' %}
-            <a href="#" class="text-dark"><i class="bi bi-envelope fs-4 icon-button"></i></a>
+            <a href="#" class="text-dark">
+                <i class="bi bi-envelope fs-4 icon-button"></i>
+            </a>
             <a class="text-dark" id="openWalletBtn"><i class="bi bi-wallet fs-4 icon-button"></i></a>
             {% include 'main-template/header/user-auth.html.twig' %}
         </div>
-
     </div>
 </div>
