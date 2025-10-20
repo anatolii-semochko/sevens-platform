@@ -172,12 +172,21 @@ export const ButtonReceiveCrypto = ({className}) => {
     )
 }
 
-export const ButtonSignTransaction = ({onClick, className}) => (
+export const ButtonSign = ({label, onClick, disabled, className}) => (
     <WalletButton
-        label={t('signTransaction')}
+        label={label}
         onClick={onClick}
         className={clsx('btn-success w-100', className)}
+        disabled={disabled}
         icon={<Signature size={iconSize} />}
+    />
+)
+
+export const ButtonCancelSign = ({label, onClick, className}) => (
+    <WalletButton
+        label={label || t('cancel')}
+        onClick={onClick}
+        className={clsx('btn-outline-secondary', className)}
     />
 )
 

@@ -1,19 +1,9 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import bs58 from 'bs58'
-import { useWallet } from '@solana/wallet-adapter-react'
-import { fetchNonce } from '@react/api/nodeApi'
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
-
-
-
-
-
-
-
-
-
-
 import { SevensWalletAdapter } from '@react/components/wallet/SevensWalletAdapter'
+import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
+import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import { fetchNonce } from '@react/api/nodeApi'
 
 export const wallets = [
     new SevensWalletAdapter()
@@ -27,16 +17,31 @@ const texts = {
     buy: "To purchase a token, you need to activate your wallet and sign the transaction. You'll see the expected coin spend amount before signing the transaction."
 }
 
-export const signNonce = async (wallet) => {
-    const walletPublicKey = wallet.publicKey.toString()
-    const derivedNonce = await fetchNonce(walletPublicKey)
-    const signature = await wallet.signMessage(new TextEncoder().encode(derivedNonce.message))
+export const WalletWrapper = ({ children }) => (
+    <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
+        <WalletProvider wallets={wallets} autoConnect={true}>
+            <WalletModalProvider>
+                {children}
+            </WalletModalProvider>
+        </WalletProvider>
+    </ConnectionProvider>
+)
 
-    return {
-        walletPublicKey,
-        signature: bs58.encode(signature),
-        ...derivedNonce,
-    }
+export const WalletForm = ({operation, error, expectedPublicKey, waitingSignature}) => {
+    const wallet = useWallet()
+
+    return (
+        <div className="alert-success bg-light alert border text-center">
+            <h4>Wallet</h4>
+            <h6 className="lh-base mb-3">{texts[operation]}</h6>
+            <PublicKeyText {...{wallet, expectedPublicKey}} />
+            <SignatureText waitingSignature={waitingSignature} />
+            <ErrorText error={error} />
+            <div className="d-flex justify-content-center gap-2">
+                <WalletMultiButton />
+            </div>
+        </div>
+    )
 }
 
 const PublicKeyText = ({wallet, expectedPublicKey}) => {
@@ -70,37 +75,14 @@ const ErrorText = ({error}) => !!error && (
     <p className="text-danger">{error.message || error}</p>
 )
 
-export const WalletForm = ({operation, error, expectedPublicKey, waitingSignature}) => {
-    const wallet = useWallet()
+export const signNonce = async (wallet) => {
+    const walletPublicKey = wallet.publicKey.toString()
+    const derivedNonce = await fetchNonce(walletPublicKey)
+    const signature = await wallet.signMessage(new TextEncoder().encode(derivedNonce.message))
 
-    // Тимчасовий лог для перевірки оновлень
-    console.log('🔍 WalletForm wallet.publicKey:', wallet.publicKey?.toString())
-
-    useEffect(() => {
-        console.log('👀 WalletForm useEffect - wallet.publicKey changed to:', wallet.publicKey?.toString())
-    }, [wallet.publicKey])
-
-    return (
-        <div className="alert-success bg-light alert border text-center">
-            <h4>Wallet</h4>
-            <h6 className="lh-base mb-3">{texts[operation]}</h6>
-            <PublicKeyText {...{wallet, expectedPublicKey}} />
-            <SignatureText waitingSignature={waitingSignature} />
-            <ErrorText error={error} />
-            <div className="d-flex justify-content-center gap-2">
-                <WalletMultiButton />
-            </div>
-        </div>
-    )
+    return {
+        walletPublicKey,
+        signature: bs58.encode(signature),
+        ...derivedNonce,
+    }
 }
-
-
-// export const BuyToken = ({root, token, isMyMaterial}) => (
-//     <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
-//         <WalletProvider wallets={wallets} autoConnect={true}>
-//             <WalletModalProvider>
-//                 <BuyTokenInner tokenPublicKey={token} root={root} isMyMaterial={isMyMaterial} />
-//             </WalletModalProvider>
-//         </WalletProvider>
-//     </ConnectionProvider>
-// )

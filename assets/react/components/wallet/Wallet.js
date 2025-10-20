@@ -77,8 +77,8 @@ const WalletInner = () => {
             </div>
             <div className="panel-footer p-3 d-flex gap-2">
                 <ButtonHome />
-                <ButtonWalletLock onClick={lock} />
                 <ButtonSettings />
+                <ButtonWalletLock onClick={lock} />
             </div>
         </Provider>
     )

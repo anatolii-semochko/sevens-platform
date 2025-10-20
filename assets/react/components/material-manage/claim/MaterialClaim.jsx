@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import MaterialClaimApi from '@react/api/materialClaimApi'
 import store from '@react/store'
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
-import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
 import { route } from '@js/router/routing-with-locale'
-import { signNonce, WalletForm, wallets } from '@react/components/form-elements/WalletForm'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { signNonce, WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { getDateFromDate } from '@js/utils/time'
 import { getWalletTokens } from '@js/blockchain/sevens-token'
 import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
@@ -155,13 +154,9 @@ const MaterialsList = ({wallet, materials, selected, setSelected}) => {
 }
 
 const MaterialClaim = () => (
-    <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
-        <WalletProvider wallets={wallets} autoConnect={true}>
-            <WalletModalProvider>
-                <MaterialClaimInner />
-            </WalletModalProvider>
-        </WalletProvider>
-    </ConnectionProvider>
+    <WalletWrapper>
+        <MaterialClaimInner />
+    </WalletWrapper>
 )
 
 export default MaterialClaim

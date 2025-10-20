@@ -3,8 +3,8 @@ import useWalletContext from './hooks/useWalletContext'
 import { useEffect, useRef } from 'react'
 
 /**
- * Sevens Wallet Provider - повна імітація window.solana як у Phantom
- * Створює глобальний об'єкт window.solana для сумісності з стандартними адаптерами
+ * Sevens Wallet Provider - повна сумісність з Phantom Wallet API
+ * Створює глобальний об'єкт window.solana для інтеграції з Solana wallet adapters
  */
 class SevensWalletProvider {
     constructor() {
@@ -20,8 +20,6 @@ class SevensWalletProvider {
 
     // Phantom-сумісні методи
     async connect() {
-        console.log('🚀 SevensWalletProvider.connect() called, _hasWalletContext:', this._hasWalletContext)
-        
         if (this._connecting) {
             return { publicKey: this.publicKey }
         }
@@ -29,7 +27,6 @@ class SevensWalletProvider {
         this._connecting = true
         
         try {
-            // Якщо немає WalletContext, повернути помилку з інструкціями
             if (!this._hasWalletContext) {
                 throw new Error('Sevens Wallet requires WalletContextProvider. This component needs to be wrapped with WalletContextProvider or use a component that has access to it.')
             }
@@ -39,7 +36,6 @@ class SevensWalletProvider {
             
             // Якщо немає даних, почекати та спробувати ще раз (для race conditions)
             if (!currentWallet?.publicKey) {
-                console.log('⏳ Wallet not ready, retrying...')
                 await new Promise(resolve => setTimeout(resolve, 200))
                 currentWallet = await this._getCurrentWallet()
             }
@@ -49,7 +45,6 @@ class SevensWalletProvider {
                 this.isConnected = true
                 this._walletData = currentWallet
                 
-                // Емітити події як Phantom
                 this.emit('connect', this.publicKey)
                 this.emit('accountChanged', this.publicKey)
                 
@@ -161,7 +156,6 @@ class SevensWalletProvider {
             
             const resolveOnce = (data, isUnlocked) => {
                 responseCount++
-                console.log(`🔄 WalletContext response #${responseCount}:`, data, 'unlocked:', isUnlocked)
                 
                 // Зберегти найкращу відповідь (розблокований контекст з publicKey)
                 if (isUnlocked && data?.publicKey) {
@@ -175,7 +169,6 @@ class SevensWalletProvider {
                 }
             }
             
-            console.log('📡 Requesting wallet data from WalletContext...')
             const event = new CustomEvent('sevens-wallet-get-current', {
                 detail: {
                     callback: resolveOnce
@@ -183,10 +176,9 @@ class SevensWalletProvider {
             })
             window.dispatchEvent(event)
             
-            // Fallback якщо немає WalletContext (наприклад в BuyToken)
+            // Fallback якщо немає WalletContext
             setTimeout(() => {
                 if (!isResolved) {
-                    console.warn('No WalletContext available, Sevens Wallet not accessible in this component')
                     isResolved = true
                     resolve(bestResponse)
                 }
@@ -206,11 +198,6 @@ class SevensWalletProvider {
         const wasConnected = this.isConnected
         const oldPublicKey = this.publicKey
 
-        // console.log('🔄 updateWallet called:', {
-        //     newPublicKey: newPublicKey?.toString(),
-        //     oldPublicKey: oldPublicKey?.toString(),
-        //     wasConnected
-        // })
 
         if (newPublicKey) {
             this.publicKey = newPublicKey
@@ -219,23 +206,16 @@ class SevensWalletProvider {
 
             // Емітити події відповідно до стану
             if (!wasConnected) {
-                console.log('✅ Emitting connect event')
                 this.emit('connect', this.publicKey)
             } else if (!oldPublicKey || !oldPublicKey.equals(newPublicKey)) {
-                console.log('🔄 Emitting accountChanged event')
                 this.emit('accountChanged', this.publicKey)
-            } else {
-                console.log('ℹ️ Same publicKey, no event needed')
             }
         } else {
             if (wasConnected) {
-                console.log('❌ Emitting disconnect event')
                 this.publicKey = null
                 this.isConnected = false
                 this._walletData = null
                 this.emit('disconnect')
-            } else {
-                console.log('ℹ️ Already disconnected, no event needed')
             }
         }
     }
@@ -256,34 +236,25 @@ export function initializeSevensWallet() {
         try {
             // Завжди використовуємо window.sevens для уникнення конфліктів
             window.sevens = sevensWalletProvider
-            console.log('✅ Sevens Wallet Provider initialized as window.sevens')
             
             // Спробувати встановити window.solana якщо можливо
             if (!window.solana) {
                 try {
-                    // Спочатку спробувати прямий запис
                     window.solana = sevensWalletProvider
-                    console.log('✅ Also set as window.solana (direct assignment)')
                 } catch (e) {
-                    // Якщо прямий запис не працює, спробувати defineProperty
                     try {
                         Object.defineProperty(window, 'solana', {
                             value: sevensWalletProvider,
                             writable: false,
                             configurable: true
                         })
-                        console.log('✅ Also set as window.solana (defineProperty)')
                     } catch (e2) {
-                        console.log('ℹ️ Could not set window.solana, using only window.sevens')
+                        // Використовуємо тільки window.sevens
                     }
                 }
-            } else if (window.solana.isSevens) {
-                console.log('ℹ️ window.solana already contains Sevens Wallet')
-            } else {
-                console.log('ℹ️ window.solana already exists with other wallet, using only window.sevens')
             }
         } catch (error) {
-            console.error('❌ Failed to initialize Sevens Wallet Provider:', error)
+            console.error('Failed to initialize Sevens Wallet Provider:', error)
         }
     } else if (sevensWalletProvider) {
         // Якщо провайдер вже існує, синхронізувати флаг

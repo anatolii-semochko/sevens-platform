@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import MaterialSaleApi from '@react/api/materialSaleApi'
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
-import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
-import { wallets, WalletForm } from '@react/components/form-elements/WalletForm'
 import { setSale } from '@js/blockchain/sevens-token'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { Number } from '@react/components/form-elements/Inputs'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
@@ -128,11 +127,7 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
 }
 
 export const MaterialSale = (props) => (
-    <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
-        <WalletProvider wallets={wallets} autoConnect={true}>
-            <WalletModalProvider>
-                <MaterialSaleInner {...props} />
-            </WalletModalProvider>
-        </WalletProvider>
-    </ConnectionProvider>
+    <WalletWrapper>
+        <MaterialSaleInner {...props} />
+    </WalletWrapper>
 )

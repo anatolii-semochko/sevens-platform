@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('buyTokenBtn')?.addEventListener('click', () => {
         const container = document.getElementById('buyTokenForm')
         const root = ReactDOM.createRoot(container)
-        root.render(<BuyToken root={root} token={container.dataset.token} isMyMaterial={container.dataset.isMyMaterial}/>)
+        root.render(<BuyToken root={root} token={container.dataset.token} isMyMaterial={container.dataset.isMyMaterial} />)
     })
     document.querySelectorAll('.download-container-btn').forEach(btn => {
         btn.addEventListener('click', function() {

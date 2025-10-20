@@ -15,8 +15,8 @@ import { PublicKey } from '@solana/web3.js'
 let globalSevensWalletAdapter = null
 
 /**
- * Sevens Wallet Adapter - стандартний адаптер як PhantomWalletAdapter
- * Працює через window.solana для повної сумісності
+ * Sevens Wallet Adapter - стандартний Solana wallet adapter
+ * Повна сумісність з PhantomWalletAdapter API
  */
 class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
     name = 'Sevens Wallet'
@@ -30,8 +30,6 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
         this._wallet = null
         this._publicKey = null
         this._readyState = this._getReadyState()
-        this._adapterId = Math.random().toString(36).substr(2, 9)
-        console.log('🏗️ SevensWalletAdapter created with ID:', this._adapterId)
     }
 
     _getReadyState() {
@@ -39,33 +37,20 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
             return WalletReadyState.Unsupported
         }
         
-        // Перевірити чи є Sevens Wallet доступний (window.solana або window.sevens)
         const wallet = this._getSevensWallet()
-        // Повертаємо Loadable замість NotDetected для більшої толерантності
         return wallet ? WalletReadyState.Installed : WalletReadyState.Loadable
     }
 
     _getSevensWallet() {
         if (typeof window === 'undefined') return null
         
-        // Спочатку перевірити window.solana
         if (window.solana?.isSevens) {
-            console.log('🔍 Found Sevens Wallet at window.solana')
             return window.solana
         }
         
-        // Потім перевірити window.sevens
         if (window.sevens?.isSevens) {
-            console.log('🔍 Found Sevens Wallet at window.sevens')
             return window.sevens
         }
-        
-        console.log('⚠️ Sevens Wallet not found. Available:', {
-            'window.solana': !!window.solana,
-            'window.solana.isSevens': window.solana?.isSevens,
-            'window.sevens': !!window.sevens,
-            'window.sevens.isSevens': window.sevens?.isSevens
-        })
         
         return null
     }
@@ -93,11 +78,8 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
 
             this._connecting = true
 
-            // Перевірити чи є Sevens Wallet доступний з retry
-            let wallet = this._getSevensWallet()
+                let wallet = this._getSevensWallet()
             if (!wallet) {
-                // Чекати трохи для ініціалізації та повторити кілька разів
-                console.log('⏳ Waiting for Sevens Wallet to initialize...')
                 for (let i = 0; i < 5; i++) {
                     await new Promise(resolve => setTimeout(resolve, 50))
                     wallet = this._getSevensWallet()
@@ -109,12 +91,10 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
                 throw new WalletConnectionError('Sevens Wallet not found. Please make sure Sevens Wallet is available.')
             }
 
-            // Встановити event listeners
             wallet.on('connect', this._handleConnect)
             wallet.on('disconnect', this._handleDisconnect)
             wallet.on('accountChanged', this._handleAccountChanged)
 
-            // Підключитися
             const response = await wallet.connect()
             
             if (!response?.publicKey) {
@@ -132,8 +112,7 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
     async disconnect() {
         const wallet = this._wallet || this._getSevensWallet()
         if (wallet) {
-            // Видалити event listeners
-            wallet.off('connect', this._handleConnect)
+                wallet.off('connect', this._handleConnect)
             wallet.off('disconnect', this._handleDisconnect)
             wallet.off('accountChanged', this._handleAccountChanged)
 
@@ -200,35 +179,24 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
 
     // Event handlers
     _handleConnect = (publicKey) => {
-        console.log(`🔗 SevensWalletAdapter[${this._adapterId}]._handleConnect:`, publicKey?.toString())
         if (publicKey) {
             this._wallet = this._getSevensWallet()
             this._publicKey = publicKey
-            console.log(`📡 Emitting 'connect' to useWallet() with:`, publicKey?.toString())
             this.emit('connect', publicKey)
         }
     }
 
     _handleDisconnect = () => {
-        console.log(`💥 SevensWalletAdapter[${this._adapterId}]._handleDisconnect`)
         this._wallet = null
         this._publicKey = null
         this.emit('disconnect')
     }
 
     _handleAccountChanged = (publicKey) => {
-        console.log(`🔄 SevensWalletAdapter[${this._adapterId}]._handleAccountChanged:`, publicKey?.toString())
-        console.log(`🔍 Old publicKey:`, this._publicKey?.toString())
         if (publicKey) {
             this._publicKey = publicKey
-            console.log(`✅ Updated adapter[${this._adapterId}] publicKey to:`, this._publicKey?.toString())
-            console.log(`📡 Emitting 'accountChanged' to useWallet() with:`, publicKey?.toString())
-            
-            // Спробувати різні способи сповістити useWallet()
             this.emit('accountChanged', publicKey)
-            
-            // Додатково емітити connect для форсування оновлення
-            console.log(`🔄 Also emitting 'connect' to force update...`)
+            // Додатково емітити connect для форсування оновлення useWallet()
             this.emit('connect', publicKey)
         } else {
             this._handleDisconnect()
@@ -241,9 +209,6 @@ export class SevensWalletAdapter {
     constructor() {
         if (!globalSevensWalletAdapter) {
             globalSevensWalletAdapter = new SevensWalletAdapterImpl()
-            console.log('🏗️ Created global SevensWalletAdapter singleton:', globalSevensWalletAdapter._adapterId)
-        } else {
-            console.log('♻️ Reusing existing SevensWalletAdapter singleton:', globalSevensWalletAdapter._adapterId)
         }
         
         return globalSevensWalletAdapter

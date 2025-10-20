@@ -3,13 +3,11 @@ import React, { useEffect, useRef, useState } from 'react'
 import TokenApi from '@react/api/tokenApi'
 import MaterialSaleApi from '@react/api/materialSaleApi'
 import { Transaction } from '@solana/web3.js'
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
-import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
-import { wallets, WalletForm } from '@react/components/form-elements/WalletForm'
-import { SevensWalletInitializer } from '@react/components/wallet/SevensWalletInitializer'
+import { useWallet } from '@solana/wallet-adapter-react'
 import { createRoot } from 'react-dom/client'
 import { route } from '@js/router/routing-with-locale'
 import { buy } from '@js/blockchain/sevens-token'
+import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { callUserAuthorization } from '@react/components/form-elements/UserAuthorization'
 import { getAnchorErrorText } from '@js/blockchain/sevens'
 import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
@@ -24,7 +22,6 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
     const wallet = useWallet()
     const [deactivate, setDeactivate] = useState(false)
     const [tokenData, setTokenData] = useState(null)
-    const [fee, setFee] = useState(null)
     const [waitingSignature, setWaitingSignature] = useState(false)
     const [inProgress, setInProgress] = useState(false)
     const [sold, setSold] = useState(false)
@@ -199,15 +196,10 @@ const DownloadFilesContainer = ({ tokenPublicKey }) => {
     )
 }
 
-export const BuyToken = ({root, token, isMyMaterial}) => (
-    <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
-        <WalletProvider wallets={wallets} autoConnect={true}>
-            <WalletModalProvider>
-                <SevensWalletInitializer />
-                <BuyTokenInner tokenPublicKey={token} root={root} isMyMaterial={isMyMaterial} />
-            </WalletModalProvider>
-        </WalletProvider>
-    </ConnectionProvider>
+const BuyToken = ({token, root, isMyMaterial}) => (
+    <WalletWrapper>
+        <BuyTokenInner {...{tokenPublicKey: token, root, isMyMaterial}} />
+    </WalletWrapper>
 )
 
 export default BuyToken

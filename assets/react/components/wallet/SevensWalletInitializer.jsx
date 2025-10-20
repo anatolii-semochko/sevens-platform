@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { initializeSevensWallet, useSevensWalletSync } from './SevensWalletProvider'
 
 /**
- * Базовий ініціалізатор - тільки створює window.solana
+ * Базовий ініціалізатор для компонентів без WalletContext
  */
 export const SevensWalletInitializer = () => {
     // Ініціалізувати одразу, не чекаючи useEffect
@@ -21,7 +21,7 @@ export const SevensWalletInitializer = () => {
 }
 
 /**
- * Повний ініціалізатор з синхронізацією - для використання в WalletContextProvider
+ * Повний ініціалізатор з синхронізацією для компонентів з WalletContext
  */
 export const SevensWalletSyncInitializer = () => {
     // Ініціалізувати одразу, не чекаючи useEffect
