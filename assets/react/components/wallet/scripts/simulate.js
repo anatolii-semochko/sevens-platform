@@ -140,6 +140,10 @@ function parseInstructions(v0Message, accountKeys) {
                 }
             } else if (prog === PROGRAM_IDS.ATA) {
                 kind = "ata";
+            } else {
+                // Будь-яка інша програма - позначаємо як custom
+                // Витрати будуть розраховані через inner instructions
+                kind = "custom";
             }
         } catch (e) {
             // залишаємо unknown
@@ -154,6 +158,44 @@ function parseInstructions(v0Message, accountKeys) {
         });
     }
     return out;
+}
+
+/** === Парсинг inner instructions для витягування SOL трансферів === */
+function parseInnerInstructions(innerInstructions, accountKeys) {
+    const innerSolTransfers = [];
+
+    for (const inner of innerInstructions) {
+        const instructions = inner.instructions || [];
+        for (const ix of instructions) {
+            try {
+                const programId = accountKeys.get(ix.programIdIndex);
+                if (programId.toBase58() === PROGRAM_IDS.SYSTEM) {
+                    const accountIndexes = ix.accounts || [];
+                    const accounts = accountIndexes.map((i) => accountKeys.get(i));
+
+                    const legacyIx = {
+                        programId,
+                        keys: accounts.map((pk) => ({ pubkey: pk, isSigner: false, isWritable: true })),
+                        data: Buffer.from(ix.data),
+                    };
+
+                    const type = SystemInstruction.decodeInstructionType(legacyIx);
+                    if (type === "Transfer") {
+                        const info = SystemInstruction.decodeTransfer(legacyIx);
+                        innerSolTransfers.push({
+                            from: info.fromPubkey.toBase58(),
+                            to: info.toPubkey.toBase58(),
+                            lamports: Number(info.lamports),
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to parse inner instruction:', e);
+            }
+        }
+    }
+
+    return innerSolTransfers;
 }
 
 /** === Збірка підсумків (SOL/SPL перекази, mint-и) для UI === */
@@ -254,16 +296,24 @@ export async function simulateAndSummarize(connection, txOrVtx, opts = {}) {
     const baseFeeLamports = await estimateBaseFeeLamports(connection, v0Message, commitment);
 
     // 5) Симуляція (без перевірки підписів, підставляємо актуальний blockhash)
+    // Запитуємо innerInstructions для отримання вкладених викликів
     const sim = await connection.simulateTransaction(vtx, {
         sigVerify: false,
         replaceRecentBlockhash: true,
         commitment,
+        innerInstructions: true, // ВАЖЛИВО: отримуємо inner instructions
     });
 
     const simErr = sim?.value?.err || null;
     const unitsConsumed = sim?.value?.unitsConsumed ?? null;
     const logs = sim?.value?.logs || [];
     const returnData = sim?.value?.returnData || null;
+    const preBalances = sim?.value?.preBalances || [];
+    const postBalances = sim?.value?.postBalances || [];
+    const innerInstructions = sim?.value?.innerInstructions || [];
+
+    console.log('Simulation result:', sim?.value);
+    console.log('Inner instructions:', innerInstructions);
 
     // 6) Пріоритетна комісія на базі симуляції
     const priorityFeeLamports = estimatePriorityFeeLamports(unitsConsumed, cuLimit, cuPriceMicroLamports);
@@ -272,7 +322,165 @@ export async function simulateAndSummarize(connection, txOrVtx, opts = {}) {
     const parsedIxs = parseInstructions(v0Message, accountKeys);
     const { solTransfers, splTransfers, mints, burns } = buildHighLevelSummaries(parsedIxs);
 
-    // 8) Список всіх дотичних акаунтів (з ознаками signer/writable)
+    // 8) Парсимо inner instructions для витягування вкладених SOL трансферів
+    const innerSolTransfers = parseInnerInstructions(innerInstructions, accountKeys);
+    console.log('Inner SOL transfers:', innerSolTransfers);
+
+    // 9) Запасний варіант: якщо немає preBalances/postBalances та innerInstructions,
+    // намагаємося отримати баланси вручну ДО і ПІСЛЯ симуляції
+    const getManualBalances = async () => {
+        // Отримуємо поточний баланс payer
+        const payerPubkey = accountKeys.get(0);
+        if (!payerPubkey) return { pre: 0, post: 0 };
+
+        try {
+            const currentBalance = await connection.getBalance(payerPubkey, commitment);
+
+            // Розраховуємо приблизний post баланс на основі інструкцій
+            let estimatedSpent = (baseFeeLamports ?? 0) + (priorityFeeLamports ?? 0);
+
+            // Додаємо всі top-level SOL трансфери від payer
+            solTransfers.forEach(transfer => {
+                if (transfer.from === payer) {
+                    estimatedSpent += transfer.lamports;
+                }
+            });
+
+            // Додаємо inner transfers якщо є
+            innerSolTransfers.forEach(transfer => {
+                if (transfer.from === payer) {
+                    estimatedSpent += transfer.lamports;
+                }
+            });
+
+            // Якщо не знайшли жодних трансферів, але є виклик System Program,
+            // спробуємо витягти суму з instruction data
+            if (estimatedSpent === (baseFeeLamports ?? 0) + (priorityFeeLamports ?? 0)) {
+                for (const ix of parsedIxs) {
+                    if (ix.kind === "custom" || ix.kind === "unknown") {
+                        const hasSystemTransfer = logs.some(log =>
+                            log.includes('Program 11111111111111111111111111111111 invoke [2]')
+                        );
+
+                        if (hasSystemTransfer) {
+                            try {
+                                const data = Buffer.from(ix.rawDataBase64, 'base64');
+                                // Шукаємо u64 значення після discriminator (offset 8+)
+                                for (let offset = 8; offset <= data.length - 8; offset++) {
+                                    const amount = Number(data.readBigUInt64LE(offset));
+                                    // Розумна сума: більше комісії, менше 1000 SOL
+                                    if (amount > 5000 && amount < 1_000_000_000_000) {
+                                        console.log(`  Found amount at offset ${offset}:`, amount);
+                                        estimatedSpent += amount;
+                                        break;
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('Failed to parse instruction data:', e);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return {
+                pre: currentBalance,
+                post: currentBalance - estimatedSpent,
+                estimated: estimatedSpent,
+            };
+        } catch (e) {
+            console.warn('Failed to get manual balances:', e);
+            return { pre: 0, post: 0, estimated: 0 };
+        }
+    };
+
+    // 10) Розрахунок загальної вартості для поточного payer
+    const calculateTotalCost = () => {
+        console.log('calculateTotalCost - Starting calculation:')
+        console.log('  payer:', payer)
+
+        let totalCost = (baseFeeLamports ?? 0) + (priorityFeeLamports ?? 0);
+        console.log('  base fees:', totalCost)
+
+        // Підхід 1: Якщо є preBalances/postBalances від RPC - використовуємо їх (найточніше)
+        const payerIndex = accountKeys.staticAccountKeys.findIndex(key => key.toBase58() === payer);
+        if (payerIndex >= 0 && preBalances.length > 0 && postBalances.length > 0 &&
+            payerIndex < preBalances.length && payerIndex < postBalances.length) {
+            const preBalance = preBalances[payerIndex] || 0;
+            const postBalance = postBalances[payerIndex] || 0;
+            const balanceDiff = preBalance - postBalance;
+
+            console.log('  ✓ Using RPC balance diff (most accurate):')
+            console.log('    preBalance:', preBalance)
+            console.log('    postBalance:', postBalance)
+            console.log('    balanceDiff:', balanceDiff)
+
+            if (balanceDiff >= 0) {
+                totalCost = balanceDiff;
+            }
+        } else {
+            // Підхід 2: Парсимо інструкції (top-level + inner)
+            console.log('  ⚠ Using instruction parsing (fallback):')
+
+            let hasTransfers = false;
+
+            // Додаємо всі top-level SOL трансфери від payer
+            solTransfers.forEach(transfer => {
+                if (transfer.from === payer) {
+                    console.log('    + top-level SOL transfer:', transfer.lamports)
+                    totalCost += transfer.lamports;
+                    hasTransfers = true;
+                }
+            });
+
+            // Додаємо всі inner SOL трансфери від payer
+            innerSolTransfers.forEach(transfer => {
+                if (transfer.from === payer) {
+                    console.log('    + inner SOL transfer:', transfer.lamports)
+                    totalCost += transfer.lamports;
+                    hasTransfers = true;
+                }
+            });
+
+            // Підхід 3: Якщо не знайшли трансферів, але є кастомна програма з System Program викликом
+            if (!hasTransfers) {
+                console.log('  ⚠ No transfers found, scanning instruction data:')
+
+                for (const ix of parsedIxs) {
+                    if (ix.kind === "custom" || ix.kind === "unknown") {
+                        // Перевіряємо чи є inner виклик System Program (не top-level)
+                        const hasInnerSystemCall = logs.some(log =>
+                            log.includes('Program 11111111111111111111111111111111 invoke [2]')
+                        );
+
+                        if (hasInnerSystemCall) {
+                            try {
+                                const data = Buffer.from(ix.rawDataBase64, 'base64');
+                                // Шукаємо u64 після discriminator (мінімум offset 8)
+                                for (let offset = 8; offset <= data.length - 8; offset++) {
+                                    const amount = Number(data.readBigUInt64LE(offset));
+                                    // Валідна сума: > комісія і < 1000 SOL
+                                    if (amount > 5000 && amount < 1_000_000_000_000) {
+                                        console.log(`    + custom program amount (offset ${offset}):`, amount);
+                                        totalCost += amount;
+                                        hasTransfers = true;
+                                        break;
+                                    }
+                                }
+                            } catch (e) {
+                                console.warn('    Failed to parse instruction data:', e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        console.log('  → final totalCost:', totalCost)
+        return totalCost;
+    };
+
+    // 9) Список всіх дотичних акаунтів (з ознаками signer/writable)
     const touched = [];
     for (let i = 0; i < accountKeys.staticAccountKeys.length; i++) {
         const pk = accountKeys.staticAccountKeys[i].toBase58();
@@ -297,6 +505,7 @@ export async function simulateAndSummarize(connection, txOrVtx, opts = {}) {
             baseFeeLamports,                 // базова плата за підписи
             priorityFeeLamports,             // оцінка пріоритетної (за CU)
             estimatedTotalLamports: (baseFeeLamports ?? 0) + (priorityFeeLamports ?? 0),
+            totalCostLamports: calculateTotalCost(),     // повна вартість включно з трансферами
             lamportsPerSignature: null,      // за бажанням: витягни через getRecentPrioritizationFees/feeCalculator (нестабільно)
             signaturesCount: v0Message.header.numRequiredSignatures,
         },
