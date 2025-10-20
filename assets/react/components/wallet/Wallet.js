@@ -7,6 +7,8 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import '@solana/wallet-adapter-react-ui/styles.css'
 import { WalletContextProvider } from '@react/components/wallet/context/WalletContext'
+import { SevensWalletAdapter } from './SevensWalletAdapter'
+import { SevensWalletSyncInitializer } from './SevensWalletInitializer'
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { hasEncryptedWallets } from '@react/components/wallet/scripts/storageActions'
 import { showModal } from '@js/modal'
@@ -17,7 +19,10 @@ import WalletCreate from '@react/components/wallet/components/authorization/Wall
 import WalletUnlock from '@react/components/wallet/components/authorization/WalletUnlock'
 
 const WalletInner = () => {
-    const walletAdapters = useMemo(() => [new PhantomWalletAdapter()], [])
+    const walletAdapters = useMemo(() => [
+        new SevensWalletAdapter(),
+        new PhantomWalletAdapter()
+    ], [])
     const {walletConnection, walletsList, unlocked, setUnlocked, setPassword} = useWalletContext()
     const [hasWallets, setHasWallets] = useState(null) // null = loading, true/false = result
 
@@ -63,6 +68,7 @@ const WalletInner = () => {
                     <ConnectionProvider endpoint={walletConnection}>
                         <WalletProvider wallets={walletAdapters} autoConnect>
                             <WalletModalProvider>
+                                <SevensWalletSyncInitializer />
                                 <Content />
                             </WalletModalProvider>
                         </WalletProvider>

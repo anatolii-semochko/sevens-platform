@@ -119,6 +119,38 @@ const WalletContextProvider = ({ children }) => {
         }
     }
 
+    // Обробник для Sevens Wallet Provider - отримання поточного walletData
+    const handleGetCurrentWallet = (event) => {
+        console.log('🎯 WalletContext: Received sevens-wallet-get-current event')
+        console.log('🔍 Current state:', { 
+            unlocked, 
+            walletData: walletData?.publicKey ? { publicKey: walletData.publicKey } : walletData, 
+            hasPublicKey: !!walletData?.publicKey,
+            contextId: Math.random().toString(36).substr(2, 9) // для відстеження різних контекстів
+        })
+        
+        const { callback } = event.detail
+        if (callback && typeof callback === 'function') {
+            // Повернути walletData тільки якщо гаманець розблокований
+            if (unlocked && walletData?.publicKey) {
+                console.log('✅ Returning wallet data:', walletData.publicKey)
+                callback(walletData, true) // передати unlocked=true
+            } else {
+                console.log('❌ No wallet data available - unlocked:', unlocked, 'publicKey:', !!walletData?.publicKey)
+                callback(null, unlocked) // передати поточний стан unlocked
+            }
+        }
+    }
+
+    // Додати event listeners для Sevens Wallet Provider
+    useEffect(() => {
+        window.addEventListener('sevens-wallet-get-current', handleGetCurrentWallet)
+        
+        return () => {
+            window.removeEventListener('sevens-wallet-get-current', handleGetCurrentWallet)
+        }
+    }, [unlocked, walletData])
+
 
 
 

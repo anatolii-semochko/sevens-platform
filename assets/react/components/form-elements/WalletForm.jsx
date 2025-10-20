@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import bs58 from 'bs58'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { fetchNonce } from '@react/api/nodeApi'
@@ -13,9 +13,10 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 
 
 
+import { SevensWalletAdapter } from '@react/components/wallet/SevensWalletAdapter'
+
 export const wallets = [
-    // new SevensWalletAdapter(),
-    // new PhantomWalletAdapter()
+    new SevensWalletAdapter()
 ]
 
 const texts = {
@@ -72,6 +73,12 @@ const ErrorText = ({error}) => !!error && (
 export const WalletForm = ({operation, error, expectedPublicKey, waitingSignature}) => {
     const wallet = useWallet()
 
+    // Тимчасовий лог для перевірки оновлень
+    console.log('🔍 WalletForm wallet.publicKey:', wallet.publicKey?.toString())
+
+    useEffect(() => {
+        console.log('👀 WalletForm useEffect - wallet.publicKey changed to:', wallet.publicKey?.toString())
+    }, [wallet.publicKey])
 
     return (
         <div className="alert-success bg-light alert border text-center">

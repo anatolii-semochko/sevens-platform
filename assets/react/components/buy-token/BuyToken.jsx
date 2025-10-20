@@ -6,6 +6,7 @@ import { Transaction } from '@solana/web3.js'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
 import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
 import { wallets, WalletForm } from '@react/components/form-elements/WalletForm'
+import { SevensWalletInitializer } from '@react/components/wallet/SevensWalletInitializer'
 import { createRoot } from 'react-dom/client'
 import { route } from '@js/router/routing-with-locale'
 import { buy } from '@js/blockchain/sevens-token'
@@ -202,6 +203,7 @@ export const BuyToken = ({root, token, isMyMaterial}) => (
     <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
         <WalletProvider wallets={wallets} autoConnect={true}>
             <WalletModalProvider>
+                <SevensWalletInitializer />
                 <BuyTokenInner tokenPublicKey={token} root={root} isMyMaterial={isMyMaterial} />
             </WalletModalProvider>
         </WalletProvider>
