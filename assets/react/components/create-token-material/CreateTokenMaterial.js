@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react'
 import store from '@react/store'
 import { removeReferenceFile } from './utils/files'
-import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
+import { UserAuthorization } from '@react/components/user-auth/UserAuth'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { CreateContainer } from './components/container/CreateContainer'
 import { ContainerFileInfo } from './components/container/Components'

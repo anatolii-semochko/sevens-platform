@@ -6,7 +6,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { signNonce, WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { getDateFromDate } from '@js/utils/time'
 import { getWalletTokens } from '@js/blockchain/sevens-token'
-import { UserAuthorization } from '@react/components/form-elements/UserAuthorization'
+import { UserAuthorization } from '@react/components/user-auth/UserAuth'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 
