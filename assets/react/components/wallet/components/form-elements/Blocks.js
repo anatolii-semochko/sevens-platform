@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react'
+import React, { useState } from 'react'
+import clsx from 'clsx'
 import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import { t } from '@react/components/wallet/translations/translations'
 import { checkConnection } from '@react/components/wallet/scripts/apiActions'
@@ -8,7 +9,6 @@ import {
 import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { ButtonCopy, ButtonWalletClose } from '@react/components/wallet/components/form-elements/Buttons'
 import { ErrorMessageBlock, InfoMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
-import clsx from 'clsx'
 
 const WalletHeader = () => (
     <div className="panel-header w-100 p-2">
@@ -33,7 +33,7 @@ const BlockTitle = ({title, className}) => {
     return (
         <div className={clsx('mt-2 mb-3', className)}>
             {title?.split('\n').map((line, idx) => (
-                <h6 className="text-center mb-0" key={`title-${idx}`}>{line}</h6>
+                <h5 className="text-center mb-0" key={`title-${idx}`}>{line}</h5>
             ))}
         </div>
     )
@@ -66,27 +66,39 @@ const ConnectionInfo = () => {
 }
 
 const WalletDetails = ({walletData}) => {
-    const {rateUsd, hideBalances} = useWalletContext()
-    const balance = walletData?.balance ? walletData?.balance / LAMPORTS_PER_SOL : 0
-    const balanceUsd = balance ? walletData?.balance / LAMPORTS_PER_SOL * rateUsd : 0
+    const {hideBalances} = useWalletContext()
 
     return (
-        <>
+        <div>
             <label className={'text-center fw-bold w-100 fs-3'}>{walletData.name}</label>
-            <div className="card fs-2 mb-1">
-                <h5 className="card-header text-center fs-6">{getBlurredAddress(walletData.publicKey)}</h5>
-                <div className="d-grid my-1 px-2" style={{ gridTemplateColumns: "1fr auto" }}>
-                    <div className="text-end text-success fw-bold">
-                        {hideBalances ? '...' : limitNumberString(balance)}
-                    </div>
-                    <div className="text-start"><span className="fst-italic mx-2 fs-5">$SEV</span></div>
-                    <div className="text-end text-success fw-bold">
-                        {hideBalances ? '...' : balanceUsd.toFixed(2)}
-                    </div>
-                    <div className="text-start"><span className="fst-italic mx-2 fs-5">$USD</span></div>
+            <AmountInfo
+                label={getBlurredAddress(walletData.publicKey)}
+                hideBalances={hideBalances}
+                amount={walletData?.balance}
+            />
+        </div>
+    )
+}
+
+export const AmountInfo = ({label, amount, hideBalances, isSpending, hide}) => {
+    const {rateUsd} = useWalletContext()
+    const sum = amount ? amount / LAMPORTS_PER_SOL : 0
+    const sumUsd = amount ? amount / LAMPORTS_PER_SOL * rateUsd : 0
+
+    return !hide && (
+        <div className="card fs-2">
+            <h6 className="card-header text-center">{label}</h6>
+            <div className="d-grid my-1 px-2" style={{ gridTemplateColumns: "1fr auto" }}>
+                <div className={clsx('text-end fw-bold', isSpending ? 'text-primary' : 'text-success')}>
+                    {hideBalances ? '...' : limitNumberString(sum)}
                 </div>
+                <div className="text-start"><span className="fst-italic mx-2 fs-5">$SEV</span></div>
+                <div className={clsx('text-end fw-bold', isSpending ? 'text-primary' : 'text-success')}>
+                    {hideBalances ? '...' : sumUsd.toFixed(2)}
+                </div>
+                <div className="text-start"><span className="fst-italic mx-2 fs-5">$USD</span></div>
             </div>
-        </>
+        </div>
     )
 }
 

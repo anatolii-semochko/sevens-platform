@@ -4,7 +4,7 @@ import useWalletContext from '@react/components/wallet/hooks/useWalletContext'
 import { t } from '@react/components/wallet/translations/translations'
 import { connection, getWallet } from '@react/components/wallet/scripts/apiActions'
 import { simulateAndSummarize } from '@react/components/wallet/scripts/simulate'
-import { BlockTitle } from '@react/components/wallet/components/form-elements/Blocks'
+import { BlockTitle, AmountInfo } from '@react/components/wallet/components/form-elements/Blocks'
 import { ButtonCancelSign, ButtonSign } from '@react/components/wallet/components/form-elements/Buttons'
 import { ErrorMessageBlock } from '@react/components/wallet/components/form-elements/Messages'
 
@@ -63,6 +63,12 @@ const SignTransaction = ({ transaction, onSign, onCancel }) => {
                     <TransactionSummary simulationData={simulationData} />
                     <CoinsTransfer simulationData={simulationData} />
                     <TokenOperations simulationData={simulationData} />
+                    <AmountInfo
+                        label={'Total to spend'}
+                        amount={simulationData.pay?.totalCost}
+                        isSpending={true}
+                        hide={!!error}
+                    />
                     <ErrorMessageBlock message={error} className={'mb-0'} />
                     <div className="d-flex gap-2">
                         <ButtonCancelSign onClick={handleCancel} />
@@ -98,39 +104,37 @@ const SimulatingTransaction = ({simulationData}) => !simulationData && (
 
 const TransactionSummary = ({simulationData}) => (
     <div className="card">
-        <div className="card-header">
-            <div className="text-center">Transaction Summary</div>
-        </div>
+        <div className="card-header text-center">Transaction Summary</div>
         <div className={clsx('card-body', simulationData.ok ? 'bg-success-subtle' : 'bg-danger-subtle')}>
-            <div className="row mb-2">
+            <div className="row mb-3">
                 <div className="col-sm-4"><strong>Payer:</strong></div>
                 <div className="col-sm-8 small text-primary">{simulationData.payer}</div>
             </div>
             <div className="row mb-2">
-                <div className="col-sm-4"><strong>Fee:</strong></div>
+                <div className="col-sm-4"><strong>Expense:</strong></div>
                 <div className="col-sm-8">
                     <div>
                         <span className="text-primary fw-bold">
-                            {formatLamports(simulationData.fee?.estimatedTotalLamports)}
+                            {formatLamports(simulationData.pay?.expense)}
                         </span>
                         <span className="fst-italic ps-1">$SEV</span>
                     </div>
                     <small className="text-muted">
-                        ({simulationData.fee?.estimatedTotalLamports || 0} lamports)
+                        ({simulationData.pay?.expense || 0} lamports)
                     </small>
                 </div>
             </div>
             <div className="row">
-                <div className="col-sm-4"><strong>{t('totalCost')}:</strong></div>
+                <div className="col-sm-4"><strong>Fee:</strong></div>
                 <div className="col-sm-8">
                     <div>
                         <span className="text-primary fw-bold">
-                            {formatLamports(simulationData.fee?.totalCostLamports)}
+                            {formatLamports(simulationData.pay?.fee)}
                         </span>
                         <span className="fst-italic ps-1">$SEV</span>
                     </div>
                     <small className="text-muted">
-                        ({simulationData.fee?.totalCostLamports || 0} lamports)
+                        ({simulationData.pay?.fee || 0} lamports)
                     </small>
                 </div>
             </div>
@@ -140,9 +144,7 @@ const TransactionSummary = ({simulationData}) => (
 
 const CoinsTransfer = ({simulationData}) => simulationData.summaries?.solTransfers?.length > 0 && (
     <div className="card">
-        <div className="card-header">
-            <h6 className="mb-0">$SEV Transfers</h6>
-        </div>
+        <div className="card-header text-center">$SEV Transfers</div>
         <div className="card-body">
             {simulationData.summaries.solTransfers.map((transfer, index) => (
                 <div key={index} className="mb-2">
@@ -160,9 +162,7 @@ const TokenOperations = ({simulationData}) => (
     simulationData.summaries?.mints?.length > 0 || simulationData.summaries?.splTransfers?.length > 0
 ) && (
     <div className="card">
-        <div className="card-header">
-            <h6 className="mb-0">Token Operations</h6>
-        </div>
+        <div className="card-header text-center">Token Operations</div>
         <div className="card-body">
             {simulationData.summaries.mints?.map((mint, index) => (
                 <div key={`mint-${index}`} className="mb-2">
