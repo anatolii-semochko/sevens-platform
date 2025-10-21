@@ -1,15 +1,11 @@
 import {
     BaseMessageSignerWalletAdapter,
     WalletConnectionError,
-    WalletDisconnectionError,
-    WalletError,
     WalletNotConnectedError,
-    WalletNotReadyError,
     WalletReadyState,
     WalletSignMessageError,
     WalletSignTransactionError,
 } from '@solana/wallet-adapter-base'
-import { PublicKey } from '@solana/web3.js'
 
 // Глобальний екземпляр адаптера
 let globalSevensWalletAdapter = null
@@ -36,22 +32,22 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
         if (typeof window === 'undefined') {
             return WalletReadyState.Unsupported
         }
-        
+
         const wallet = this._getSevensWallet()
         return wallet ? WalletReadyState.Installed : WalletReadyState.Loadable
     }
 
     _getSevensWallet() {
         if (typeof window === 'undefined') return null
-        
+
         if (window.solana?.isSevens) {
             return window.solana
         }
-        
+
         if (window.sevens?.isSevens) {
             return window.sevens
         }
-        
+
         return null
     }
 
@@ -86,7 +82,7 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
                     if (wallet) break
                 }
             }
-            
+
             if (!wallet) {
                 throw new WalletConnectionError('Sevens Wallet not found. Please make sure Sevens Wallet is available.')
             }
@@ -96,13 +92,14 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
             wallet.on('accountChanged', this._handleAccountChanged)
 
             const response = await wallet.connect()
-            
+
             if (!response?.publicKey) {
                 throw new WalletConnectionError('Failed to connect to Sevens Wallet')
             }
 
         } catch (error) {
-            this.emit('error', error)
+            const errorMessage = error?.message || String(error)
+            this.emit('error', errorMessage)
             throw error
         } finally {
             this._connecting = false
@@ -112,7 +109,7 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
     async disconnect() {
         const wallet = this._wallet || this._getSevensWallet()
         if (wallet) {
-                wallet.off('connect', this._handleConnect)
+            wallet.off('connect', this._handleConnect)
             wallet.off('disconnect', this._handleDisconnect)
             wallet.off('accountChanged', this._handleAccountChanged)
 
@@ -122,7 +119,8 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
             try {
                 await wallet.disconnect()
             } catch (error) {
-                this.emit('error', new WalletDisconnectionError(error?.message, error))
+                const errorMessage = error?.message || String(error)
+                this.emit('error', errorMessage)
             }
         }
 
@@ -140,7 +138,8 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
                 throw new WalletSignTransactionError(error?.message, error)
             }
         } catch (error) {
-            this.emit('error', error)
+            const errorMessage = error?.message || String(error)
+            this.emit('error', errorMessage)
             throw error
         }
     }
@@ -156,7 +155,8 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
                 throw new WalletSignTransactionError(error?.message, error)
             }
         } catch (error) {
-            this.emit('error', error)
+            const errorMessage = error?.message || String(error)
+            this.emit('error', errorMessage)
             throw error
         }
     }
@@ -172,7 +172,8 @@ class SevensWalletAdapterImpl extends BaseMessageSignerWalletAdapter {
                 throw new WalletSignMessageError(error?.message, error)
             }
         } catch (error) {
-            this.emit('error', error)
+            const errorMessage = error?.message || String(error)
+            this.emit('error', errorMessage)
             throw error
         }
     }
@@ -210,7 +211,7 @@ export class SevensWalletAdapter {
         if (!globalSevensWalletAdapter) {
             globalSevensWalletAdapter = new SevensWalletAdapterImpl()
         }
-        
+
         return globalSevensWalletAdapter
     }
 }
