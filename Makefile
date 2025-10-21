@@ -132,6 +132,9 @@ app-build:
 	docker compose run --rm -w /app web-node npm install
 	docker compose run --rm -w /app web-node yarn build
 	routes
+	node-server-build
+	node-server-restart
+	yarn-build-production
 
 routes:
 	docker compose exec -T php-fpm php bin/console fos:js-routing:dump --target=public/build/fos_js_routes.json --format=json
