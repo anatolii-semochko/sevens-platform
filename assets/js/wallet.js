@@ -22,11 +22,6 @@ const openWallet = () => {
 }
 
 const closeWallet = () => {
-
-
-    // TODO - deactivate wallet adapter connection
-
-
     container.classList.remove('open')
     document.body.classList.remove('panel-opened')
 
