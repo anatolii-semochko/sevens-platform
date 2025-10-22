@@ -4,7 +4,8 @@
     "paths": {
       "@js/*": ["js/*"],
       "@css/*": ["css/*"],
-      "@react/*": ["react/*"]
+      "@react/*": ["react/*"],
+      "@wallet/*": ["react/components/wallet/*"]
     }
   },
   "include": ["assets"]

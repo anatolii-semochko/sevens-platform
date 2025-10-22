@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react'
 import bs58 from 'bs58'
-import { SevensWalletAdapter } from '@react/components/wallet/SevensWalletAdapter'
+import { SevensWalletAdapter } from '@wallet/SevensWalletAdapter'
 import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
 import { WalletModalProvider, WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import { openWallet } from '@js/wallet'

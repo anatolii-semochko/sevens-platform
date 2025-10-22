@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { Wallet, initializeSevensWallet } from '@react/components/wallet/Wallet'
-import { WalletContextProvider } from '@react/components/wallet/context/WalletContext'
+import { Wallet, initializeSevensWallet } from '@wallet/Wallet'
+import { WalletContextProvider } from '@wallet/context/WalletContext'
 
 initializeSevensWallet()
 

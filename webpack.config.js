@@ -50,6 +50,7 @@ config.resolve.alias = {
     '@js': path.resolve(__dirname, 'assets/js'),
     '@css': path.resolve(__dirname, 'assets/css'),
     '@react': path.resolve(__dirname, 'assets/react'),
+    '@wallet': path.resolve(__dirname, 'assets/react/components/wallet'),
 }
 config.resolve.fallback = {
     ...(config.resolve.fallback || {}),
