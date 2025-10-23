@@ -24,6 +24,7 @@ app.post('/transaction/match', TransactionController.matchTransactionAndSignatur
 app.get('/sevens-token', TokenController.getTokens)
 app.get('/sevens-token/age-minutes', TokenController.getAgeMinutes)
 app.get('/sevens-token/get-buy-transaction', TokenController.getBuyTransaction)
+app.get('/sevens-token/get-burn-transaction', TokenController.getBurnTransaction)
 
 // Auth routes
 app.get('/auth/nonce', AuthController.getNonce)
@@ -64,6 +65,7 @@ app.listen(port, '0.0.0.0', () => {
     console.log(`  Tokens: /node/sevens-token?hash=xxx`)
     console.log(`  Tokens: /node/sevens-token/age-minutes?publicKey=xxx`)
     console.log(`  Tokens: /node/sevens-token/get-buy-transaction?tokenPublicKey=xxx&buyerPublicKey=xxx`)
+    console.log(`  Tokens: /node/sevens-token/get-burn-transaction?tokenPublicKey=xxx`)
     console.log(`  Auth nonce: /node/auth/nonce?walletAddress=xxx`)
     console.log(`  Auth verify: POST /node/auth/verify`)
 })

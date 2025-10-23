@@ -61,4 +61,14 @@ class MaterialCommentRepository extends ServiceEntityRepository
         $this->getEntityManager()->remove($comment);
         $this->getEntityManager()->flush();
     }
+
+    public function deleteByMaterialToken(string $materialToken): int
+    {
+        return $this->createQueryBuilder('c')
+            ->delete()
+            ->where('c.materialToken = :token')
+            ->setParameter('token', $materialToken)
+            ->getQuery()
+            ->execute();
+    }
 }

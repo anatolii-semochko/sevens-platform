@@ -26,4 +26,12 @@ export default class MaterialApi {
             .then(response => response.data)
             .catch(throwErrorMessage)
     }
+
+    async delete(token) {
+        const url = `${mainUrl}/${token}`
+        return api
+            .delete(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
 }

@@ -120,6 +120,30 @@ class SevensTokenController {
             })
         }
     }
+
+    static async getBurnTransaction(req, res) {
+        try {
+            const { tokenPublicKey } = req.query
+
+            if (!tokenPublicKey) {
+                return res.status(400).json({
+                    error: 'Bad Request',
+                    message: 'tokenPublicKey query parameter are required',
+                })
+            }
+
+            res.json({
+                success: true,
+                data: await tokenService.getBurnTransaction(tokenPublicKey),
+            })
+        } catch (error) {
+            console.error('Error getting sevens token burn transaction:', error)
+            res.status(404).json({
+                error: 'Failed to create transaction',
+                message: getAnchorErrorText(error),
+            })
+        }
+    }
 }
 
 module.exports = SevensTokenController

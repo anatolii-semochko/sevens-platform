@@ -60,7 +60,17 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function sendBuyTokenSignedTransaction(string $txSignature): array
+    public function getBurnTokenTransaction(string $tokenPublicKey): array
+    {
+        return $this->get('/sevens-token/get-burn-transaction', [
+            'tokenPublicKey' => $tokenPublicKey,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function sendSignedTransaction(string $txSignature): array
     {
         return $this->post('/transaction/send', [
             'txSignature' => $txSignature,

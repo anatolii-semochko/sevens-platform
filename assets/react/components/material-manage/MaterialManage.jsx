@@ -5,6 +5,7 @@ import { ToggleSwitch } from '@react/components/form-elements/Inputs'
 import { MaterialEdit } from '@react/components/material-manage/edit/MaterialEdit'
 import { MaterialSale } from '@react/components/material-manage/sale/MaterialSale'
 import { TokenBurn } from '@react/components/material-manage/burn/TokenBurn'
+import { MaterialRemove } from '@react/components/material-manage/remove/MaterialRemove'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
 import { MaterialPreview } from '@react/components/info-componnents/material/MaterialInfo'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
@@ -65,7 +66,7 @@ const MaterialManage = ({token}) => {
 
     const tokenOk = () => tokenData && !tokenData.error
 
-    const componentsMap = {MaterialEdit, MaterialSale, TokenBurn}
+    const componentsMap = { MaterialEdit, MaterialSale, TokenBurn, MaterialRemove }
 
     const ComponentToRender = componentsMap[materialForm] || null
     if (materialForm) return (
@@ -112,19 +113,21 @@ const MaterialManage = ({token}) => {
                             </button>
                         </div>
                     </div>
-                    <div className="row mb-4">
-                        <div className="col-8">Burn token and remove publication:</div>
-                        <div className="col-4">
-                            <button className="btn btn-primary w-100" onClick={() => setMaterialForm('TokenBurn')}>
-                                Burn token
-                            </button>
+                    {tokenData.metadata.canBeBurned && (
+                        <div className="row mb-4">
+                            <div className="col-8">Burn token and remove publication:</div>
+                            <div className="col-4">
+                                <button className="btn btn-primary w-100" onClick={() => setMaterialForm('TokenBurn')}>
+                                    Burn token
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             )}
 
             {material && tokenData && !tokenOk() && (
-                <button className="btn btn-primary w-100 mb-4">
+                <button className="btn btn-primary w-100 mb-4" onClick={() => setMaterialForm('MaterialRemove')}>
                     Remove material
                 </button>
             )}

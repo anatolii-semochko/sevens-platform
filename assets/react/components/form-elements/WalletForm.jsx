@@ -15,7 +15,8 @@ const texts = {
     publish: 'Publishing material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
     claim: 'Claiming material requires signing the message to confirm ownership and verify that you own the token to avoid fraudulent publications. This operation does not require spending coins.',
     sale: "Listing a token for sale, canceling a sale, or changing the price you need to send a transaction to the blockchain. You need to sign it with the wallet that owns the token. Each transaction requires a blockchain fee — the amount will be displayed in the wallet before it's signed.",
-    buy: "To purchase a token, you need to activate your wallet and sign the transaction. You'll see the expected coin spend amount before signing the transaction."
+    buy: "To purchase a token, you need to activate your wallet and sign the transaction. You'll see the expected coin spend amount before signing the transaction.",
+    burn: 'Burning a token requires using a wallet to pay the transaction fee. Select and activate a wallet to burn the token.',
 }
 
 export const WalletWrapper = ({ children }) => (

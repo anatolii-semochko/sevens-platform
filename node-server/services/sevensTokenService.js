@@ -204,6 +204,44 @@ class SevensTokenService {
         }).toString('base64')
     }
 
+    async getBurnTransaction(tokenPublicKey) {
+        const mint = new PublicKey(tokenPublicKey)
+        const tokenData = await this.getTokenByPublicKey(tokenPublicKey)
+        const hash = tokenData.metadata.hash
+
+        const {
+            program,
+            metadataPda,
+            salePda,
+            hashRegistryPda,
+        } = this.getSevensToken(mint, hash)
+
+        const payerPublicKey = new PublicKey(tokenData.walletPublicKey)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, payerPublicKey, false, TOKEN_PROGRAM_ID)
+
+        const burnIx = await program.methods
+            .burnToken()
+            .accounts({
+                mint,
+                tokenAccount,
+                metadata: metadataPda,
+                sale: salePda,
+                hashRegistry: hashRegistryPda,
+                payerAccount: payerPublicKey,
+                tokenProgram: TOKEN_PROGRAM_ID,
+            })
+            .instruction()
+
+        const tx = new Transaction().add(burnIx)
+        tx.feePayer = payerPublicKey
+        tx.recentBlockhash = (await this.connection.getLatestBlockhash(commitment)).blockhash
+
+        return tx.serialize({
+            requireAllSignatures: false,
+            verifySignatures: false,
+        }).toString('base64')
+    }
+
     getSevensToken (publicKey, hash = null){
         if (!this.sevensIdl || !this.sevensIdl.metadata || !this.sevensIdl.metadata.address) {
             throw new Error('IDL not loaded or invalid')

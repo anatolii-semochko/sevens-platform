@@ -5,6 +5,7 @@ namespace App\Service\Blockchain;
 use App\Entity\Token\SevensToken;
 use App\Entity\Wallet\WalletMessageSignature;
 use App\Exception\NotFoundException;
+use App\Repository\Material\MaterialCommentRepository;
 use App\Repository\Material\MaterialRepository;
 use App\Service\NodeServer\NodeServerApiClient;
 use App\Service\NodeServer\NodeServerApiException;
@@ -19,6 +20,7 @@ readonly class TokenService
         private EntityManagerInterface $em,
         private NodeServerApiClient $nodeServerApiClient,
         private WalletService $walletService,
+        private MaterialCommentRepository $materialCommentRepository,
         private MaterialRepository $materialRepository,
     ) {}
 
@@ -131,7 +133,7 @@ readonly class TokenService
             throw new InvalidArgumentException('Material is not active.');
         }
         $this->walletService->matchTransactionSignature($transactionId, $txSignature);
-        $result = $this->nodeServerApiClient->sendBuyTokenSignedTransaction($txSignature);
+        $result = $this->nodeServerApiClient->sendSignedTransaction($txSignature);
 
         if ($result['success'] === true) {
             $material->setUser($user);
@@ -139,6 +141,32 @@ readonly class TokenService
             $material->setActive(!$deactivate);
             $this->em->persist($material);
             $this->em->flush();
+        }
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getBurnTransaction(string $tokenPublicKey): array
+    {
+        $transaction = $this->nodeServerApiClient->getBurnTokenTransaction($tokenPublicKey)['data'];
+        $transactionId = $this->walletService->saveTransaction($transaction);
+
+        return [
+            'transactionId' => $transactionId,
+            'transaction' => $transaction,
+        ];
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function burn(string $tokenPublicKey, string $transactionId, string $txSignature): void {
+        $this->walletService->matchTransactionSignature($transactionId, $txSignature);
+        $result = $this->nodeServerApiClient->sendSignedTransaction($txSignature);
+        if ($result['success'] === true) {
+            $this->materialCommentRepository->deleteByMaterialToken($tokenPublicKey);
+            $this->materialRepository->deleteByToken($tokenPublicKey);
         }
     }
 }

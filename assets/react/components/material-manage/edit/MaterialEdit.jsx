@@ -233,10 +233,10 @@ export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessa
             <MessagesBlock error={errorMessage} />
             <div className="d-flex justify-content-end row mb-3">
                 <div className="col col-6">
-                    <button className="btn btn-primary w-100 px-5" onClick={() => setMaterialForm(null)}>Cancel</button>
+                    <button className="btn btn-primary w-100" onClick={() => setMaterialForm(null)}>Cancel</button>
                 </div>
                 <div className="col col-6">
-                    <button className="btn btn-success w-100 px-5" onClick={() =>handlerSave(materialData)}>
+                    <button className="btn btn-success w-100" onClick={() =>handlerSave(materialData)}>
                         Save
                     </button>
                 </div>
