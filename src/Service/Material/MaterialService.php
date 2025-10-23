@@ -124,6 +124,12 @@ readonly class MaterialService
 
     public function updateMaterial(Material $material, array $data): void
     {
+        foreach ($data as $key => $value) {
+            if (is_string($value)) {
+                $data[$key] = trim($value);
+            }
+        }
+
         if (isset($data['active'])) {
             if ($data['active']) {
                 $this->tokenService->getByPublicKey($material->getToken());

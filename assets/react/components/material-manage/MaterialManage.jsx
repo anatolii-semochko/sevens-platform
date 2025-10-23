@@ -4,6 +4,7 @@ import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
 import { ToggleSwitch } from '@react/components/form-elements/Inputs'
 import { MaterialEdit } from '@react/components/material-manage/edit/MaterialEdit'
 import { MaterialSale } from '@react/components/material-manage/sale/MaterialSale'
+import { TokenBurn } from '@react/components/material-manage/burn/TokenBurn'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
 import { MaterialPreview } from '@react/components/info-componnents/material/MaterialInfo'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
@@ -64,10 +65,7 @@ const MaterialManage = ({token}) => {
 
     const tokenOk = () => tokenData && !tokenData.error
 
-    const componentsMap = {
-        MaterialEdit,
-        MaterialSale,
-    }
+    const componentsMap = {MaterialEdit, MaterialSale, TokenBurn}
 
     const ComponentToRender = componentsMap[materialForm] || null
     if (materialForm) return (
@@ -114,18 +112,10 @@ const MaterialManage = ({token}) => {
                             </button>
                         </div>
                     </div>
-                    <div className="row mb-3">
-                        <div className="col-8">Remove publication from site:</div>
-                        <div className="col-4">
-                            <button className="btn btn-primary w-100">
-                                Remove publication
-                            </button>
-                        </div>
-                    </div>
                     <div className="row mb-4">
                         <div className="col-8">Burn token and remove publication:</div>
                         <div className="col-4">
-                            <button className="btn btn-primary w-100">
+                            <button className="btn btn-primary w-100" onClick={() => setMaterialForm('TokenBurn')}>
                                 Burn token
                             </button>
                         </div>
