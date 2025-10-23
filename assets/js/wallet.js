@@ -41,6 +41,7 @@ const openWallet = () => {
     if (container) {
         container.classList.add('open')
         document.body.classList.add('panel-opened')
+        document.getElementById('main-body').classList.add('right-slide-panel-opened')
     }
 }
 
@@ -49,6 +50,7 @@ const closeWallet = () => {
     if (container) {
         container.classList.remove('open')
         document.body.classList.remove('panel-opened')
+        document.getElementById('main-body').classList.remove('right-slide-panel-opened')
     }
 }
 
