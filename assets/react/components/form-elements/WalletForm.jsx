@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import bs58 from 'bs58'
 import { SevensWalletAdapter } from '@wallet/SevensWalletAdapter'
 import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
@@ -32,13 +32,16 @@ export const WalletForm = ({operation, error, expectedPublicKey, waitingSignatur
     const wallet = useWallet()
     const walletRef = useRef(wallet)
     const retryIntervalRef = useRef(null)
+    const [walletOpened, setWalletOpened] = useState(false)
 
     useEffect(() => {
         walletRef.current = wallet
     })
 
     useEffect(() => {
-        walletInitialization(wallet, walletRef, retryIntervalRef)
+        openWallet()
+        walletPanelState(setWalletOpened)
+        walletInitialization(wallet, walletRef, retryIntervalRef, setWalletOpened)
     }, [])
 
     useEffect(() => {
@@ -53,7 +56,12 @@ export const WalletForm = ({operation, error, expectedPublicKey, waitingSignatur
             <SignatureText waitingSignature={waitingSignature} />
             <ErrorText error={error} />
             <div className="d-flex justify-content-center gap-2">
-                <WalletMultiButton />
+                {!walletOpened && (
+                    <button className="btn btn-primary w-100" onClick={openWallet}>
+                        Open Wallet
+                    </button>
+                )}
+                {/*<WalletMultiButton />*/}
             </div>
         </div>
     )
@@ -90,7 +98,7 @@ const ErrorText = ({error}) => !!error && (
     <p className="text-danger">{error.message || error}</p>
 )
 
-// Ініціалізація: відкриваємо панель гаманця, вибираємо адаптер, підписуємося на події
+// Ініціалізація: вибираємо адаптер, підписуємося на події
 const walletInitialization = (wallet, walletRef, retryIntervalRef) => {
     openWallet()
 
@@ -213,6 +221,26 @@ const walletAutoConnection = (wallet) => {
             sevensWallet.off('accountChanged', handleSevensConnect)
         }
     }
+}
+
+const walletPanelState = (setWalletOpened) => {
+    const walletPanel = document.getElementById('wallet-panel')
+    if (!walletPanel) return
+
+    // Перевіряємо початковий стан
+    setWalletOpened(walletPanel.classList.contains('open'))
+
+    // Спостерігаємо за змінами класів панелі
+    const observer = new MutationObserver(() => {
+        setWalletOpened(walletPanel.classList.contains('open'))
+    })
+
+    observer.observe(walletPanel, {
+        attributes: true,
+        attributeFilter: ['class']
+    })
+
+    return () => observer.disconnect()
 }
 
 export const signNonce = async (wallet) => {
