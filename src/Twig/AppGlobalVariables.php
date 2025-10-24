@@ -26,13 +26,13 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
     public function getGlobals(): array
     {
         $request = $this->requestStack->getCurrentRequest();
+        $isMobile = (bool) preg_match('/Mobile|Android|iPhone/i', $request->headers->get('User-Agent'));
         $category = $this->categoryRepository->getByUrl(CategoryConstants::MATERIALS_URL);
         $categories = $this->categoryRepository->fetchCategories($category->getId());
 
-//        dd($categories, $categories[0]->getLogo());
-
         return [
             'current_locale' => $request->getLocale(),
+            'is_mobile' => $isMobile,
             'global' => [
                 'host' => $request->getSchemeAndHttpHost(),
                 'canonicalUrl' => $request->getUri(),

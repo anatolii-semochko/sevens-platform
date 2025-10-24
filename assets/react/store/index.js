@@ -2,6 +2,7 @@ import { legacy_createStore as createStore } from 'redux'
 
 const initialState = {
     currentLocale: window.AppConfig?.currentLocale,
+    isMobile: window.AppConfig?.isMobile,
     path: window.AppConfig?.path,
     user: window.AppConfig?.user,
     translations: {},

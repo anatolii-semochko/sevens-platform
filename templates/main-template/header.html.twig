@@ -23,6 +23,9 @@
                 <a href="#" class="nav-link px-2">{{ 'Photo'|trans }}</a>
                 <a href="#" class="nav-link px-2">{{ 'Music'|trans }}</a>
                 <a href="#" class="nav-link px-2">{{ 'Documents'|trans }}</a>
+                <a href="#" class="nav-link px-2">
+                    {% if is_mobile %}Mobile{% else %}Desktop{% endif %}
+                </a>
             </nav>
         </div>
 
