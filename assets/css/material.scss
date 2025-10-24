@@ -23,7 +23,10 @@ MATERIAL INDIVIDUAL PAGE
 .mp-container{ max-width: 1160px; margin: 0 auto; padding-top: 6.25rem; }
 
 .mp-page .top-content [class*="col-"]{
-  width:auto !important;
+  // Це погане рішення. Ламає візуалізацію розмітки.
+  // width:auto !important;
+  // Бажано цей блок оголосити спец класом і використати в потрібних DOM елементах.
+  // Проконсультуйся зі мною. Талян.
   max-width:none !important;
   flex: 0 0 auto !important;
 }
