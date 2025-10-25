@@ -57,7 +57,41 @@ class TokenController extends BaseApiController
                 $this->getUser(),
                 $token,
                 $payload->get('transactionId'),
-                $payload->get('transaction'),
+                $payload->get('txSignature'),
+                $payload->get('deactivate'),
+            );
+
+            return $this->json(null);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/burn', name: 'get_burn_transaction', methods: ['GET'])]
+    public function getBurnTransaction(string $token): JsonResponse
+    {
+        try {
+            return $this->json($this->tokenService->getBurnTransaction($token));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/burn', name: 'burn', methods: ['POST'])]
+    public function burn(string $token, Request $request): JsonResponse
+    {
+        try {
+            $payload = $request->getPayload();
+            $this->tokenService->burn(
+                $token,
+                $payload->get('transactionId'),
+                $payload->get('txSignature'),
             );
 
             return $this->json(null);

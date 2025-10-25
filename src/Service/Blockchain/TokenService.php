@@ -5,6 +5,7 @@ namespace App\Service\Blockchain;
 use App\Entity\Token\SevensToken;
 use App\Entity\Wallet\WalletMessageSignature;
 use App\Exception\NotFoundException;
+use App\Repository\Material\MaterialCommentRepository;
 use App\Repository\Material\MaterialRepository;
 use App\Service\NodeServer\NodeServerApiClient;
 use App\Service\NodeServer\NodeServerApiException;
@@ -19,6 +20,7 @@ readonly class TokenService
         private EntityManagerInterface $em,
         private NodeServerApiClient $nodeServerApiClient,
         private WalletService $walletService,
+        private MaterialCommentRepository $materialCommentRepository,
         private MaterialRepository $materialRepository,
     ) {}
 
@@ -104,34 +106,67 @@ readonly class TokenService
     public function getBuyTransaction(string $tokenPublicKey, string $buyerPublicKey): array
     {
         $material = $this->materialRepository->get($tokenPublicKey);
-        $transaction = $this->nodeServerApiClient->getBuyTokenTransaction($material->getToken(), $buyerPublicKey);
-
-        // TODO - ADD TRANSACTION TO DB
+        $transaction = $this->nodeServerApiClient->getBuyTokenTransaction(
+            $material->getToken(),
+            $buyerPublicKey,
+        )['data'];
+        $transactionId = $this->walletService->saveTransaction($transaction);
 
         return [
-            'transactionId' => '',
-            'transaction' => $transaction['data'],
+            'transactionId' => $transactionId,
+            'transaction' => $transaction,
         ];
     }
 
     /**
      * @throws NodeServerApiException
      */
-    public function buy(?UserInterface $user, string $tokenPublicKey, string $transactionId, string $transaction): void
-    {
+    public function buy(
+        ?UserInterface $user,
+        string $tokenPublicKey,
+        string $transactionId,
+        string $txSignature,
+        bool $deactivate,
+    ): void {
         $material = $this->materialRepository->get($tokenPublicKey);
-
-        // TODO - CHECK TRANSACTION IN DB
-
-        $result = $this->nodeServerApiClient->sendBuyTokenSignedTransaction($transaction);
+        if (!$material->isActive()) {
+            throw new InvalidArgumentException('Material is not active.');
+        }
+        $this->walletService->matchTransactionSignature($transactionId, $txSignature);
+        $result = $this->nodeServerApiClient->sendSignedTransaction($txSignature);
 
         if ($result['success'] === true) {
-            if ($user) {
-                $material->setUser($user);
-            }
+            $material->setUser($user);
             $material->setPrice(0);
+            $material->setActive(!$deactivate);
             $this->em->persist($material);
             $this->em->flush();
+        }
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getBurnTransaction(string $tokenPublicKey): array
+    {
+        $transaction = $this->nodeServerApiClient->getBurnTokenTransaction($tokenPublicKey)['data'];
+        $transactionId = $this->walletService->saveTransaction($transaction);
+
+        return [
+            'transactionId' => $transactionId,
+            'transaction' => $transaction,
+        ];
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function burn(string $tokenPublicKey, string $transactionId, string $txSignature): void {
+        $this->walletService->matchTransactionSignature($transactionId, $txSignature);
+        $result = $this->nodeServerApiClient->sendSignedTransaction($txSignature);
+        if ($result['success'] === true) {
+            $this->materialCommentRepository->deleteByMaterialToken($tokenPublicKey);
+            $this->materialRepository->deleteByToken($tokenPublicKey);
         }
     }
 }

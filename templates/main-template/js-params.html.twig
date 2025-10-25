@@ -1,6 +1,7 @@
 <script>
     window.AppConfig = {
         currentLocale: '{{ current_locale }}',
+        isMobile: {% if is_mobile %}true{% else %}false{% endif %},
         path: {{ global.path|json_encode|raw }},
         user: {% if app.user %}{{ {
             'id': app.user.id,

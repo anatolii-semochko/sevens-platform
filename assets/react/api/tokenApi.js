@@ -19,10 +19,26 @@ export default class TokenApi {
             .catch(throwErrorMessage)
     }
 
-    async postBuyTransaction(token, transactionId, transaction) {
+    async postBuyTransaction(token, deactivate, transactionId, txSignature) {
         const url = `${mainUrl}/${token}/buy`
         return await api
-            .post(url, {transactionId, transaction})
+            .post(url, {deactivate, transactionId, txSignature})
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
+    async getBurnTransaction(token) {
+        const url = `${mainUrl}/${token}/burn`
+        return await api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
+    async postBurnTransaction(token, transactionId, txSignature) {
+        const url = `${mainUrl}/${token}/burn`
+        return await api
+            .post(url, {transactionId, txSignature})
             .then(response => response.data)
             .catch(throwErrorMessage)
     }

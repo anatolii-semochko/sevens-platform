@@ -264,6 +264,17 @@ header .bi-list {
         RIGHT PANEL
 ------------------------- */
 
+.main-header,
+.layout-wrapper {
+  padding-right: 0;
+  transition: padding-right 0.4s ease;
+}
+.right-slide-panel-opened {
+  > .main-header,
+  > .layout-wrapper {
+    padding-right: 360px;
+  }
+}
 .right-slide-panel {
   position: fixed;
   top: 0;

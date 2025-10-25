@@ -14,7 +14,7 @@
       "@/*": ["assets/*"],
       "@js/*": ["assets/js/*"],
       "@css/*": ["assets/css/*"],
-      "@react/*": ["assets/react/*"]
+      "@wallet/*": ["assets/react/components/wallet/*"],
     }
   },
   "include": [

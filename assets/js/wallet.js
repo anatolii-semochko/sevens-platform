@@ -1,38 +1,56 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { Wallet } from '@react/components/wallet/Wallet'
-import { WalletContextProvider } from '@react/components/wallet/context/WalletContext'
-import getWalletEventBus from '@react/components/wallet/EventBus.js'
+import { Wallet, initializeSevensWallet } from '@wallet/Wallet'
+import { WalletContextProvider } from '@wallet/context/WalletContext'
+
+initializeSevensWallet()
 
 let walletRoot = null
-const container = document.getElementById('wallet-panel')
+let isInitialized = false
 
-const openWallet = () => {
-    container.classList.add('open')
-    document.body.classList.add('panel-opened')
+const initializeWallet = () => {
+    if (isInitialized) return
 
-    if (!walletRoot) {
-        walletRoot = ReactDOM.createRoot(container)
+    const container = document.getElementById('wallet-panel')
+    if (!container) {
+        return
     }
 
+    walletRoot = ReactDOM.createRoot(container)
     walletRoot.render(
         <WalletContextProvider>
             <Wallet />
         </WalletContextProvider>
     )
+
+    isInitialized = true
+}
+
+// Ініціалізуємо WalletContext при завантаженні DOM
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeWallet)
+} else {
+    // DOM вже завантажений
+    initializeWallet()
+}
+
+const openWallet = () => {
+    initializeWallet()
+
+    const container = document.getElementById('wallet-panel')
+    if (container) {
+        container.classList.add('open')
+        document.body.classList.add('panel-opened')
+        document.getElementById('main-body').classList.add('right-slide-panel-opened')
+    }
 }
 
 const closeWallet = () => {
-    // Notify adapters that wallet is being closed
-    const eventBus = getWalletEventBus()
-    eventBus.emit('sevens-wallet-closed', { forceDisconnect: true })
-    
-    container.classList.remove('open')
-    document.body.classList.remove('panel-opened')
-
-    if (walletRoot) {
-        walletRoot.unmount()
-        walletRoot = null
+    const container = document.getElementById('wallet-panel')
+    if (container) {
+        container.classList.remove('open')
+        document.body.classList.remove('panel-opened')
+        document.getElementById('main-body').classList.remove('right-slide-panel-opened')
     }
 }
 

@@ -19,22 +19,6 @@ const Title = ({title, setTitle, error, setErrorMessage}) => (
     </div>
 )
 
-const ShortDescription = ({shortDescription, setShortDescription, error, setErrorMessage}) => (
-    <div className="col-12">
-        <label htmlFor="tokenDescription" className="form-label">Publication short description:</label>
-        <TextArea
-            id={'tokenDescription'}
-            placeholder={'optional'}
-            maxLength={256}
-            rows={4}
-            value={shortDescription}
-            onChange={setShortDescription}
-            setErrorMessage={setErrorMessage}
-        />
-        {error && <div className="invalid-feedback">Invalid</div>}
-    </div>
-)
-
 const Description = ({description, setDescription, error, setErrorMessage}) => (
     <div className="col-12">
         <label htmlFor="tokenDescription" className="form-label">Publication extended description:</label>
@@ -221,13 +205,12 @@ export const ImageSelectMain = ({images, logo, setLogo}) => {
 export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessage, setErrorMessage}) => {
     const [materialData, setMaterialData] = useState(material)
     const [title, setTitle] = useState(material?.title || '')
-    const [shortDescription, setShortDescription] = useState(material?.shortDescription || '')
     const [description, setDescription] = useState(material?.description || '')
     const [logo, setLogo] = useState(material?.logo || null)
 
     useEffect(() => {
-        setMaterialData(prev => ({...prev, title, shortDescription, description, logo}))
-    }, [title, shortDescription, description, logo])
+        setMaterialData(prev => ({...prev, title, description, logo}))
+    }, [title, description, logo])
 
     return (
         <div className="mb-3 pt-2">
@@ -243,17 +226,20 @@ export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessa
                 <div className="col-12 col-lg-7">
                     <div className="row g-3 mb-3">
                         <Title {...{title, setTitle, setErrorMessage}}/>
-                        <ShortDescription {...{shortDescription, setShortDescription, setErrorMessage}} />
                         <Description {...{description, setDescription, setErrorMessage}} />
                     </div>
                 </div>
             </div>
             <MessagesBlock error={errorMessage} />
-            <div className="d-flex justify-content-end gap-2">
-                <button className="btn btn-primary px-5" onClick={() => setMaterialForm(null)}>Cancel</button>
-                <button className="btn btn-success px-5" onClick={() =>handlerSave(materialData)}>
-                    Save
-                </button>
+            <div className="d-flex justify-content-end row mb-3">
+                <div className="col col-6">
+                    <button className="btn btn-primary w-100" onClick={() => setMaterialForm(null)}>Cancel</button>
+                </div>
+                <div className="col col-6">
+                    <button className="btn btn-success w-100" onClick={() =>handlerSave(materialData)}>
+                        Save
+                    </button>
+                </div>
             </div>
         </div>
     )

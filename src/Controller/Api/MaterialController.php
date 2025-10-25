@@ -92,4 +92,21 @@ class MaterialController extends BaseApiController
             throw new WrappedHttpException($e);
         }
     }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}', name: 'delete', methods: ['DELETE'])]
+    public function delete(string $token): JsonResponse
+    {
+        try {
+            $material = $this->materialRepository->get($token);
+            $this->checkAuthorization($material->getUser()?->getId());
+            $this->materialService->delete($material);
+
+            return $this->json(null);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
 }

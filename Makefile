@@ -6,10 +6,9 @@ IMAGE_TAG=latest
 REGISTRY=localhost make build
 APP_PATH=.
 
-init: docker-down-clear \
-	clear \
-	docker-pull docker-build docker-up
+init: docker-down-clear  clear  docker-pull docker-build docker-up
 init-build: init app-build
+app-build: composer-install npm-install routes yarn-build-development node-server-build node-server-restart
 
 up: docker-up
 down: docker-down
@@ -127,12 +126,6 @@ push:
 	docker push ${REGISTRY}/${IMAGE_NAME}-php-cli:${IMAGE_TAG}
 	docker push ${REGISTRY}/${IMAGE_NAME}-postgres-backup:${IMAGE_TAG}
 
-app-build:
-	docker compose run --rm --user root ${APP_PHP_CLI} composer install
-	docker compose run --rm -w /app web-node npm install
-	docker compose run --rm -w /app web-node yarn build
-	routes
-
 routes:
 	docker compose exec -T php-fpm php bin/console fos:js-routing:dump --target=public/build/fos_js_routes.json --format=json
 
@@ -194,11 +187,17 @@ node-server-bash:
 bash:
 	docker compose run --rm ${APP_PHP_CLI} bash
 
+composer-install:
+	docker compose run --rm --user root ${APP_PHP_CLI} composer install
+
 mysql:
 	docker compose exec mysql mysql -uapp -p
 
 node:
 	docker compose run --rm web-node bash
+
+npm-install:
+	docker compose run --rm -w /app web-node npm install
 
 yarn-install:
 	docker compose run --rm -w /app web-node yarn install

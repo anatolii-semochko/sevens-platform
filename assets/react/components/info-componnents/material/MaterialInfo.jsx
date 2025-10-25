@@ -43,8 +43,7 @@ export const MaterialInfo = ({material, tokenPublicKey}) => {
         }
     }, [tokenPublicKey])
 
-
-    if (material) {
+    if (!materialData) {
         return
     }
 

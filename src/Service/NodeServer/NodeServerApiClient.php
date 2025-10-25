@@ -2,47 +2,28 @@
 
 namespace App\Service\NodeServer;
 
-readonly class NodeServerApiClient
+readonly class NodeServerApiClient extends NodeServerApi
 {
-    public function __construct(
-        private string $nodeServerBaseUrl,
-    ) {}
-
     /**
      * @throws NodeServerApiException
      */
     public function fetchNonce(string $walletAddress): array
     {
-        $response = file_get_contents(
-            $this->nodeServerBaseUrl . '/auth/nonce?' . http_build_query(['walletAddress' => $walletAddress]),
-            false,
-            $this->getContext('GET'),
-        );
-        $this->checkResponse($response);
-
-        return json_decode($response, true);
+        return $this->get('/auth/nonce', [
+            'walletAddress' => $walletAddress,
+        ]);
     }
 
     /**
      * @throws NodeServerApiException
      */
-    public function validateSignature(
-        string $walletAddress,
-        string $signature,
-        string $nonce
-    ): array {
-        $response = file_get_contents(
-            $this->nodeServerBaseUrl . '/auth/verify',
-            false,
-            $this->getContext('POST', json_encode([
-                'walletAddress' => $walletAddress,
-                'signature' => $signature,
-                'nonce' => $nonce,
-            ])),
-        );
-        $this->checkResponse($response);
-
-        return json_decode($response, true);
+    public function validateSignature(string $walletAddress, string $signature, string $nonce): array
+    {
+        return $this->post('/auth/verify', [
+            'walletAddress' => $walletAddress,
+            'signature' => $signature,
+            'nonce' => $nonce,
+        ]);
     }
 
     /**
@@ -50,14 +31,9 @@ readonly class NodeServerApiClient
      */
     public function getTokenMetadata(string $tokenPublicKey): array
     {
-        $response = file_get_contents(
-            $this->nodeServerBaseUrl . '/sevens-token?' . http_build_query(['publicKey' => $tokenPublicKey]),
-            false,
-            $this->getContext('GET'),
-        );
-        $this->checkResponse($response);
-
-        return json_decode($response, true);
+        return $this->get('/sevens-token', [
+            'publicKey' => $tokenPublicKey,
+        ]);
     }
 
     /**
@@ -65,14 +41,9 @@ readonly class NodeServerApiClient
      */
     public function getTokenAgeMinutes(string $tokenPublicKey): array
     {
-        $response = file_get_contents(
-            $this->nodeServerBaseUrl . '/sevens-token/age-minutes?' . http_build_query(['publicKey' => $tokenPublicKey]),
-            false,
-            $this->getContext('GET'),
-        );
-        $this->checkResponse($response);
-
-        return json_decode($response, true);
+        return $this->get('/sevens-token/age-minutes', [
+            'publicKey' => $tokenPublicKey,
+        ]);
     }
 
     /**
@@ -80,60 +51,40 @@ readonly class NodeServerApiClient
      */
     public function getBuyTokenTransaction(string $tokenPublicKey, string $buyerPublicKey): array
     {
-        $response = file_get_contents(
-            $this->nodeServerBaseUrl . '/sevens-token/get-buy-transaction?' . http_build_query([
-                'tokenPublicKey' => $tokenPublicKey,
-                'buyerPublicKey' => $buyerPublicKey,
-            ]),
-            false,
-            $this->getContext('GET'),
-        );
-        $this->checkResponse($response);
-
-        return json_decode($response, true);
-    }
-
-    /**
-     * @throws NodeServerApiException
-     */
-    public function sendBuyTokenSignedTransaction(string $txSignature): array
-    {
-        $response = file_get_contents(
-            $this->nodeServerBaseUrl . '/transaction',
-             false,
-             $this->getContext('POST', json_encode([
-                 'txSignature' => $txSignature,
-             ])),
-        );
-        $this->checkResponse($response);
-
-        return json_decode($response, true);
-    }
-
-    private function getContext(string $method, ?string $content = null)
-    {
-        $http = [
-            'method' => $method,
-            'header' => 'Content-Type: application/json',
-            'timeout' => 30,
-        ];
-
-        if ($content) {
-            $http['content'] = $content;
-        }
-
-        return stream_context_create([
-            'http' => $http,
+        return $this->get('/sevens-token/get-buy-transaction', [
+            'tokenPublicKey' => $tokenPublicKey,
+            'buyerPublicKey' => $buyerPublicKey,
         ]);
     }
 
     /**
      * @throws NodeServerApiException
      */
-    private function checkResponse(false|string $response): void
+    public function getBurnTokenTransaction(string $tokenPublicKey): array
     {
-        if ($response === false) {
-            throw new NodeServerApiException('Failed to validate signature with Node Server');
-        }
+        return $this->get('/sevens-token/get-burn-transaction', [
+            'tokenPublicKey' => $tokenPublicKey,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function sendSignedTransaction(string $txSignature): array
+    {
+        return $this->post('/transaction/send', [
+            'txSignature' => $txSignature,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function matchTransactionAndSignature(string $transaction, string $txSignature): array
+    {
+        return $this->post('/transaction/match', [
+            'transaction' => $transaction,
+            'txSignature' => $txSignature,
+        ]);
     }
 }

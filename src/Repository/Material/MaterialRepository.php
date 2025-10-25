@@ -58,4 +58,14 @@ class MaterialRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function deleteByToken(string $token): int
+    {
+        return $this->createQueryBuilder('m')
+            ->delete()
+            ->where('m.token = :token')
+            ->setParameter('token', $token)
+            ->getQuery()
+            ->execute();
+    }
 }

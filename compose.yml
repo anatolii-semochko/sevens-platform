@@ -47,6 +47,7 @@ services:
     volumes:
       - .:/app
       - ../sevenstime-storage:/app/public/storage
+      - ../sevens-wallet-react/src:/app/assets/react/components/wallet
     command: sh -c "yarn install && yarn encore dev --watch"
     tty: true
     networks:

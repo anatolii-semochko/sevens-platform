@@ -1,28 +1,27 @@
 import store from '@react/store'
 import React, { useEffect, useRef, useState } from 'react'
-import MaterialSaleApi from '@react/api/materialSaleApi'
 import TokenApi from '@react/api/tokenApi'
+import MaterialSaleApi from '@react/api/materialSaleApi'
 import { Transaction } from '@solana/web3.js'
-import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
-import { ConnectionProvider, useWallet, WalletProvider } from '@solana/wallet-adapter-react'
-import { wallets, WalletForm } from '@react/components/form-elements/WalletForm'
+import { useWallet } from '@solana/wallet-adapter-react'
 import { createRoot } from 'react-dom/client'
 import { route } from '@js/router/routing-with-locale'
 import { buy } from '@js/blockchain/sevens-token'
-import { callUserAuthorization } from '@react/components/form-elements/UserAuthorization'
+import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
+import { callUserAuthorization } from '@react/components/user-auth/UserAuth'
 import { getAnchorErrorText } from '@js/blockchain/sevens'
 import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
 import { DownloadContainer } from '@react/components/download-container/DownloadContainer'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 
-const materialSaleApi = new MaterialSaleApi()
 const tokenApi = new TokenApi()
+const materialSaleApi = new MaterialSaleApi()
 
 const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
     const wallet = useWallet()
+    const [deactivate, setDeactivate] = useState(false)
     const [tokenData, setTokenData] = useState(null)
-    const [fee, setFee] = useState(null)
     const [waitingSignature, setWaitingSignature] = useState(false)
     const [inProgress, setInProgress] = useState(false)
     const [sold, setSold] = useState(false)
@@ -58,12 +57,15 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
             setWaitingSignature(false)
 
             setInProgress(true)
-            await tokenApi.postBuyTransaction(tokenPublicKey, 'xxx', txSignature.serialize({
-                requireAllSignatures: false,
-                verifySignatures: false,
-            }).toString('base64'))
-
-            // await materialSaleApi.refresh(tokenPublicKey) // TODO - CHECK IF IS NEEDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            await tokenApi.postBuyTransaction(
+                tokenPublicKey,
+                deactivate,
+                transactionData.transactionId,
+                txSignature.serialize({
+                    requireAllSignatures: false,
+                    verifySignatures: false,
+                }).toString('base64')
+            )
 
             setSold(true)
             openDownloadPopup(tokenPublicKey)
@@ -102,26 +104,50 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
 
     return !sold && (
         <div className="mt-3">
-            <NotAuthorizedMessage />
+            <NotAuthorizedBlock {...{deactivate, setDeactivate}}/>
             <WalletForm operation={'buy'} waitingSignature={waitingSignature}/>
             <ErrorMessageBlock message={error} className={'mt-b'} />
-            <ButtonWithProcessing
-                className={'btn-success w-100 mb-3'}
-                label={'Buy token'}
-                processing={waitingSignature || inProgress}
-                processingLabel={waitingSignature ? 'Waiting signature...' : 'Processing...'}
-                onClick={handlerBuy}
-            />
-            <ButtonClose root={root} />
+            <div className="row">
+                <div className="col col-6">
+                    <ButtonClose root={root} />
+                </div>
+                <div className="col col-6">
+                    <ButtonWithProcessing
+                        className={'btn-success w-100 mb-3'}
+                        label={'Buy token'}
+                        processing={waitingSignature || inProgress}
+                        processingLabel={waitingSignature ? 'Waiting signature...' : 'Processing...'}
+                        onClick={handlerBuy}
+                    />
+                </div>
+            </div>
         </div>
     )
 }
 
-const NotAuthorizedMessage = () => !store.getState().user?.id && (
-    <div className="alert-info alert text-center text-break p-4 mb-3">
-        You are purchasing a token as a guest. This means the publication will not be automatically transferred to your personal account,
-        and you can request it later on the <a href={route('material_claim')}>Request Materials</a> page.
-        Alternatively, please <button className="btn btn-link align-baseline p-0" onClick={callUserAuthorization}>Log In</button> before purchasing.
+const NotAuthorizedBlock = ({deactivate, setDeactivate}) => !store.getState().user?.id && (
+    <div className="alert-info alert text-break p-4 mb-3">
+        <p>
+            You are purchasing a token as a guest. This means the publication will not be automatically transferred to your personal account,
+            and you can request it later on the <a href={route('material_claim')}>Claim Materials</a> page.
+            Alternatively, please <button className="btn btn-link align-baseline p-0" onClick={callUserAuthorization}>Log In</button> before purchasing.
+        </p>
+        <p>
+            Also you can automatically deactivate this publication after purchase and reactivate it at any time later
+            from your management page after the material claim.
+        </p>
+        <div className="form-check">
+            <input
+                type="checkbox"
+                id="deactivate-publication"
+                className="form-check-input"
+                value={deactivate}
+                onClick={() => setDeactivate(!deactivate)}
+            />
+            <label className="form-check-label" htmlFor="deactivate-publication">
+                Deactivate publication
+            </label>
+        </div>
     </div>
 )
 
@@ -170,14 +196,10 @@ const DownloadFilesContainer = ({ tokenPublicKey }) => {
     )
 }
 
-export const BuyToken = ({root, token, isMyMaterial}) => (
-    <ConnectionProvider endpoint={process.env.ANCHOR_PROVIDER_URL}>
-        <WalletProvider wallets={wallets} autoConnect={true}>
-            <WalletModalProvider>
-                <BuyTokenInner tokenPublicKey={token} root={root} isMyMaterial={isMyMaterial} />
-            </WalletModalProvider>
-        </WalletProvider>
-    </ConnectionProvider>
+const BuyToken = ({token, root, isMyMaterial}) => (
+    <WalletWrapper>
+        <BuyTokenInner {...{tokenPublicKey: token, root, isMyMaterial}} />
+    </WalletWrapper>
 )
 
 export default BuyToken

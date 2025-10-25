@@ -17,12 +17,14 @@ app.use(express.json())
 // RESTFul API Routes
 
 // Transaction routes
-app.post('/transaction', TransactionController.sendTransaction)
+app.post('/transaction/send', TransactionController.sendTransaction)
+app.post('/transaction/match', TransactionController.matchTransactionAndSignature)
 
 // Token routes
 app.get('/sevens-token', TokenController.getTokens)
 app.get('/sevens-token/age-minutes', TokenController.getAgeMinutes)
 app.get('/sevens-token/get-buy-transaction', TokenController.getBuyTransaction)
+app.get('/sevens-token/get-burn-transaction', TokenController.getBurnTransaction)
 
 // Auth routes
 app.get('/auth/nonce', AuthController.getNonce)
@@ -57,11 +59,13 @@ app.use((err, req, res, next) => {
 app.listen(port, '0.0.0.0', () => {
     console.log(`Node server running on port ${port}`)
     console.log(`Available endpoints:`)
-    console.log(`  Transactions: POST /node/transaction`)
+    console.log(`  Transactions: POST /node/transaction/send`)
+    console.log(`  Transactions: POST /node/transaction/match`)
     console.log(`  Tokens: /node/sevens-token?publicKey=xxx`)
     console.log(`  Tokens: /node/sevens-token?hash=xxx`)
     console.log(`  Tokens: /node/sevens-token/age-minutes?publicKey=xxx`)
     console.log(`  Tokens: /node/sevens-token/get-buy-transaction?tokenPublicKey=xxx&buyerPublicKey=xxx`)
+    console.log(`  Tokens: /node/sevens-token/get-burn-transaction?tokenPublicKey=xxx`)
     console.log(`  Auth nonce: /node/auth/nonce?walletAddress=xxx`)
     console.log(`  Auth verify: POST /node/auth/verify`)
 })

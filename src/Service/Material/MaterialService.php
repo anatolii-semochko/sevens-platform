@@ -5,6 +5,8 @@ namespace App\Service\Material;
 use App\Entity\Material\Material;
 use App\Entity\Token\SevensTokenContainer;
 use App\Entity\Wallet\WalletMessageSignature;
+use App\Exception\NotFoundException;
+use App\Repository\Material\MaterialCommentRepository;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
 use App\Service\Blockchain\WalletService;
@@ -17,6 +19,7 @@ readonly class MaterialService
     public function __construct(
         private EntityManagerInterface $em,
         private MaterialRepository $repository,
+        private MaterialCommentRepository $materialCommentRepository,
         private TokenService $tokenService,
         private WalletService $walletService,
     ) {}
@@ -124,6 +127,12 @@ readonly class MaterialService
 
     public function updateMaterial(Material $material, array $data): void
     {
+        foreach ($data as $key => $value) {
+            if (is_string($value)) {
+                $data[$key] = trim($value);
+            }
+        }
+
         if (isset($data['active'])) {
             if ($data['active']) {
                 $this->tokenService->getByPublicKey($material->getToken());
@@ -172,6 +181,17 @@ readonly class MaterialService
                     $this->em->flush();
                 }
             }
+        }
+    }
+
+    public function delete(Material $material): void
+    {
+        try {
+            $this->tokenService->getByPublicKey($material->getToken());
+            throw new \InvalidArgumentException("Material can't be removed for active token in blockchain.");
+        } catch (NotFoundException $e) {
+            $this->materialCommentRepository->deleteByMaterialToken($material->getToken());
+            $this->repository->deleteByToken($material->getToken());
         }
     }
 }
