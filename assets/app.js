@@ -32,6 +32,7 @@ import MaterialClaim from '@react/components/material-manage/claim/MaterialClaim
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
 import CommentsManage from '@react/components/comments-manage/CommentsManage'
+import {HistoryTable} from "@react/components/info-componnents/token/TokenInfo";
 
 window.bootstrap = bootstrap
 window.Buffer = Buffer
@@ -86,6 +87,12 @@ if (materialVotes) {
             viewCount={parseInt(viewCount)}
         />
     )
+}
+
+const priceHistoryHistory = document.getElementById('token-price-history')
+if (priceHistoryHistory) {
+    const root = createRoot(priceHistoryHistory)
+    root.render(<HistoryTable tokenPublicKey={priceHistoryHistory.dataset.token} showChart={true} showTable={true} />)
 }
 
 const materialComments = document.getElementById('material-comments')

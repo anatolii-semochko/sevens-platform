@@ -62,7 +62,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
     )
 }
 
-export const HistoryTable = ({tokenPublicKey, showChart}) => {
+export const HistoryTable = ({tokenPublicKey, showChart, showTable, showWallet}) => {
     const [history, setHistory] = useState([])
     const [errorMessage, setErrorMessage] = useState(null)
 
@@ -81,23 +81,61 @@ export const HistoryTable = ({tokenPublicKey, showChart}) => {
         return
     }
 
+    const event = (row, key) => {
+        const previousRow = key > 0 ? history[key - 1] : null
+        if (!row.price) {
+            if (previousRow && previousRow.wallet !== row.wallet) {
+                return 'Purchase'
+            }
+            return 'Sale canceled'
+        }
+        if (!previousRow || previousRow.wallet !== row.wallet) {
+            return 'Listed for sale'
+        }
+        if (previousRow.price) {
+            if (row.price > previousRow.price) {
+                return 'Price increased'
+            } else if (row.price < previousRow.price) {
+                return 'Price decreased'
+            } else {
+                return 'Price updated'
+            }
+        }
+        return 'Listed for sale'
+    }
+
     return (
         <div className="mt-4">
             <h4 className="text-center mb-4">Sales history</h4>
             {showChart && (
                 <PriceHistoryChart history={history} />
             )}
-            <table className="table mb-4">
-                <tbody>
-                {history.map((row, key) => (
-                    <tr key={key}>
-                        <td>{row.wallet}</td>
-                        <td>{getDateTimeFromDate(row.date)}</td>
-                        <td className="text-end">{Info(row, key)}</td>
+            {showTable && (
+                <table className="table mb-4">
+                    <thead>
+                    <tr>
+                        <th>Date</th>
+                        {showWallet && (
+                            <th>Wallet</th>
+                        )}
+                        <th>Operation</th>
+                        <th></th>
                     </tr>
-                ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {history.map((row, key) => (
+                        <tr key={key}>
+                            <td>{getDateTimeFromDate(row.date)}</td>
+                            {showWallet && (
+                                <td>{row.wallet}</td>
+                            )}
+                            <td>{event(row, key)}</td>
+                            <td className="text-end">{Info(row, key)}</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            )}
             <ErrorMessageBlock message={errorMessage} />
         </div>
     )

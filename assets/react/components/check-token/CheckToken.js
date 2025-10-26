@@ -50,7 +50,7 @@ export const CheckToken = () =>  {
             <ContainerFileInfo {...{container}} />
             <ContainerCheckMessage {...{tokenData}} />
             <MaterialInfo tokenPublicKey={tokenData?.tokenPublicKey} />
-            <HistoryTable tokenPublicKey={tokenData?.tokenPublicKey?.toString()} showChart={true} />
+            <HistoryTable tokenPublicKey={tokenData?.tokenPublicKey?.toString()} showChart={true} showTable={true} />
             <MessagesBlock error={errorMessage} />
             <ActionButtons {...{handlerClear}}/>
         </div>

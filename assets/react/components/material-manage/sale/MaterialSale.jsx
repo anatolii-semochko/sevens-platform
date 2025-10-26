@@ -118,7 +118,7 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
                 </button>
             )}
             <MessagesBlock error={error} />
-            <HistoryTable tokenPublicKey={tokenData.tokenPublicKey} showChart={true} />
+            <HistoryTable tokenPublicKey={tokenData.tokenPublicKey} showChart={true} showTable={true} showWallet={true} />
             <button className="btn btn-primary w-100" onClick={() => setMaterialForm(null)} disabled={busy()}>
                 Back
             </button>
