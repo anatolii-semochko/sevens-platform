@@ -87,4 +87,12 @@ readonly class NodeServerApiClient extends NodeServerApi
             'txSignature' => $txSignature,
         ]);
     }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getTariffs(): array
+    {
+        return $this->get('/tariffs', null);
+    }
 }

@@ -1,24 +1,14 @@
 const anchor = require('@coral-xyz/anchor')
 const crypto = require('crypto')
-const https = require('https')
-const { URL } = require('url')
-const { Connection, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction} = require('@solana/web3.js')
+const { PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction} = require('@solana/web3.js')
 const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
-const { getPda } = require('../utils/blockchain')
-
-const commitment = 'confirmed'
+const { loadIdl, initializeProvider, getPda } = require('../utils/blockchain')
 
 class SevensTokenService {
     constructor() {
-        this.connection = new Connection(process.env.ANCHOR_PROVIDER_URL, commitment)
-
-        this.dummyWallet = {
-            publicKey: PublicKey.default,
-            signAllTransactions: async (txs) => txs,
-            signTransaction: async (tx) => tx,
-        }
-
-        this.provider = new anchor.AnchorProvider(this.connection, this.dummyWallet, {commitment})
+        const { connection, provider } = initializeProvider()
+        this.connection = connection
+        this.provider = provider
 
         this.sevensIdl = null
         this.program = null
@@ -30,57 +20,20 @@ class SevensTokenService {
         try {
             const idlPath = process.env.SEVENS_TOKEN_IDL_PATH
             if (!idlPath) {
-                console.error('SEVENS_TOKEN_IDL_PATH not set in environment')
-                return
+                throw new Error('SEVENS_TOKEN_IDL_PATH not set in environment')
             }
 
-            // Fetch IDL for development, ignore SSL certificate errors
-            let response
-            if (process.env.NODE_ENV === 'development' && idlPath.startsWith('https:')) {
-                const url = new URL(idlPath)
-                const options = {
-                    hostname: url.hostname,
-                    port: url.port || 443,
-                    path: url.pathname + url.search,
-                    method: 'GET',
-                    rejectUnauthorized: false, // Ignore self-signed certificates
-                }
+            this.sevensIdl = await loadIdl(idlPath)
+            this.program = new anchor.Program(
+                this.sevensIdl,
+                this.sevensIdl.metadata.address,
+                this.provider,
+            )
 
-                const data = await new Promise((resolve, reject) => {
-                    const req = https.request(options, (res) => {
-                        let data = ''
-                        res.on('data', chunk => data += chunk)
-                        res.on('end', () => resolve({ ok: res.statusCode === 200, text: () => Promise.resolve(data) }))
-                    })
-                    req.on('error', reject)
-                    req.end()
-                })
-
-                response = data
-            } else {
-                response = await fetch(idlPath)
-            }
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch IDL: ${response.statusText || 'Request failed'}`)
-            }
-
-            const jsonText = typeof response.text === 'function' ? await response.text() : response.text
-            this.sevensIdl = JSON.parse(jsonText)
-            console.log('IDL loaded successfully')
-
-            if (this.sevensIdl && this.sevensIdl.metadata && this.sevensIdl.metadata.address) {
-                this.program = new anchor.Program(
-                    this.sevensIdl,
-                    this.sevensIdl.metadata.address,
-                    this.provider,
-                )
-                console.log('Anchor program initialized')
-            } else {
-                console.error('Invalid IDL structure - missing metadata.address')
-            }
+            console.log('✅ Sevens Token IDL loaded successfully')
+            console.log(`   Program ID: ${this.sevensIdl.metadata.address}`)
         } catch (error) {
-            console.error('Error loading IDL:', error.message)
+            console.error('Error loading Sevens Token IDL:', error.message)
         }
     }
 
