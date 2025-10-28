@@ -11,6 +11,22 @@ export default class TokenApi {
             .catch(throwErrorMessage)
     }
 
+    async getSaleTransaction(token, price) {
+        const url = `${mainUrl}/${token}/sale/${price}`
+        return await api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
+    async postSaleTransaction(token, transactionId, txSignature) {
+        const url = `${mainUrl}/${token}/sale`
+        return await api
+            .post(url, {transactionId, txSignature})
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
     async getBuyTransaction(token, buyerPublicKey) {
         const url = `${mainUrl}/${token}/buy/${buyerPublicKey}`
         return await api

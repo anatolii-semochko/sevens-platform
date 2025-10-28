@@ -103,6 +103,16 @@ const isValidWalletAddress = (input) => {
     }
 }
 
+const getDeserializedTransaction = (transactionString) => Transaction.from(Buffer.from(
+    transactionString,
+    'base64',
+))
+
+const getSerializedTransaction = (transactionBuffer) => transactionBuffer.serialize({
+    requireAllSignatures: false,
+    verifySignatures: false,
+}).toString('base64')
+
 const getAnchorErrorText = (error) => {
     const originalMessage = error?.message || 'Unknown error'
 
@@ -257,4 +267,5 @@ export {
     connection, commitment,
     getWalletTokens, tokenTransfer, getPda, getAnchorErrorText,
     isValidSolanaAddress, isValidWalletAddress,
+    getDeserializedTransaction, getSerializedTransaction,
 }

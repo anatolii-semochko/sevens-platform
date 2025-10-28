@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import MaterialSaleApi from '@react/api/materialSaleApi'
-import { setSale } from '@js/blockchain/sevens-token'
+import TokenApi from '@react/api/tokenApi'
+import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { getDeserializedTransaction, getSerializedTransaction } from '@js/blockchain/sevens'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { Number } from '@react/components/form-elements/Inputs'
@@ -8,7 +9,7 @@ import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 
-const materialSaleApi = new MaterialSaleApi()
+const tokenApi = new TokenApi()
 
 const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
     const wallet = useWallet()
@@ -28,15 +29,25 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
                 return
             }
             setError(null)
-            setWaitingSignature(true)
-            await setSale ({
-                tokenPublicKey: tokenData.tokenPublicKey,
-                price: type === 'sale' ? price : 0,
-                wallet,
-            })
-            setWaitingSignature(false)
+
             setProcessing(true)
-            await materialSaleApi.refresh(tokenData.tokenPublicKey)
+            const transactionData = await tokenApi.getSaleTransaction(
+                tokenData.tokenPublicKey,
+                type === 'sale' ? price * LAMPORTS_PER_SOL : 0,
+            )
+            setProcessing(false)
+
+            setWaitingSignature(true)
+            const txSignature = await wallet.signTransaction(getDeserializedTransaction(transactionData.transaction))
+            setWaitingSignature(false)
+
+            setProcessing(true)
+            await tokenApi.postSaleTransaction(
+                tokenData.tokenPublicKey,
+                transactionData.transactionId,
+                getSerializedTransaction(txSignature),
+            )
+
             handlerSave()
         } catch (error) {
             setError(error.message)

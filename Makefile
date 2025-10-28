@@ -171,6 +171,7 @@ rollback:
 ##############
 node-server-build:
 	docker compose build node-server --no-cache
+	make node-server-restart
 
 node-server-restart:
 	docker compose up node-server --build -d

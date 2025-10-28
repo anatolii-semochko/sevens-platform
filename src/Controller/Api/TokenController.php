@@ -35,6 +35,40 @@ class TokenController extends BaseApiController
     /**
      * @throws HttpException
      */
+    #[Route('/{token}/sale/{price}', name: 'get_sale_transaction', methods: ['GET'])]
+    public function getSaleTransaction(string $token, int $price): JsonResponse
+    {
+        try {
+            return $this->json($this->tokenService->getSaleTransaction($token, $price));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/sale', name: 'sale', methods: ['POST'])]
+    public function sale(string $token, Request $request): JsonResponse
+    {
+        try {
+            $payload = $request->getPayload();
+            $this->tokenService->sale(
+                $this->getUser(),
+                $token,
+                $payload->get('transactionId'),
+                $payload->get('txSignature'),
+            );
+
+            return $this->json(null);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
     #[Route('/{token}/buy/{buyerPublicKey}', name: 'get_buy_transaction', methods: ['GET'])]
     public function getBuyTransaction(string $token, string $buyerPublicKey): JsonResponse
     {

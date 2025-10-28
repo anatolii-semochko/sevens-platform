@@ -103,6 +103,46 @@ readonly class TokenService
     /**
      * @throws NodeServerApiException
      */
+    public function getSaleTransaction(string $tokenPublicKey, int $price): array
+    {
+        $material = $this->materialRepository->get($tokenPublicKey);
+        $transaction = $this->nodeServerApiClient->getSaleTokenTransaction($material->getToken(), $price)['data'];
+        $transactionId = $this->walletService->saveTransaction($transaction);
+
+        return [
+            'transactionId' => $transactionId,
+            'transaction' => $transaction,
+        ];
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function sale(
+        ?UserInterface $user,
+        string $tokenPublicKey,
+        string $transactionId,
+        string $txSignature,
+    ): void {
+        $material = $this->materialRepository->get($tokenPublicKey);
+        if (!$material->isActive()) {
+            throw new InvalidArgumentException('Material is not active.');
+        }
+        $this->walletService->matchTransactionSignature($transactionId, $txSignature);
+        $result = $this->nodeServerApiClient->sendSignedTransaction($txSignature);
+
+        if ($result['success'] === true) {
+            $tokenData = $this->nodeServerApiClient->getTokenMetadata($tokenPublicKey)['data'];
+            $material->setUser($user);
+            $material->setPrice($tokenData['sale']['priceSevens']);
+            $this->em->persist($material);
+            $this->em->flush();
+        }
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
     public function getBuyTransaction(string $tokenPublicKey, string $buyerPublicKey): array
     {
         $material = $this->materialRepository->get($tokenPublicKey);
