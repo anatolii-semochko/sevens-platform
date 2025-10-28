@@ -62,7 +62,7 @@ readonly class NodeServerApiClient extends NodeServerApi
      */
     public function getBuyTokenTransaction(string $tokenPublicKey, string $buyerPublicKey): array
     {
-        return $this->get('/sevens-token/get-buy-transaction', [
+        return $this->get('/manage/buy', [
             'tokenPublicKey' => $tokenPublicKey,
             'buyerPublicKey' => $buyerPublicKey,
         ]);
