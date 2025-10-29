@@ -44,6 +44,12 @@ class TariffsService {
             this.program.programId
         )
 
+        // Check if account exists first
+        const accountInfo = await this.connection.getAccountInfo(tariffsPda)
+        if (!accountInfo) {
+            return null
+        }
+
         // Fetch account data
         const tariffsAccount = await this.program.account.tariffsData.fetch(tariffsPda)
 
@@ -54,6 +60,7 @@ class TariffsService {
             setSale: tariffsAccount.setSale.toString(),
             buy: tariffsAccount.buy,
             burn: tariffsAccount.burn.toString(),
+            paused: tariffsAccount.paused,
         }
     }
 
@@ -72,7 +79,7 @@ class TariffsService {
         }
 
         if (mint < 0 || setSale < 0 || burn < 0) {
-            throw new Error('Tariff values must be >= 0')
+            throw new Error('TokenManage values must be >= 0')
         }
 
         if (buy < 0 || buy >= 100) {
@@ -92,11 +99,11 @@ class TariffsService {
         const tariffsAccountInfo = await this.connection.getAccountInfo(tariffsPda)
         const tariffsAccountExists = tariffsAccountInfo !== null
 
-        // Build transaction - use initialize if account doesn't exist, updateTariffs otherwise
-        let tx
+        // Build instruction - use initialize if account doesn't exist, updateTariffs otherwise
+        let ix
         if (!tariffsAccountExists) {
             // First time initialization
-            tx = await this.program.methods
+            ix = await this.program.methods
                 .initialize(
                     targetWalletPubkey,
                     new anchor.BN(mint),
@@ -109,10 +116,10 @@ class TariffsService {
                     tariffs: tariffsPda,
                     systemProgram: SystemProgram.programId,
                 })
-                .transaction()
+                .instruction()
         } else {
             // Update existing tariffs
-            tx = await this.program.methods
+            ix = await this.program.methods
                 .updateTariffs(
                     targetWalletPubkey,
                     new anchor.BN(mint),
@@ -124,14 +131,18 @@ class TariffsService {
                     authority: authority,
                     tariffs: tariffsPda,
                 })
-                .transaction()
+                .instruction()
         }
+
+        // Create transaction
+        const { Transaction } = require('@solana/web3.js')
+        const tx = new Transaction()
+        tx.add(ix)
+        tx.feePayer = authority
 
         // Get recent blockhash
         const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
         tx.recentBlockhash = blockhash
-        tx.lastValidBlockHeight = lastValidBlockHeight
-        tx.feePayer = authority
 
         // Serialize transaction
         const serializedTx = tx.serialize({

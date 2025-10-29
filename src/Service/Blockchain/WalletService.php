@@ -27,11 +27,7 @@ readonly class WalletService
                 $walletSignature->geNonce(),
             );
 
-            if (!isset($response['success']) || !$response['success']) {
-                throw new InvalidArgumentException('Authentication failed');
-            }
-
-            if (!isset($response['data']['authenticated']) || !$response['data']['authenticated']) {
+            if (!$response['authenticated']) {
                 throw new InvalidArgumentException('Wallet not authenticated');
             }
         } catch (\Throwable $e) {

@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\Controller\BaseApiController;
 use App\Exception\WrappedHttpException;
+use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,22 +16,8 @@ class TokenController extends BaseApiController
 {
     public function __construct(
         private readonly TokenService $tokenService,
+        private readonly MaterialRepository $materialRepository,
     ) {}
-
-    /**
-     * @throws HttpException
-     */
-    #[Route('/{token}/sale-status', name: 'refresh_sale_status', methods: ['GET'])]
-    public function refreshSaleStatus(string $token): JsonResponse
-    {
-        try {
-            $tokenData = $this->tokenService->refreshSaleStatus($token);
-
-            return $this->json($tokenData, context: ['groups' => ['material:read']]);
-        } catch (\Exception $e) {
-            throw new WrappedHttpException($e);
-        }
-    }
 
     /**
      * @throws HttpException
@@ -52,12 +39,12 @@ class TokenController extends BaseApiController
     public function sale(string $token, Request $request): JsonResponse
     {
         try {
-            $payload = $request->getPayload();
+            $material = $this->materialRepository->get($token);
+            $this->checkAuthorization($material->getUser()->getId());
             $this->tokenService->sale(
-                $this->getUser(),
-                $token,
-                $payload->get('transactionId'),
-                $payload->get('txSignature'),
+                $material,
+                $request->getPayload()->get('transactionId'),
+                $request->getPayload()->get('txSignature'),
             );
 
             return $this->json(null);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Entity\Tariff;
+namespace App\Entity\TokenManage;
 
 use App\Entity\Admin\User;
 use Doctrine\ORM\Mapping as ORM;
@@ -10,7 +10,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity(repositoryClass: \App\Repository\Tariff\TariffHistoryRepository::class)]
+#[ORM\Entity(repositoryClass: \App\Repository\TokenManage\TariffHistoryRepository::class)]
 #[ORM\Table(name: 'admin_tariff_history')]
 class TariffHistory
 {

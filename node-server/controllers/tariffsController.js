@@ -2,7 +2,7 @@ const tariffsService = require('../services/TariffsService')
 const { getAnchorErrorText } = require('../utils/blockchain')
 
 class TariffsController {
-    static async getTariffs(req, res) {
+    async getTariffs(req, res) {
         try {
             const result = await tariffsService.getTariffs()
 
@@ -19,7 +19,7 @@ class TariffsController {
         }
     }
 
-    static async getTransaction(req, res) {
+    async getTransaction(req, res) {
         try {
             const { authorityPublicKey, targetWallet, mint, setSale, buy, burn } = req.query
 
@@ -68,4 +68,4 @@ class TariffsController {
     }
 }
 
-module.exports = TariffsController
+module.exports = new TariffsController()

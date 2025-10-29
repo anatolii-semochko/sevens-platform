@@ -10,12 +10,4 @@ export default class MaterialSaleApi {
             .then(response => response.data)
             .catch(throwErrorMessage)
     }
-
-    async refresh(token) {
-        const url = `${mainUrl}/${token}/refresh`
-        return api
-            .post(url, {})
-            .then(response => response.data)
-            .catch(throwErrorMessage)
-    }
 }

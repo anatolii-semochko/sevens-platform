@@ -39,6 +39,16 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
+    public function getManageTokenData(string $tokenPublicKey): array
+    {
+        return $this->get('/manage/get-data', [
+            'tokenPublicKey' => $tokenPublicKey,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
     public function getTokenAgeMinutes(string $tokenPublicKey): array
     {
         return $this->get('/sevens-token/age-minutes', [
@@ -49,9 +59,9 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function getSaleTokenTransaction(string $tokenPublicKey, int $price): array
+    public function getSaleTokenTransaction(string $tokenPublicKey, int $price): string
     {
-        return $this->get('/manage/sale', [
+        return $this->get('/manage/sale-transaction', [
             'tokenPublicKey' => $tokenPublicKey,
             'price' => $price,
         ]);
@@ -60,9 +70,9 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function getBuyTokenTransaction(string $tokenPublicKey, string $buyerPublicKey): array
+    public function getBuyTokenTransaction(string $tokenPublicKey, string $buyerPublicKey): string
     {
-        return $this->get('/manage/buy', [
+        return $this->get('/manage/buy-transaction', [
             'tokenPublicKey' => $tokenPublicKey,
             'buyerPublicKey' => $buyerPublicKey,
         ]);
@@ -71,7 +81,7 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function getBurnTokenTransaction(string $tokenPublicKey): array
+    public function getBurnTokenTransaction(string $tokenPublicKey): string
     {
         return $this->get('/sevens-token/get-burn-transaction', [
             'tokenPublicKey' => $tokenPublicKey,
@@ -81,9 +91,9 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function sendSignedTransaction(string $txSignature): array
+    public function sendSignedTransaction(string $txSignature): void
     {
-        return $this->post('/transaction/send', [
+        $this->post('/transaction/send', [
             'txSignature' => $txSignature,
         ]);
     }
@@ -91,9 +101,9 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function matchTransactionAndSignature(string $transaction, string $txSignature): array
+    public function matchTransactionAndSignature(string $transaction, string $txSignature): void
     {
-        return $this->post('/transaction/match', [
+        $this->post('/transaction/match', [
             'transaction' => $transaction,
             'txSignature' => $txSignature,
         ]);

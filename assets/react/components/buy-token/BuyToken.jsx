@@ -162,14 +162,12 @@ const DownloadFilesContainer = ({ tokenPublicKey }) => {
         modal.show()
     }, [])
 
-    const handleDownloaded = async () => {
-        materialSaleApi.refresh(tokenPublicKey).then(() => {
-            if (store.getState().user?.id) {
-                window.location.href = route('material_manage_one', {token: tokenPublicKey})
-            } else {
-                window.location.reload()
-            }
-        })
+    const handleDownloaded = () => {
+        if (store.getState().user?.id) {
+            window.location.href = route('material_manage_one', {token: tokenPublicKey})
+        } else {
+            window.location.reload()
+        }
     }
 
     return (

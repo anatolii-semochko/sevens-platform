@@ -2,16 +2,28 @@
 
 namespace App\Entity\Token;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 class SevensToken
 {
+    public const int LAMPORTS_PER_SOL = 1000000000;
+
+    #[Groups(['sevens-token:read'])]
     private string $tokenPublicKey;
     private \DateTime $mintingTimestamp;
+    #[Groups(['sevens-token:read'])]
     private string $name;
+    #[Groups(['sevens-token:read'])]
     private string $author;
+    #[Groups(['sevens-token:read'])]
     private string $description;
+    #[Groups(['sevens-token:read'])]
     private string $hash;
+    #[Groups(['sevens-token:read'])]
     private ?string $walletPublicKey;
+    #[Groups(['sevens-token:read'])]
     private ?bool $isOnSale;
+    #[Groups(['sevens-token:read'])]
     private ?float $price;
 
     public function __construct(

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Repository\Tariff;
+namespace App\Repository\TokenManage;
 
-use App\Entity\Tariff\TariffHistory;
+use App\Entity\TokenManage\TariffHistory;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

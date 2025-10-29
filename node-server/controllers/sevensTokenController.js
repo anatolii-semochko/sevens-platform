@@ -2,16 +2,25 @@ const tokenService = require('../services/sevensTokenService')
 const { getAnchorErrorText } = require('../utils/blockchain')
 
 class SevensTokenController {
-    static async getTokens(req, res) {
+    constructor() {
+        this.getTokens = this.getTokens.bind(this)
+        this.getByPublicKey = this.getByPublicKey.bind(this)
+        this.getByHash = this.getByHash.bind(this)
+        this.getAgeMinutes = this.getAgeMinutes.bind(this)
+        this.getBuyTransaction = this.getBuyTransaction.bind(this)
+        this.getBurnTransaction = this.getBurnTransaction.bind(this)
+    }
+
+    async getTokens(req, res) {
         try {
             const { publicKey, hash } = req.query
 
             if (publicKey) {
-                return await SevensTokenController.getByPublicKey(publicKey, res)
+                return await this.getByPublicKey(publicKey, res)
             }
 
             if (hash) {
-                return await SevensTokenController.getByHash(hash, res)
+                return await this.getByHash(hash, res)
             }
 
             res.status(400).json({
@@ -27,7 +36,7 @@ class SevensTokenController {
         }
     }
 
-    static async getByPublicKey(publicKey, res) {
+    async getByPublicKey(publicKey, res) {
         try {
             if (!publicKey) {
                 return res.status(400).json({
@@ -49,7 +58,7 @@ class SevensTokenController {
         }
     }
 
-    static async getByHash(hash, res) {
+    async getByHash(hash, res) {
         try {
             if (!hash) {
                 return res.status(400).json({
@@ -71,7 +80,7 @@ class SevensTokenController {
         }
     }
 
-    static async getAgeMinutes(req, res) {
+    async getAgeMinutes(req, res) {
         try {
             const { publicKey } = req.query
 
@@ -97,7 +106,7 @@ class SevensTokenController {
         }
     }
 
-    static async getBuyTransaction(req, res) {
+    async getBuyTransaction(req, res) {
         try {
             const { tokenPublicKey, buyerPublicKey } = req.query
 
@@ -121,7 +130,7 @@ class SevensTokenController {
         }
     }
 
-    static async getBurnTransaction(req, res) {
+    async getBurnTransaction(req, res) {
         try {
             const { tokenPublicKey } = req.query
 
@@ -146,4 +155,4 @@ class SevensTokenController {
     }
 }
 
-module.exports = SevensTokenController
+module.exports = new SevensTokenController()

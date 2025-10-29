@@ -8,6 +8,7 @@ use App\Entity\Wallet\WalletMessageSignature;
 use App\Exception\NotFoundException;
 use App\Repository\Material\MaterialCommentRepository;
 use App\Repository\Material\MaterialRepository;
+use App\Repository\Token\TokenRepository;
 use App\Service\Blockchain\TokenService;
 use App\Service\Blockchain\WalletService;
 use App\Service\NodeServer\NodeServerApiException;
@@ -20,6 +21,7 @@ readonly class MaterialService
         private EntityManagerInterface $em,
         private MaterialRepository $repository,
         private MaterialCommentRepository $materialCommentRepository,
+        private TokenRepository $tokenRepository,
         private TokenService $tokenService,
         private WalletService $walletService,
     ) {}
@@ -44,7 +46,7 @@ readonly class MaterialService
         ?WalletMessageSignature $walletMessageSignature,
     ): void {
         // Get token data from blockchain
-        $sevensToken = $this->tokenService->getByPublicKey($tokenPublicKey);
+        $sevensToken = $this->tokenRepository->get($tokenPublicKey);
         // Check if user owns the token
         $this->tokenService->checkUserPermissionToPublishMaterial($sevensToken, $walletMessageSignature);
         // Create material
@@ -135,7 +137,7 @@ readonly class MaterialService
 
         if (isset($data['active'])) {
             if ($data['active']) {
-                $this->tokenService->getByPublicKey($material->getToken());
+                $this->tokenRepository->get($material->getToken());
                 if (!$material->getTitle()) {
                     throw new \InvalidArgumentException('The title is required to activate the publication..');
                 }
@@ -173,7 +175,7 @@ readonly class MaterialService
     {
         $this->walletService->verifyWalletSignature($walletSignature);
         foreach ($tokens as $tokenPublicKey) {
-            $tokenData = $this->tokenService->getByPublicKey($tokenPublicKey);
+            $tokenData = $this->tokenRepository->get($tokenPublicKey);
             if ($tokenData->getWalletPublicKey() === $walletSignature->getWalletPublicKey()) {
                 if ($material = $this->finByTokenPublicKey($tokenPublicKey)) {
                     $material->setUser($user);
@@ -187,7 +189,7 @@ readonly class MaterialService
     public function delete(Material $material): void
     {
         try {
-            $this->tokenService->getByPublicKey($material->getToken());
+            $this->tokenRepository->get($material->getToken());
             throw new \InvalidArgumentException("Material can't be removed for active token in blockchain.");
         } catch (NotFoundException $e) {
             $this->materialCommentRepository->deleteByMaterialToken($material->getToken());

@@ -3,7 +3,7 @@ const authService = require('../services/authService')
 class AuthController {
 
     // GET /auth/nonce
-    static async getNonce(req, res) {
+    async getNonce(req, res) {
         try {
             const { walletAddress } = req.query
 
@@ -33,7 +33,7 @@ class AuthController {
     }
 
     // POST /auth/verify
-    static async verifySignature(req, res) {
+    async verifySignature(req, res) {
         try {
             const { walletAddress, signature, nonce } = req.body
 
@@ -49,7 +49,7 @@ class AuthController {
             res.json({
                 success: true,
                 data: {
-                    authenticated: true,
+                    authenticated: result.success,
                     walletAddress: result.walletAddress,
                     verifiedAt: result.verifiedAt,
                 },
@@ -64,4 +64,4 @@ class AuthController {
     }
 }
 
-module.exports = AuthController
+module.exports = new AuthController()

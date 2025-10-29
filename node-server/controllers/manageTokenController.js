@@ -1,201 +1,7 @@
 const manageTokenService = require('../services/manageTokenService')
-const tariffsService = require('../services/TariffsService')
 const sevensTokenService = require('../services/sevensTokenService')
 
 class ManageTokenController {
-    /**
-     * GET /node/manage/tariffs
-     * Returns current tariffs
-     */
-    async getTariffs(req, res) {
-        try {
-            const tariffs = await tariffsService.getTariffs()
-            res.json(tariffs)
-        } catch (error) {
-            console.error('Error getting tariffs:', error)
-            res.status(500).json({
-                error: 'Failed to get tariffs',
-                message: error.message,
-            })
-        }
-    }
-
-    /**
-     * GET /node/manage/transaction
-     * Returns unsigned transaction for managed operation (mint/setSale/buy/burn)
-     * Query params depend on operation type
-     */
-    async getTransaction(req, res) {
-        try {
-            const { operation } = req.query
-
-            if (!operation) {
-                return res.status(400).json({
-                    error: 'Missing operation parameter',
-                    message: 'operation is required (mint, setSale, buy, burn)',
-                })
-            }
-
-            let transaction
-
-            switch (operation) {
-                case 'mint':
-                    transaction = await manageTokenService.getMintTransaction(
-                        req.query.payerPublicKey,
-                        req.query.tokenPublicKey
-                    )
-                    break
-
-                case 'setSale':
-                    transaction = await manageTokenService.getSetSaleTransaction(
-                        req.query.tokenPublicKey,
-                        req.query.ownerPublicKey,
-                        req.query.onSale === 'true',
-                        req.query.price
-                    )
-                    break
-
-                case 'buy':
-                    transaction = await manageTokenService.getBuyTransaction(
-                        req.query.tokenPublicKey,
-                        req.query.buyerPublicKey
-                    )
-                    break
-
-                case 'burn':
-                    transaction = await manageTokenService.getBurnTransaction(
-                        req.query.tokenPublicKey,
-                        req.query.ownerPublicKey
-                    )
-                    break
-
-                default:
-                    return res.status(400).json({
-                        error: 'Invalid operation',
-                        message: 'operation must be one of: mint, setSale, buy, burn',
-                    })
-            }
-
-            res.json([
-
-            ])
-        } catch (error) {
-            console.error('Error getting transaction:', error)
-            res.status(500).json({
-                error: 'Failed to get transaction',
-                message: error.message,
-            })
-        }
-    }
-
-    /**
-     * POST /node/manage/mint
-     * Executes managed mint operation with signed transaction
-     */
-    async mint(req, res) {
-        try {
-            const { signedTransaction } = req.body
-
-            if (!signedTransaction) {
-                return res.status(400).json({
-                    error: 'Missing signedTransaction',
-                })
-            }
-
-            const result = await manageTokenService.executeMint(signedTransaction)
-            res.json(result)
-        } catch (error) {
-            console.error('Error executing mint:', error)
-            res.status(500).json({
-                error: 'Failed to execute mint',
-                message: error.message,
-            })
-        }
-    }
-
-    /**
-     * POST /node/manage/setSale
-     * Executes managed setSale operation with signed transaction
-     */
-    async setSale(req, res) {
-        try {
-            const { signedTransaction } = req.body
-
-            if (!signedTransaction) {
-                return res.status(400).json({
-                    error: 'Missing signedTransaction',
-                })
-            }
-
-            res.json({
-                success: true,
-                data: await manageTokenService.executeSetSale(signedTransaction),
-            })
-        } catch (error) {
-            console.error('Error executing setSale:', error)
-            res.status(500).json({
-                error: 'Failed to execute setSale',
-                message: error.message,
-            })
-        }
-    }
-
-    /**
-     * POST /node/manage/buy
-     * Executes managed buy operation with signed transaction
-     */
-    async buy(req, res) {
-        try {
-            const { signedTransaction } = req.body
-
-            if (!signedTransaction) {
-                return res.status(400).json({
-                    error: 'Missing signedTransaction',
-                })
-            }
-
-            res.json({
-                success: true,
-                data: await manageTokenService.executeBuy(signedTransaction)
-            })
-        } catch (error) {
-            console.error('Error executing buy:', error)
-            res.status(500).json({
-                error: 'Failed to execute buy',
-                message: error.message,
-            })
-        }
-    }
-
-    /**
-     * POST /node/manage/burn
-     * Executes managed burn operation with signed transaction
-     */
-    async burn(req, res) {
-        try {
-            const { signedTransaction } = req.body
-
-            if (!signedTransaction) {
-                return res.status(400).json({
-                    error: 'Missing signedTransaction',
-                })
-            }
-
-            const result = await manageTokenService.executeBurn(signedTransaction)
-            res.json(result)
-        } catch (error) {
-            console.error('Error executing burn:', error)
-            res.status(500).json({
-                error: 'Failed to execute burn',
-                message: error.message,
-            })
-        }
-    }
-
-    /**
-     * GET /node/manage/get-data?tokenPublicKey=xxx
-     * Returns TokenManagementData PDA for the token
-     */
     async getData(req, res) {
         try {
             const { tokenPublicKey } = req.query
@@ -206,8 +12,44 @@ class ManageTokenController {
                 })
             }
 
-            const data = await manageTokenService.getTokenManagementData(tokenPublicKey)
-            res.json(data)
+            // Get token data from blockchain (sevens-token)
+            const tokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
+
+            if (!tokenData) {
+                return res.status(404).json({
+                    error: 'Token not found',
+                    message: 'Token does not exist in blockchain',
+                })
+            }
+
+            // Get management data from TokenManagementData PDA
+            const managementData = await manageTokenService.getTokenManagementData(tokenPublicKey)
+
+            if (!managementData) {
+                // Token exists but not managed - return null
+                return res.json(null)
+            }
+
+            // Validate price matches between TokenPDA and token.sale
+            const tokenSalePrice = tokenData.sale.priceLamports.toString()
+            if (managementData.price !== tokenSalePrice) {
+                return res.status(409).json({
+                    error: 'Token price wrong',
+                    message: `TokenPDA price (${managementData.price}) does not match token.sale.price (${tokenSalePrice})`,
+                })
+            }
+
+            // Calculate retailPrice = price + (price * saleFee / 100)
+            const basePrice = BigInt(managementData.price)
+            const saleFee = BigInt(managementData.saleFee)
+            const feeAmount = (basePrice * saleFee) / BigInt(100)
+            const retailPrice = (basePrice + feeAmount).toString()
+
+            // Return management data with calculated retailPrice
+            res.json({
+                success: true,
+                data: {...managementData, retailPrice},
+            })
         } catch (error) {
             console.error('Error getting token management data:', error)
             res.status(500).json({
@@ -217,11 +59,6 @@ class ManageTokenController {
         }
     }
 
-    /**
-     * GET /node/manage/match-data?tokenPublicKey=xxx
-     * Compares actual token state with TokenManagementData
-     * Returns true if matches, or array of mismatches
-     */
     async matchData(req, res) {
         try {
             const { tokenPublicKey } = req.query
@@ -232,8 +69,10 @@ class ManageTokenController {
                 })
             }
 
-            const result = await manageTokenService.matchTokenData(tokenPublicKey)
-            res.json(result)
+            res.json({
+                success: true,
+                data: await manageTokenService.matchTokenData(tokenPublicKey),
+            })
         } catch (error) {
             console.error('Error matching token data:', error)
             res.status(500).json({
@@ -243,11 +82,6 @@ class ManageTokenController {
         }
     }
 
-    /**
-     * GET /node/manage/price?tokenPublicKey=xxx
-     * Returns token price with buy fee included
-     * Returns null if token is not on sale
-     */
     async getPrice(req, res) {
         try {
             const { tokenPublicKey } = req.query
@@ -258,8 +92,10 @@ class ManageTokenController {
                 })
             }
 
-            const price = await manageTokenService.getPriceWithFee(tokenPublicKey)
-            res.json({ price })
+            res.json({
+                success: true,
+                data: await manageTokenService.getPriceWithFee(tokenPublicKey),
+            })
         } catch (error) {
             console.error('Error getting price:', error)
             res.status(500).json({
@@ -269,12 +105,31 @@ class ManageTokenController {
         }
     }
 
-    /**
-     * GET /node/manage/sale?tokenPublicKey=xxx&price=xxx
-     * Returns unsigned setSale transaction
-     * If price is 0, removes from sale. If > 0, sets on sale.
-     * Automatically determines owner by querying token account.
-     */
+    async getMintTransaction(req, res) {
+        try {
+            const { payerPublicKey } = req.body
+
+            if (!payerPublicKey) {
+                return res.status(400).json({
+                    error: 'Missing signedTransaction',
+                })
+            }
+
+            const transaction = await manageTokenService.getMintTransaction(payerPublicKey, payerPublicKey)
+
+            res.json({
+                success: true,
+                data: transaction,
+            })
+        } catch (error) {
+            console.error('Error executing mint:', error)
+            res.status(500).json({
+                error: 'Failed to execute mint',
+                message: error.message,
+            })
+        }
+    }
+
     async getSaleTransaction(req, res) {
         try {
             const { tokenPublicKey, price } = req.query
@@ -332,11 +187,6 @@ class ManageTokenController {
         }
     }
 
-    /**
-     * GET /node/manage/buy?tokenPublicKey=xxx&buyerPublicKey=xxx
-     * Returns unsigned buy transaction
-     * Buyer must provide their public key as parameter
-     */
     async getBuyTransaction(req, res) {
         try {
             const { tokenPublicKey, buyerPublicKey } = req.query
@@ -368,6 +218,29 @@ class ManageTokenController {
             console.error('Error getting buy transaction:', error)
             res.status(500).json({
                 error: 'Failed to get buy transaction',
+                message: error.message,
+            })
+        }
+    }
+
+    async getBurnTransaction(req, res) {
+        try {
+            const { tokenPublicKey } = req.body
+
+            if (!tokenPublicKey) {
+                return res.status(400).json({
+                    error: 'Missing tokenPublicKey',
+                })
+            }
+
+            res.json({
+                success: true,
+                data: await manageTokenService.getBurnTransaction(tokenPublicKey),
+            })
+        } catch (error) {
+            console.error('Error executing burn:', error)
+            res.status(500).json({
+                error: 'Failed to execute burn',
                 message: error.message,
             })
         }

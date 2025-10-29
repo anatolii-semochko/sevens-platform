@@ -112,6 +112,24 @@ const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSy
     programId,
 )[0]
 
+const checkIsAddress = (publicKey) => {
+    if (!PublicKey.isOnCurve(publicKey)) {
+        throw new Error('Invalid public key')
+    }
+}
+
+const checkIsPdaAddress = (publicKey) => {
+    if (PublicKey.isOnCurve(publicKey)) {
+        throw new Error('Invalid PDA address (should not be on curve)')
+    }
+}
+
+const checkIsWalletAddress = (publicKey) => {
+    if (!PublicKey.isOnCurve(publicKey)) {
+        throw new Error('Invalid wallet address')
+    }
+}
+
 const getAnchorErrorText = (error) => {
     const originalMessage = error?.message || 'Unknown error'
 
@@ -180,6 +198,20 @@ const getAnchorErrorText = (error) => {
                 }
 
                 const errorCodeMap = {
+                    // sevens-token-management errors (6000-6011)
+                    '6000': 'Unauthorized: only the authority can update tariffs',
+                    '6001': 'Invalid buy percentage: must be between 0 and 99',
+                    '6002': 'Invalid target wallet: cannot be the default address',
+                    '6003': 'Operations are currently paused',
+                    '6004': 'Not the token owner',
+                    '6005': 'No tokens in account',
+                    '6006': 'Invalid price: must be greater than 0 when setting on sale',
+                    '6007': 'Token is not for sale',
+                    '6008': 'Price mismatch: expected price doesn\'t match current price',
+                    '6009': 'Invalid mint address',
+                    '6010': 'Invalid seller address',
+                    '6011': 'Math overflow occurred',
+                    // sevens-token errors (6012+)
                     '6012': 'Token name cannot be empty',
                     '6013': 'Invalid token parameters',
                     '6014': 'Insufficient funds',
@@ -252,6 +284,9 @@ module.exports = {
     loadIdl,
     createDummyWallet,
     initializeProvider,
+    checkIsAddress,
+    checkIsPdaAddress,
+    checkIsWalletAddress,
     getPda,
     getAnchorErrorText,
 }

@@ -2,7 +2,7 @@ const transactionService = require('../services/transactionService')
 const { getAnchorErrorText } = require('../utils/blockchain')
 
 class TransactionController {
-    static async sendTransaction(req, res) {
+    async sendTransaction(req, res) {
         try {
             const { txSignature } = req.body;
 
@@ -26,7 +26,7 @@ class TransactionController {
         }
     }
 
-    static async matchTransactionAndSignature(req, res) {
+    async matchTransactionAndSignature(req, res) {
         try {
             const { transaction, txSignature } = req.body;
 
@@ -46,6 +46,7 @@ class TransactionController {
 
             res.json({
                 success: await transactionService.matchTransactionAndSignature(transaction, txSignature),
+                data: null,
             })
         } catch (error) {
             console.error('Error matching transaction and signature:', error)
@@ -57,4 +58,4 @@ class TransactionController {
     }
 }
 
-module.exports = TransactionController
+module.exports = new TransactionController()

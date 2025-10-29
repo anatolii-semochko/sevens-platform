@@ -6,6 +6,7 @@ const TransactionController = require('./controllers/transactionController')
 const AuthController = require('./controllers/authController')
 const TokenController = require('./controllers/sevensTokenController')
 const TariffsController = require('./controllers/tariffsController')
+const ManageTokenController = require('./controllers/manageTokenController')
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -28,12 +29,20 @@ app.post('/auth/verify', AuthController.verifySignature)
 // Token routes
 app.get('/sevens-token', TokenController.getTokens)
 app.get('/sevens-token/age-minutes', TokenController.getAgeMinutes)
-app.get('/sevens-token/get-buy-transaction', TokenController.getBuyTransaction)
-app.get('/sevens-token/get-burn-transaction', TokenController.getBurnTransaction)
+app.get('/sevens-token/get-buy-transaction', TokenController.getBuyTransaction) // TODO - deprecated direct query
+app.get('/sevens-token/get-burn-transaction', TokenController.getBurnTransaction) // TODO - deprecated direct query
 
-// Tariffs routes
-app.get('/tariffs', TariffsController.getTariffs)
-app.get('/tariffs/get-transaction', TariffsController.getTransaction)
+// Managed token operations routes
+app.get('/manage/tariffs', TariffsController.getTariffs)
+app.get('/manage/tariffs/transaction', TariffsController.getTransaction)
+
+app.post('/manage/mint', ManageTokenController.getMintTransaction)
+app.get('/manage/sale-transaction', ManageTokenController.getSaleTransaction)
+app.get('/manage/buy-transaction', ManageTokenController.getBuyTransaction)
+app.post('/manage/burn-transaction', ManageTokenController.getBurnTransaction)
+app.get('/manage/get-data', ManageTokenController.getData)
+app.get('/manage/match-data', ManageTokenController.matchData)
+app.get('/manage/price', ManageTokenController.getPrice)
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -66,13 +75,18 @@ app.listen(port, '0.0.0.0', () => {
     console.log(`Available endpoints:`)
     console.log(`  Transactions: POST /node/transaction/send`)
     console.log(`  Transactions: POST /node/transaction/match`)
-    console.log(`  Auth nonce: /node/auth/nonce?walletAddress=xxx`)
+    console.log(`  Auth nonce: GET /node/auth/nonce?walletAddress=xxx`)
     console.log(`  Auth verify: POST /node/auth/verify`)
-    console.log(`  Tokens: /node/sevens-token?publicKey=xxx`)
-    console.log(`  Tokens: /node/sevens-token?hash=xxx`)
-    console.log(`  Tokens: /node/sevens-token/age-minutes?publicKey=xxx`)
-    console.log(`  Tokens: /node/sevens-token/get-buy-transaction?tokenPublicKey=xxx&buyerPublicKey=xxx`)
-    console.log(`  Tokens: /node/sevens-token/get-burn-transaction?tokenPublicKey=xxx`)
-    console.log(`  Tariffs: GET /node/tariffs`)
-    console.log(`  Tariffs: GET /node/tariffs/get-transaction?authorityPublicKey=xxx&targetWallet=xxx&mint=xxx&setSale=xxx&buy=xxx&burn=xxx`)
+    console.log(`  Tokens: GET /node/sevens-token?publicKey=xxx`)
+    console.log(`  Tokens: GET /node/sevens-token?hash=xxx`)
+    console.log(`  Tokens: GET /node/sevens-token/age-minutes?publicKey=xxx`)
+    console.log(`  Managed: GET /node/manage/tariffs`)
+    console.log(`  Managed: GET /node/manage/tariffs/transaction`)
+    console.log(`  Managed: POST /node/manage/mint`)
+    console.log(`  Managed: GET /node/manage/sale-transaction?tokenPublicKey=xxx&price=xxx`)
+    console.log(`  Managed: GET /node/manage/buy-transaction?tokenPublicKey=xxx&buyerPublicKey=xxx`)
+    console.log(`  Managed: POST /node/manage/burn-transaction`)
+    console.log(`  Managed: GET /node/manage/get-data?tokenPublicKey=xxx`)
+    console.log(`  Managed: GET /node/manage/match-data?tokenPublicKey=xxx`)
+    console.log(`  Managed: GET /node/manage/price?tokenPublicKey=xxx`)
 })
