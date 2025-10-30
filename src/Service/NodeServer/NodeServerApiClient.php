@@ -7,6 +7,16 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
+    public function getWalletBalance(string $walletAddress): float
+    {
+        return $this->get('/wallet/balance', [
+            'walletAddress' => $walletAddress,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
     public function fetchNonce(string $walletAddress): array
     {
         return $this->get('/auth/nonce', [
@@ -49,10 +59,34 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function getTokenAgeMinutes(string $tokenPublicKey): array
+    public function getManageTokenTariffsData(): array
+    {
+        return $this->get('/manage/tariffs');
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getTokenAgeMinutes(string $tokenPublicKey): int
     {
         return $this->get('/sevens-token/age-minutes', [
             'publicKey' => $tokenPublicKey,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function getMintTokenTransaction(string $mintPublicKey, array $tokenData): array
+    {
+        return $this->get('/manage/mint-transaction', [
+            'mintPublicKey' => $mintPublicKey,
+            'walletPublicKey' => $tokenData['walletPublicKey'],
+            'tokenName' => $tokenData['tokenName'],
+            'hash' => $tokenData['hash'],
+            'author' => $tokenData['author'] ?? '',
+            'description' => $tokenData['description'] ?? '',
+            'canBeBurned' => (bool) $tokenData['canBeBurned'],
         ]);
     }
 

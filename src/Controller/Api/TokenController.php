@@ -22,6 +22,47 @@ class TokenController extends BaseApiController
     /**
      * @throws HttpException
      */
+    #[Route('/{mintPublicKey}/mint', name: 'get_mint_transaction', methods: ['GET'])]
+    public function getMintTransaction(string $mintPublicKey, Request $request): JsonResponse
+    {
+        try {
+            $tokenData = [
+                'walletPublicKey' => $request->query->get('walletPublicKey'),
+                'tokenName' => $request->query->get('tokenName'),
+                'hash' => $request->query->get('hash'),
+                'author' => $request->query->get('author'),
+                'description' => $request->query->get('description'),
+                'canBeBurned' => $request->query->get('canBeBurned'),
+            ];
+
+            return $this->json($this->tokenService->getMintTransaction($mintPublicKey, $tokenData));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/mint', name: 'mint', methods: ['POST'])]
+    public function mint(string $token, Request $request): JsonResponse
+    {
+        try {
+            $this->tokenService->mint(
+                $token,
+                $request->getPayload()->get('transactionId'),
+                $request->getPayload()->get('txSignature'),
+            );
+
+            return $this->json(null);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
     #[Route('/{token}/sale/{price}', name: 'get_sale_transaction', methods: ['GET'])]
     public function getSaleTransaction(string $token, int $price): JsonResponse
     {

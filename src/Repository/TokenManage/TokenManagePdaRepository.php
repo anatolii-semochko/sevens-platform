@@ -3,6 +3,7 @@
 namespace App\Repository\TokenManage;
 
 use App\Entity\TokenManage\TokenManagePda;
+use App\Entity\TokenManage\TokenManageTariffsPda;
 use App\Exception\NotFoundException;
 use App\Repository\Token\TokenRepository;
 use App\Service\NodeServer\NodeServerApiClient;
@@ -43,6 +44,16 @@ readonly class TokenManagePdaRepository
             return $this->get($tokenPublicKey);
         } catch (NotFoundException $e) {
             return null;
+        }
+    }
+
+    public function getTariffsPda(): TokenManageTariffsPda
+    {
+        try {
+            $manageTokenTariffsData = $this->nodeServerApiClient->getManageTokenTariffsData();
+            return new TokenManageTariffsPda($manageTokenTariffsData);
+        } catch (NodeServerApiException $e) {
+            throw new NotFoundException('Token manage tariffs data not found.', previous: $e);
         }
     }
 }

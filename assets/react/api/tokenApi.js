@@ -11,6 +11,22 @@ export default class TokenApi {
             .catch(throwErrorMessage)
     }
 
+    async getMintTransaction(mintPublicKey, params) {
+        const url = `${mainUrl}/${mintPublicKey}/mint`
+        return await api
+            .get(url, { params })
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
+    async postMintTransaction(mintPublicKey, transactionId, txSignature) {
+        const url = `${mainUrl}/${mintPublicKey}/mint`
+        return await api
+            .post(url, {transactionId, txSignature})
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
     async getSaleTransaction(token, price) {
         const url = `${mainUrl}/${token}/sale/${price}`
         return await api

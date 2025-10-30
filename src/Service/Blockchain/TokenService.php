@@ -4,11 +4,14 @@ namespace App\Service\Blockchain;
 
 use App\Entity\Material\Material;
 use App\Entity\Token\SevensToken;
+use App\Entity\TokenManage\ManageTransactionTypeEnum;
 use App\Entity\Wallet\WalletMessageSignature;
+use App\Entity\Wallet\WalletTransactionTypeEnum;
 use App\Repository\Material\MaterialCommentRepository;
 use App\Repository\Material\MaterialRepository;
 use App\Repository\Material\MaterialSaleHistoryRepository;
 use App\Repository\Token\TokenRepository;
+use App\Repository\TokenManage\ManageTransactionRepository;
 use App\Repository\TokenManage\TokenManagePdaRepository;
 use App\Service\NodeServer\NodeServerApiClient;
 use App\Service\NodeServer\NodeServerApiException;
@@ -25,6 +28,7 @@ readonly class TokenService
         private WalletService $walletService,
         private TokenRepository $tokenRepository,
         private TokenManagePdaRepository $tokenManagePdaRepository,
+        private ManageTransactionRepository $manageTransactionRepository,
         private MaterialCommentRepository $materialCommentRepository,
         private MaterialRepository $materialRepository,
         private MaterialSaleHistoryRepository $materialSaleHistoryRepository,
@@ -68,11 +72,47 @@ readonly class TokenService
     /**
      * @throws NodeServerApiException
      */
+    public function getMintTransaction(string $mintPublicKey, array $tokenData): array
+    {
+        $result = $this->nodeServerApiClient->getMintTokenTransaction($mintPublicKey, $tokenData);
+        $transactionId = $this->walletService->saveTransaction(WalletTransactionTypeEnum::TOKEN_MINT, $result['transaction']);
+
+        return [
+            'transactionId' => $transactionId,
+            'transaction' => $result['transaction'],
+            'mint' => $result['mint'],
+        ];
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function mint(
+        string $tokenPublicKey,
+        string $transactionId,
+        string $txSignature,
+    ): void {
+        $this->walletService->matchTransactionSignature($transactionId, $txSignature);
+        $this->nodeServerApiClient->sendSignedTransaction($txSignature);
+
+        $tokenManageTariffsPda = $this->tokenManagePdaRepository->getTariffsPda();
+        $this->manageTransactionRepository->createEntry(
+            ManageTransactionTypeEnum::TOKEN_MINT,
+            $tokenManageTariffsPda,
+            $tokenManageTariffsPda->getMint(),
+            null,
+            $tokenPublicKey,
+        );
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
     public function getSaleTransaction(string $tokenPublicKey, int $price): array
     {
         $material = $this->materialRepository->get($tokenPublicKey);
         $transaction = $this->nodeServerApiClient->getSaleTokenTransaction($material->getToken(), $price);
-        $transactionId = $this->walletService->saveTransaction($transaction);
+        $transactionId = $this->walletService->saveTransaction(WalletTransactionTypeEnum::TOKEN_SALE, $transaction);
 
         return [
             'transactionId' => $transactionId,
@@ -90,19 +130,27 @@ readonly class TokenService
     ): void {
         $this->walletService->matchTransactionSignature($transactionId, $txSignature);
         $this->nodeServerApiClient->sendSignedTransaction($txSignature);
-
         try {
             $sevensToken = $this->tokenRepository->get($material->getToken());
-            $manageTokenData = $this->tokenManagePdaRepository->get($material->getToken());
+            $tokenManagePda = $this->tokenManagePdaRepository->get($material->getToken());
+            $tokenManageTariffsPda = $this->tokenManagePdaRepository->getTariffsPda();
 
-            $material->setPrice($manageTokenData->getRetailPrice());
+            $this->manageTransactionRepository->createEntry(
+                ManageTransactionTypeEnum::TOKEN_SALE,
+                $tokenManageTariffsPda,
+                $tokenManageTariffsPda->getSetSale(),
+                $material->getUser(),
+                $sevensToken->getTokenPublicKey(),
+            );
+
+            $material->setPrice($tokenManagePda->getRetailPrice());
             $this->em->persist($material);
             $this->em->flush();
 
             $this->materialSaleHistoryRepository->createEntry(
                 $material->getToken(),
                 $sevensToken->getWalletPublicKey(),
-                $manageTokenData->getRetailPrice(),
+                $tokenManagePda->getRetailPrice(),
             );
         } catch (\Throwable $e) {
             $material->setPrice(null);
@@ -119,7 +167,7 @@ readonly class TokenService
     {
         $material = $this->materialRepository->get($tokenPublicKey);
         $transaction = $this->nodeServerApiClient->getBuyTokenTransaction($material->getToken(), $buyerPublicKey);
-        $transactionId = $this->walletService->saveTransaction($transaction);
+        $transactionId = $this->walletService->saveTransaction(WalletTransactionTypeEnum::TOKEN_BUY, $transaction);
 
         return [
             'transactionId' => $transactionId,
@@ -142,7 +190,17 @@ readonly class TokenService
             throw new InvalidArgumentException('Material is not active.');
         }
         $this->walletService->matchTransactionSignature($transactionId, $txSignature);
+        $tokenManagePda = $this->tokenManagePdaRepository->get($material->getToken());
         $this->nodeServerApiClient->sendSignedTransaction($txSignature);
+
+        $tokenManageTariffsPda = $this->tokenManagePdaRepository->getTariffsPda();
+        $this->manageTransactionRepository->createEntry(
+            ManageTransactionTypeEnum::TOKEN_BUY,
+            $tokenManageTariffsPda,
+            $tokenManagePda->getRetailPrice() - $tokenManagePda->getPrice(),
+            $material->getUser(),
+            $material->getToken(),
+        );
 
         $material->setUser($user);
         $material->setPrice(0);
@@ -160,7 +218,7 @@ readonly class TokenService
     public function getBurnTransaction(string $tokenPublicKey): array
     {
         $transaction = $this->nodeServerApiClient->getBurnTokenTransaction($tokenPublicKey);
-        $transactionId = $this->walletService->saveTransaction($transaction);
+        $transactionId = $this->walletService->saveTransaction(WalletTransactionTypeEnum::TOKEN_BURN, $transaction);
 
         return [
             'transactionId' => $transactionId,

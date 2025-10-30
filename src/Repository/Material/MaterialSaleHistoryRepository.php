@@ -76,7 +76,6 @@ class MaterialSaleHistoryRepository extends ServiceEntityRepository
         $saleHistory->setToken($token);
         $saleHistory->setWallet($wallet);
         $saleHistory->setPrice($price);
-
         $this->save($saleHistory);
 
         return $saleHistory;

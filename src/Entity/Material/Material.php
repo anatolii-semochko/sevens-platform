@@ -72,7 +72,7 @@ class Material
 
     #[ORM\Column(type: 'decimal', precision: 20, scale: 9, nullable: true)]
     #[Groups(['material:read'])]
-    private ?string $price = null;
+    private ?float $price = null;
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     #[Groups(['material:read'])]

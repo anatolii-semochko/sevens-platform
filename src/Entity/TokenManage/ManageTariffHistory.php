@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Entity\TokenManage;
 
 use App\Entity\Admin\User;
+use App\Repository\TokenManage\ManageTariffHistoryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity(repositoryClass: \App\Repository\TokenManage\TariffHistoryRepository::class)]
-#[ORM\Table(name: 'admin_tariff_history')]
-class TariffHistory
+#[ORM\Entity(repositoryClass: ManageTariffHistoryRepository::class)]
+#[ORM\Table(name: 'manage_tariff_history')]
+class ManageTariffHistory
 {
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 36)]

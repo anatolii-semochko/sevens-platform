@@ -35,7 +35,6 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
     if (container?.file?.name) containerInfo.push(['Container name', container.file.name])
     if (container?.file?.size) containerInfo.push(['Container size', prettyBytes(container.file.size)])
     if (container?.hash) containerInfo.push(['Container hash', container.hash])
-    if (tokenData?.signature) containerInfo.push(['Transaction signature', tokenData.signature])
 
     const tokenInfo = [
         ['Wallet public key', tokenData.walletPublicKey],
@@ -45,7 +44,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
         ['Token description', tokenData.metadata.description],
         ['Token hash', tokenData.metadata.hash],
         ['Token can be burned', tokenData.metadata.canBeBurned ? 'Yes' : 'No'],
-        ['Token on sale', tokenData.sale.priceSevens ? (tokenData.sale.priceSevens + ' $SEV') : 'No'],
+        ['Token on sale', tokenData.sale.priceSevens ? 'Yes' : 'No'],
         ['Token minting time', getDateTimeFromDate(tokenData.mintingTime)],
     ]
 

@@ -150,57 +150,79 @@ class ManageTokenService {
         }
     }
 
-    async getMintTransaction(payerPublicKey, tokenPublicKey) {
+    async getMintTransaction(walletPublicKey, mintPublicKey, mintParams) {
         if (!this.managementProgram) {
             throw new Error('Management program not initialized. IDL not loaded.')
         }
 
-        const payer = new PublicKey(payerPublicKey)
-        const mint = new PublicKey(tokenPublicKey)
+        const { author, hash, description, tokenName, canBeBurned } = mintParams
+
+        // Validate required parameters
+        if (!hash || !tokenName) {
+            throw new Error('Missing required mint parameters: hash, tokenName')
+        }
+
+        const payer = new PublicKey(walletPublicKey)
+        const mint = new PublicKey(mintPublicKey)
 
         checkIsWalletAddress(payer)
         checkIsWalletAddress(mint)
 
+        // Get PDAs
         const tariffsPda = this.getTariffsPda()
         const tariffs = await tariffsService.getTariffs()
         const targetWallet = new PublicKey(tariffs.targetWallet)
         const tokenAccount = getAssociatedTokenAddressSync(mint, payer, false, TOKEN_PROGRAM_ID)
-        const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
+        const tokenDataPda = this.getTokenManagementDataPda(mint.toString())
 
-        // Get token data to pass metadata
-        const tokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
+        // Get PDAs from sevens-token program
+        const metadataPda = getPda(sevensTokenService.program.programId, 'metadata', mint)
+        const salePda = getPda(sevensTokenService.program.programId, 'sale', mint)
+        const hashRegistryPda = sevensTokenService.getHashPda(sevensTokenService.program.programId, hash)
 
         // Build instruction
         const ix = await this.managementProgram.methods
             .managedMint(
-                tokenData.metadata.author,
-                tokenData.metadata.hash,
-                tokenData.metadata.description,
-                tokenData.metadata.name,
-                tokenData.metadata.canBeBurned
+                author,
+                hash,
+                description,
+                tokenName,
+                canBeBurned || false
             )
             .accounts({
                 payer,
                 tariffs: tariffsPda,
                 targetWallet,
                 mint,
+                metadata: metadataPda,
+                sale: salePda,
                 tokenAccount,
+                hashRegistry: hashRegistryPda,
                 tokenManagementData: tokenDataPda,
+                sevensTokenProgram: sevensTokenService.program.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
+                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
+                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
             })
+            .signers([])
             .instruction()
 
-        // Create transaction
+        // Create transaction (without signing - will be signed on frontend)
         const tx = new Transaction()
         tx.add(ix)
         tx.feePayer = payer
         tx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash
 
-        return tx.serialize({
-            requireAllSignatures: false,
-            verifySignatures: false,
-        }).toString('base64')
+        // Return unsigned transaction
+        // Frontend will sign it with both payer and mint keypairs
+        return {
+            transaction: tx.serialize({
+                requireAllSignatures: false,
+                verifySignatures: false,
+            }).toString('base64'),
+            mint: mint.toString(),
+        }
     }
 
     async getSetSaleTransaction(tokenPublicKey, ownerPublicKey, onSale, price) {

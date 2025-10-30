@@ -107,24 +107,46 @@ class ManageTokenController {
 
     async getMintTransaction(req, res) {
         try {
-            const { payerPublicKey } = req.body
+            const { walletPublicKey, mintPublicKey, author, hash, description, tokenName, canBeBurned } = req.query
 
-            if (!payerPublicKey) {
+            // Validate required parameters
+            if (!walletPublicKey) {
                 return res.status(400).json({
-                    error: 'Missing signedTransaction',
+                    error: 'Missing walletPublicKey parameter',
                 })
             }
 
-            const transaction = await manageTokenService.getMintTransaction(payerPublicKey, payerPublicKey)
+            if (!mintPublicKey) {
+                return res.status(400).json({
+                    error: 'Missing mintPublicKey parameter',
+                })
+            }
+
+            if (!hash || !tokenName) {
+                return res.status(400).json({
+                    error: 'Missing required mint parameters',
+                    message: 'Required: hash, tokenName',
+                })
+            }
+
+            const mintParams = {
+                tokenName,
+                hash,
+                author: author || '',
+                description: description || '',
+                canBeBurned: canBeBurned === 'true' || canBeBurned === '1' || canBeBurned === true,
+            }
+
+            const result = await manageTokenService.getMintTransaction(walletPublicKey, mintPublicKey, mintParams)
 
             res.json({
                 success: true,
-                data: transaction,
+                data: result,
             })
         } catch (error) {
-            console.error('Error executing mint:', error)
+            console.error('Error getting mint transaction:', error)
             res.status(500).json({
-                error: 'Failed to execute mint',
+                error: 'Failed to get mint transaction',
                 message: error.message,
             })
         }

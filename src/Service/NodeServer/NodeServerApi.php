@@ -13,7 +13,7 @@ readonly class NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function get(string $endpoint, ?array $data): mixed
+    public function get(string $endpoint, ?array $data = []): mixed
     {
         $handle = curl_init();
 
