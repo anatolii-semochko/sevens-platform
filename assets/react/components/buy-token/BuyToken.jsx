@@ -1,11 +1,9 @@
 import store from '@react/store'
 import React, { useEffect, useRef, useState } from 'react'
 import TokenApi from '@react/api/tokenApi'
-import MaterialSaleApi from '@react/api/materialSaleApi'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { createRoot } from 'react-dom/client'
 import { route } from '@js/router/routing-with-locale'
-import { buy } from '@js/blockchain/sevens-token'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { callUserAuthorization } from '@react/components/user-auth/UserAuth'
 import { getAnchorErrorText, getDeserializedTransaction, getSerializedTransaction } from '@js/blockchain/sevens'
@@ -15,7 +13,6 @@ import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 
 const tokenApi = new TokenApi()
-const materialSaleApi = new MaterialSaleApi()
 
 const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
     const wallet = useWallet()
