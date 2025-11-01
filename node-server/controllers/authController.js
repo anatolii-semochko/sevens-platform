@@ -1,65 +1,40 @@
 const authService = require('../services/authService')
+const { success, badRequest, badResponse, checkIsNotEmpty, checkIsWalletAddress } = require('../utils/controller')
 
 class AuthController {
-
-    // GET /auth/nonce
     async getNonce(req, res) {
+        const { walletAddress } = req.query
+
         try {
-            const { walletAddress } = req.query
+            checkIsNotEmpty(walletAddress, 'walletAddress')
+            checkIsWalletAddress(walletAddress, 'walletAddress')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            if (!walletAddress) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'walletAddress query parameter is required',
-                })
-            }
-
-            const nonceData = await authService.createNonce(walletAddress)
-
-            res.json({
-                success: true,
-                data: {
-                    nonce: nonceData.nonce,
-                    message: nonceData.message,
-                },
-            })
+        try {
+            success(res, await authService.createNonce(walletAddress))
         } catch (error) {
-            console.error('Error generating nonce:', error)
-            res.status(500).json({
-                error: 'Internal Server Error',
-                message: error.message || 'Failed to generate nonce',
-            })
+            badResponse('Get nonce', res, req , error)
         }
     }
 
-    // POST /auth/verify
     async verifySignature(req, res) {
+        const { walletAddress, signature, nonce } = req.body
+
         try {
-            const { walletAddress, signature, nonce } = req.body
+            checkIsNotEmpty(walletAddress, 'walletAddress')
+            checkIsWalletAddress(walletAddress, 'walletAddress')
+            checkIsNotEmpty(signature, 'signature')
+            checkIsNotEmpty(nonce, 'nonce')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            if (!walletAddress || !signature || !nonce) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'WalletAddress, signature, and nonce are required',
-                })
-            }
-
-            const result = await authService.verifySignature(walletAddress, signature, nonce)
-
-            res.json({
-                success: true,
-                data: {
-                    authenticated: result.success,
-                    walletAddress: result.walletAddress,
-                    verifiedAt: result.verifiedAt,
-                },
-            })
+        try {
+            success(res, await authService.verifySignature(walletAddress, signature, nonce))
         } catch (error) {
-            console.error('Error verifying signature:', error)
-            res.status(401).json({
-                error: 'Unauthorized',
-                message: error.message || 'Failed to verify signature'
-            })
+            badResponse('Verify nonce', res, req , error)
         }
     }
 }

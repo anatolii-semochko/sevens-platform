@@ -1,29 +1,22 @@
 const walletService = require('../services/walletService')
+const { success, badRequest, badResponse , checkIsNotEmpty , checkIsWalletAddress } = require('../utils/controller')
 
 class WalletController {
 
-    // GET /wallet/balance
     async getBalance(req, res) {
+        const { walletAddress } = req.query
+
         try {
-            const { walletAddress } = req.query
+            checkIsNotEmpty(walletAddress, 'walletAddress')
+            checkIsWalletAddress(walletAddress, 'walletAddress')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            if (!walletAddress) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'walletAddress query parameter is required',
-                })
-            }
-
-            res.json({
-                success: true,
-                data: await walletService.getBalance(walletAddress),
-            })
+        try {
+            success(res, await walletService.getBalance(walletAddress))
         } catch (error) {
-            console.error('Error getting wallet balance:', error)
-            res.status(500).json({
-                error: 'Internal Server Error',
-                message: error.message || 'Failed to get wallet balance',
-            })
+            badResponse('Get wallet balance', res, req, error)
         }
     }
 }

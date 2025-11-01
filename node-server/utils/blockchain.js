@@ -16,9 +16,15 @@ const commitment = 'confirmed'
  * @returns {Promise<Object>} Parsed and validated IDL object with metadata.address
  * @throws {Error} If IDL file cannot be read, parsed, or is missing required fields
  */
-const loadIdl = async (idlPath) => {
+const loadedIds = []
+const loadIdl = async (idlName) => {
+    if (loadedIds[idlName]) {
+        return loadedIds[idlName]
+    }
+
+    const idlPath = process.env[idlName]
     if (!idlPath) {
-        throw new Error('IDL path not provided')
+        throw new Error(`${idlName} not set in environment`)
     }
 
     try {
@@ -48,7 +54,7 @@ const loadIdl = async (idlPath) => {
                         if (res.statusCode === 200) {
                             resolve(body)
                         } else {
-                            reject(new Error(`Failed to fetch IDL: HTTP ${res.statusCode}`))
+                            reject(new Error(`Failed to fetch IDL (${idlName}): HTTP ${res.statusCode}`))
                         }
                     })
                 })
@@ -62,15 +68,18 @@ const loadIdl = async (idlPath) => {
         else {
             const response = await fetch(idlPath)
             if (!response.ok) {
-                throw new Error(`Failed to fetch IDL: ${response.statusText}`)
+                throw new Error(`Failed to fetch IDL (${idlName}): ${response.statusText}`)
             }
             idl = await response.json()
         }
 
         // Validate IDL structure
         if (!idl?.metadata?.address) {
-            throw new Error('Invalid IDL structure - missing metadata.address')
+            throw new Error(`Invalid IDL structure - missing metadata.address (${idlName})`)
         }
+
+        console.log(`✅ ${idlName} loaded successfully`)
+        loadedIds[idlName] = idl
 
         return idl
     } catch (error) {
@@ -78,58 +87,39 @@ const loadIdl = async (idlPath) => {
     }
 }
 
-/**
- * Creates a dummy wallet for read-only blockchain operations
- * @returns {Object} Dummy wallet object
- */
-const createDummyWallet = () => ({
+const initializeProvider = (idl) => {
+    const connection = new Connection(process.env.ANCHOR_PROVIDER_URL, commitment)
+    const provider = new anchor.AnchorProvider(connection, getDummyWallet(), { commitment })
+    return {
+        connection,
+        provider,
+        program: idl ? new anchor.Program(idl, new PublicKey(idl.metadata.address), provider) : null,
+    }
+}
+
+const getDummyWallet = () => ({
     publicKey: PublicKey.default,
     signAllTransactions: async (txs) => txs,
     signTransaction: async (tx) => tx,
 })
 
-/**
- * Initializes Anchor provider with connection and dummy wallet
- * @returns {Object} Object containing connection and provider
- */
-const initializeProvider = () => {
-    const connection = new Connection(process.env.ANCHOR_PROVIDER_URL, commitment)
-    const dummyWallet = createDummyWallet()
-    const provider = new anchor.AnchorProvider(connection, dummyWallet, { commitment })
-
-    return { connection, provider }
-}
-
-/**
- * Finds a Program Derived Address (PDA)
- * @param {PublicKey} programId - Program ID
- * @param {string} pdaName - Seed name for PDA
- * @param {PublicKey} publicKey - Public key to derive from
- * @returns {PublicKey} Program Derived Address
- */
-const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSync(
-    [Buffer.from(pdaName), publicKey.toBuffer()],
-    programId,
-)[0]
-
-const checkIsAddress = (publicKey) => {
-    if (!PublicKey.isOnCurve(publicKey)) {
-        throw new Error('Invalid public key')
+const getPda = (programId, pdaName, publicKey) => {
+    const seeds = [Buffer.from(pdaName)]
+    if (publicKey) {
+        seeds.push(publicKey.toBuffer())
     }
+    return PublicKey.findProgramAddressSync(seeds, programId)[0]
 }
 
-const checkIsPdaAddress = (publicKey) => {
-    if (PublicKey.isOnCurve(publicKey)) {
-        throw new Error('Invalid PDA address (should not be on curve)')
-    }
-}
+const serializeTransaction = (transaction) => transaction.serialize({
+    requireAllSignatures: false,
+    verifySignatures: false,
+}).toString('base64')
 
-const checkIsWalletAddress = (publicKey) => {
-    if (!PublicKey.isOnCurve(publicKey)) {
-        throw new Error('Invalid wallet address')
-    }
-}
+const deserializeTransaction = (transaction) => Buffer.from(transaction, 'base64')
 
+
+// TODO - create one common file for all project
 const getAnchorErrorText = (error) => {
     const originalMessage = error?.message || 'Unknown error'
 
@@ -281,12 +271,9 @@ const getAnchorErrorText = (error) => {
 }
 
 module.exports = {
-    loadIdl,
-    createDummyWallet,
-    initializeProvider,
-    checkIsAddress,
-    checkIsPdaAddress,
-    checkIsWalletAddress,
+    commitment,
+    loadIdl, initializeProvider,
     getPda,
+    serializeTransaction, deserializeTransaction,
     getAnchorErrorText,
 }

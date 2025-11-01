@@ -1,59 +1,37 @@
 const transactionService = require('../services/transactionService')
-const { getAnchorErrorText } = require('../utils/blockchain')
+const { success, badRequest, badResponse, checkIsNotEmpty } = require('../utils/controller')
 
 class TransactionController {
     async sendTransaction(req, res) {
+        const { txSignature } = req.body
+
         try {
-            const { txSignature } = req.body;
+            checkIsNotEmpty(txSignature, 'txSignature')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            if (!txSignature) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'txSignature query parameter is required',
-                })
-            }
-
-            res.json({
-                success: true,
-                data: await transactionService.sendTransaction(txSignature),
-            })
+        try {
+            success(res, await transactionService.sendTransaction(txSignature))
         } catch (error) {
-            console.error('Error sending transaction to blockchain:', error)
-            res.status(400).json({
-                error: 'Send transaction error',
-                message: getAnchorErrorText(error),
-            })
+            badResponse('Send transaction', res, req, error)
         }
     }
 
     async matchTransactionAndSignature(req, res) {
+        const { transaction, txSignature } = req.body;
+
         try {
-            const { transaction, txSignature } = req.body;
+            checkIsNotEmpty(transaction, 'transaction')
+            checkIsNotEmpty(txSignature, 'txSignature')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            if (!transaction) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'transaction query parameter is required',
-                })
-            }
-
-            if (!txSignature) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'txSignature query parameter is required',
-                })
-            }
-
-            res.json({
-                success: await transactionService.matchTransactionAndSignature(transaction, txSignature),
-                data: null,
-            })
+        try {
+            success(res, await transactionService.matchTransactionAndSignature(transaction, txSignature))
         } catch (error) {
-            console.error('Error matching transaction and signature:', error)
-            res.status(400).json({
-                error: error.message || 'Match transaction and signature error',
-                message: error.message || getAnchorErrorText(error),
-            })
+            badResponse('Match transaction', res, req, error)
         }
     }
 }

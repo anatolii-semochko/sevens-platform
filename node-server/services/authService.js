@@ -109,7 +109,7 @@ class AuthService {
             })
 
             return {
-                success: true,
+                authenticated: true,
                 walletAddress,
                 verifiedAt: new Date(),
             }

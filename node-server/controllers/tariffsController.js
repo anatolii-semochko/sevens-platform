@@ -1,69 +1,49 @@
-const tariffsService = require('../services/TariffsService')
-const { getAnchorErrorText } = require('../utils/blockchain')
+const tariffsService = require('../services/tariffsService')
+const {
+    success,
+    badRequest,
+    badResponse,
+    checkIsNotEmpty,
+    checkIsWalletAddress,
+    checkIsNotNegative,
+} = require('../utils/controller')
 
 class TariffsController {
     async getTariffs(req, res) {
         try {
-            const result = await tariffsService.getTariffs()
-
-            res.json({
-                success: true,
-                data: result,
-            })
+            success(res, await tariffsService.getTariffs())
         } catch (error) {
-            console.error('Error fetching tariffs:', error)
-            res.status(500).json({
-                error: 'Failed to fetch tariffs',
-                message: getAnchorErrorText(error),
-            })
+            badResponse('Get tariffs', res, req, error)
         }
     }
 
     async getTransaction(req, res) {
+        const { authorityPublicKey, targetWallet, mint, setSale, buy, burn } = req.query
+
         try {
-            const { authorityPublicKey, targetWallet, mint, setSale, buy, burn } = req.query
+            checkIsNotEmpty(authorityPublicKey, 'authorityPublicKey')
+            checkIsWalletAddress(authorityPublicKey, 'authorityPublicKey')
+            checkIsNotEmpty(targetWallet, 'targetWallet')
+            checkIsWalletAddress(targetWallet, 'targetWallet')
+            checkIsNotNegative(mint, 'mint')
+            checkIsNotNegative(setSale, 'setSale')
+            checkIsNotNegative(buy, 'buy')
+            checkIsNotNegative(burn, 'burn')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            // Validate required parameters
-            if (!authorityPublicKey || !targetWallet || mint === undefined || setSale === undefined || buy === undefined || burn === undefined) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'All parameters are required: authorityPublicKey, targetWallet, mint, setSale, buy, burn',
-                })
-            }
-
-            // Convert string parameters to numbers
-            const mintValue = parseInt(mint, 10)
-            const setSaleValue = parseInt(setSale, 10)
-            const buyValue = parseInt(buy, 10)
-            const burnValue = parseInt(burn, 10)
-
-            // Validate conversions
-            if (isNaN(mintValue) || isNaN(setSaleValue) || isNaN(buyValue) || isNaN(burnValue)) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'Invalid number format for tariff values',
-                })
-            }
-
-            const result = await tariffsService.getSetTariffsTransaction(
+        try {
+            success(res, await tariffsService.getSetTariffsTransaction(
                 authorityPublicKey,
                 targetWallet,
-                mintValue,
-                setSaleValue,
-                buyValue,
-                burnValue
-            )
-
-            res.json({
-                success: true,
-                data: result,
-            })
+                parseInt(mint, 10),
+                parseInt(setSale, 10),
+                parseInt(buy, 10),
+                parseInt(burn, 10)
+            ))
         } catch (error) {
-            console.error('Error creating tariffs transaction:', error)
-            res.status(500).json({
-                error: 'Failed to create transaction',
-                message: getAnchorErrorText(error),
-            })
+            badResponse('Get tariffs manage transaction', res, req, error)
         }
     }
 }

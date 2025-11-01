@@ -1,67 +1,53 @@
 const anchor = require('@coral-xyz/anchor')
 const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
 const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
-const { loadIdl, initializeProvider, getPda, checkIsWalletAddress } = require('../utils/blockchain')
+const { loadIdl, initializeProvider, getPda, serializeTransaction} = require('../utils/blockchain')
 const sevensTokenService = require('./sevensTokenService')
-const tariffsService = require('./TariffsService')
+const tariffsService = require('./tariffsService')
 
 class ManageTokenService {
     constructor() {
-        const { connection, provider } = initializeProvider()
-        this.connection = connection
-        this.provider = provider
-
-        this.managementIdl = null
-        this.managementProgram = null
-
-        this.loadIdl().catch(e => console.error(`Sevens Token Management IDL loading error. Path: ${process.env.SEVENS_TOKEN_MANAGEMENT_IDL_PATH}.`, e))
+        loadIdl('SEVENS_TOKEN_MANAGEMENT_IDL_PATH').then(idl => {
+            const { connection, provider, program } = initializeProvider(idl)
+            this.connection = connection
+            this.provider = provider
+            this.managementProgram = program
+        })
     }
 
-    async loadIdl() {
+    async getValidatedTokenData(tokenPublicKey) {
+        let sevensTokenData
         try {
-            const idlPath = process.env.SEVENS_TOKEN_MANAGEMENT_IDL_PATH
-            if (!idlPath) {
-                throw new Error('SEVENS_TOKEN_MANAGEMENT_IDL_PATH not set in environment')
-            }
-
-            this.managementIdl = await loadIdl(idlPath)
-            const programId = new PublicKey(this.managementIdl.metadata.address)
-            this.managementProgram = new anchor.Program(this.managementIdl, programId, this.provider)
-
-            console.log('✅ Sevens Token Management IDL loaded successfully')
-            console.log(`   Program ID: ${programId.toString()}`)
-        } catch (error) {
-            console.error('Failed to load Sevens Token Management IDL:', error)
-            throw error
+            sevensTokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
+        } catch (e) {
+            throw new Error('Sevens token not found')
         }
-    }
 
-    getTokenManagementDataPda(mintPublicKey) {
-        const mint = new PublicKey(mintPublicKey)
-        return getPda(this.managementProgram.programId, 'token_data', mint)
-    }
+        let managementData
+        try {
+            managementData = await this.getTokenManagementData(tokenPublicKey)
+        } catch (e) {
+            return null
+        }
 
-    getTariffsPda() {
-        const [pda] = PublicKey.findProgramAddressSync(
-            [Buffer.from('tariffs')],
-            this.managementProgram.programId
-        )
-        return pda
-    }
+        // Validate price matches between TokenPDA and token.sale
+        const tokenSalePrice = sevensTokenData.sale.priceLamports.toString()
+        if (managementData.price !== tokenSalePrice) {
+            throw new Error(`TokenPDA price (${managementData.price}) does not match token.sale.price (${tokenSalePrice})`)
+        }
 
-    getSalePda(mintPublicKey) {
-        const mint = new PublicKey(mintPublicKey)
-        return getPda(sevensTokenService.program.programId, 'sale', mint)
+        // Calculate retailPrice = price + (price * saleFee / 100)
+        const basePrice = BigInt(managementData.price)
+        const saleFee = BigInt(managementData.saleFee)
+        const feeAmount = (basePrice * saleFee) / BigInt(100)
+        const retailPrice = (basePrice + feeAmount).toString()
+
+        return {...managementData, retailPrice}
     }
 
     async getTokenManagementData(tokenPublicKey) {
-        if (!this.managementProgram) {
-            throw new Error('Management program not initialized. IDL not loaded.')
-        }
-
-        const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
-
         try {
+            const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
             const accountInfo = await this.connection.getAccountInfo(tokenDataPda)
             if (!accountInfo) {
                 return null
@@ -89,7 +75,7 @@ class ManageTokenService {
 
     async matchTokenData(tokenPublicKey) {
         try {
-            const tokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
+            const sevensTokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
             const managementData = await this.getTokenManagementData(tokenPublicKey)
 
             if (!managementData) {
@@ -100,19 +86,13 @@ class ManageTokenService {
             }
 
             const mismatches = []
-
-            // Check owner
-            if (tokenData.walletPublicKey !== managementData.owner) {
+            if (sevensTokenData.walletPublicKey !== managementData.owner) {
                 mismatches.push('walletPublicKey')
             }
-
-            // Check onSale status
-            if (tokenData.sale.onSale !== managementData.onSale) {
+            if (sevensTokenData.sale.onSale !== managementData.onSale) {
                 mismatches.push('onSale')
             }
-
-            // Check price
-            if (tokenData.sale.priceLamports.toString() !== managementData.price) {
+            if (sevensTokenData.sale.priceLamports.toString() !== managementData.price) {
                 mismatches.push('price')
             }
 
@@ -151,22 +131,14 @@ class ManageTokenService {
     }
 
     async getMintTransaction(walletPublicKey, mintPublicKey, mintParams) {
-        if (!this.managementProgram) {
-            throw new Error('Management program not initialized. IDL not loaded.')
-        }
-
         const { author, hash, description, tokenName, canBeBurned } = mintParams
 
-        // Validate required parameters
         if (!hash || !tokenName) {
             throw new Error('Missing required mint parameters: hash, tokenName')
         }
 
         const payer = new PublicKey(walletPublicKey)
         const mint = new PublicKey(mintPublicKey)
-
-        checkIsWalletAddress(payer)
-        checkIsWalletAddress(mint)
 
         // Get PDAs
         const tariffsPda = this.getTariffsPda()
@@ -175,10 +147,8 @@ class ManageTokenService {
         const tokenAccount = getAssociatedTokenAddressSync(mint, payer, false, TOKEN_PROGRAM_ID)
         const tokenDataPda = this.getTokenManagementDataPda(mint.toString())
 
-        // Get PDAs from sevens-token program
-        const metadataPda = getPda(sevensTokenService.program.programId, 'metadata', mint)
-        const salePda = getPda(sevensTokenService.program.programId, 'sale', mint)
-        const hashRegistryPda = sevensTokenService.getHashPda(sevensTokenService.program.programId, hash)
+        // Get Sevens Token PDAs
+        const { metadataPda, salePda, hashRegistryPda } = sevensTokenService.getSevensToken(mintPublicKey, hash)
 
         // Build instruction
         const ix = await this.managementProgram.methods
@@ -208,44 +178,40 @@ class ManageTokenService {
             .signers([])
             .instruction()
 
-        // Create transaction (without signing - will be signed on frontend)
+        // Create transaction
         const tx = new Transaction()
         tx.add(ix)
         tx.feePayer = payer
         tx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash
 
-        // Return unsigned transaction
-        // Frontend will sign it with both payer and mint keypairs
         return {
-            transaction: tx.serialize({
-                requireAllSignatures: false,
-                verifySignatures: false,
-            }).toString('base64'),
+            transaction: serializeTransaction(tx),
             mint: mint.toString(),
         }
     }
 
-    async getSetSaleTransaction(tokenPublicKey, ownerPublicKey, onSale, price) {
+    async getSetSaleTransaction(tokenPublicKey, price) {
         const mint = new PublicKey(tokenPublicKey)
+        const ownerPublicKey = await sevensTokenService.getWalletPublicKeyByToken(tokenPublicKey)
         const owner = new PublicKey(ownerPublicKey)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID)
 
-        checkIsWalletAddress(mint)
-        checkIsWalletAddress(owner)
+        const tariffs = await tariffsService.getTariffs()
 
         const tariffsPda = this.getTariffsPda()
-        const tariffs = await tariffsService.getTariffs()
-        const targetWallet = new PublicKey(tariffs.targetWallet)
-        const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID)
         const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
-        const salePda = this.getSalePda(tokenPublicKey)
+        const salePda = sevensTokenService.getSalePda(tokenPublicKey)
 
         // Build instruction
         const ix = await this.managementProgram.methods
-            .managedSetSale(onSale, new anchor.BN(price || 0))
+            .managedSetSale(
+                price > 0,
+                new anchor.BN(price || 0),
+            )
             .accounts({
                 owner,
                 tariffs: tariffsPda,
-                targetWallet,
+                targetWallet: new PublicKey(tariffs.targetWallet),
                 mint,
                 tokenAccount,
                 tokenManagementData: tokenDataPda,
@@ -263,27 +229,18 @@ class ManageTokenService {
         tx.feePayer = owner
         tx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash
 
-        return tx.serialize({
-            requireAllSignatures: false,
-            verifySignatures: false,
-        }).toString('base64')
+        return serializeTransaction(tx)
     }
 
     async getBuyTransaction(tokenPublicKey, buyerPublicKey) {
-        if (!this.managementProgram) {
-            throw new Error('Management program not initialized. IDL not loaded.')
-        }
-
         const mint = new PublicKey(tokenPublicKey)
         const buyer = new PublicKey(buyerPublicKey)
 
-        checkIsWalletAddress(mint)
-        checkIsWalletAddress(buyer)
+        const tariffs = await tariffsService.getTariffs()
 
         const tariffsPda = this.getTariffsPda()
-        const tariffs = await tariffsService.getTariffs()
-        const targetWallet = new PublicKey(tariffs.targetWallet)
         const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
+        const salePda = sevensTokenService.getSalePda(tokenPublicKey)
 
         // Get management data to get seller and expected price
         const managementData = await this.getTokenManagementData(tokenPublicKey)
@@ -298,7 +255,6 @@ class ManageTokenService {
         const expectedPrice = new anchor.BN(managementData.price)
         const sellerTokenAccount = getAssociatedTokenAddressSync(mint, seller, false, TOKEN_PROGRAM_ID)
         const buyerTokenAccount = getAssociatedTokenAddressSync(mint, buyer, false, TOKEN_PROGRAM_ID)
-        const salePda = this.getSalePda(tokenPublicKey)
 
         // Build instruction
         const ix = await this.managementProgram.methods
@@ -306,7 +262,7 @@ class ManageTokenService {
             .accounts({
                 buyer,
                 tariffs: tariffsPda,
-                targetWallet,
+                targetWallet: new PublicKey(tariffs.targetWallet),
                 mint,
                 tokenManagementData: tokenDataPda,
                 seller,
@@ -327,10 +283,7 @@ class ManageTokenService {
         tx.feePayer = buyer
         tx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash
 
-        return tx.serialize({
-            requireAllSignatures: false,
-            verifySignatures: false,
-        }).toString('base64')
+        return serializeTransaction(tx)
     }
 
     async getBurnTransaction(tokenPublicKey) {
@@ -340,14 +293,11 @@ class ManageTokenService {
 
         const mint = new PublicKey(tokenPublicKey)
         const owner = new PublicKey(ownerPublicKey)
+        const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID)
 
-        checkIsWalletAddress(mint)
-        checkIsWalletAddress(owner)
+        const tariffs = await tariffsService.getTariffs()
 
         const tariffsPda = this.getTariffsPda()
-        const tariffs = await tariffsService.getTariffs()
-        const targetWallet = new PublicKey(tariffs.targetWallet)
-        const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID)
         const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
 
         // Build instruction
@@ -356,7 +306,7 @@ class ManageTokenService {
             .accounts({
                 owner,
                 tariffs: tariffsPda,
-                targetWallet,
+                targetWallet: new PublicKey(tariffs.targetWallet),
                 mint,
                 tokenAccount,
                 tokenManagementData: tokenDataPda,
@@ -370,11 +320,16 @@ class ManageTokenService {
         tx.feePayer = owner
         tx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash
 
-        return tx.serialize({
-            requireAllSignatures: false,
-            verifySignatures: false,
-        }).toString('base64')
+        return serializeTransaction(tx)
     }
+
+    getTariffsPda = () => getPda(this.managementProgram.programId, 'tariffs')
+
+    getTokenManagementDataPda = (tokenPublicKey) => getPda(
+        this.managementProgram.programId,
+        'token_data',
+        new PublicKey(tokenPublicKey),
+    )
 }
 
 module.exports = new ManageTokenService()

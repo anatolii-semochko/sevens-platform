@@ -1,48 +1,19 @@
 const anchor = require('@coral-xyz/anchor')
-const { PublicKey, SystemProgram } = require('@solana/web3.js')
-const { loadIdl, initializeProvider } = require('../utils/blockchain')
+const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
+const { loadIdl, initializeProvider, serializeTransaction, getPda } = require('../utils/blockchain')
 
 class TariffsService {
     constructor() {
-        const { connection, provider } = initializeProvider()
-        this.connection = connection
-        this.provider = provider
-
-        this.sevensTokenManagementIdl = null
-        this.program = null
-
-        this.loadIdl().catch(e => console.error(`Sevens Token Management IDL loading error. Path: ${process.env.SEVENS_TOKEN_MANAGEMENT_IDL_PATH}.`, e))
-    }
-
-    async loadIdl() {
-        try {
-            const idlPath = process.env.SEVENS_TOKEN_MANAGEMENT_IDL_PATH
-            if (!idlPath) {
-                throw new Error('SEVENS_TOKEN_MANAGEMENT_IDL_PATH not set in environment')
-            }
-
-            this.sevensTokenManagementIdl = await loadIdl(idlPath)
-            const programId = new PublicKey(this.sevensTokenManagementIdl.metadata.address)
-            this.program = new anchor.Program(this.sevensTokenManagementIdl, programId, this.provider)
-
-            console.log('✅ Sevens Token Management IDL loaded successfully')
-            console.log(`   Program ID: ${programId.toString()}`)
-        } catch (error) {
-            console.error('Failed to load Sevens Token Management IDL:', error)
-            throw error
-        }
+        loadIdl('SEVENS_TOKEN_MANAGEMENT_IDL_PATH').then(idl => {
+            const { connection, provider, program} = initializeProvider(idl)
+            this.connection = connection
+            this.provider = provider
+            this.program = program
+        })
     }
 
     async getTariffs() {
-        if (!this.program) {
-            throw new Error('Program not initialized. IDL not loaded.')
-        }
-
-        // Derive PDA for tariffs
-        const [tariffsPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from('tariffs')],
-            this.program.programId
-        )
+        const tariffsPda = this.getTariffsPda()
 
         // Check if account exists first
         const accountInfo = await this.connection.getAccountInfo(tariffsPda)
@@ -65,10 +36,6 @@ class TariffsService {
     }
 
     async getSetTariffsTransaction(authorityPublicKey, targetWallet, mint, setSale, buy, burn) {
-        if (!this.program) {
-            throw new Error('Program not initialized. IDL not loaded.')
-        }
-
         // Validate inputs
         if (!PublicKey.isOnCurve(authorityPublicKey)) {
             throw new Error('Invalid authority public key')
@@ -89,11 +56,7 @@ class TariffsService {
         const authority = new PublicKey(authorityPublicKey)
         const targetWalletPubkey = new PublicKey(targetWallet)
 
-        // Derive PDA for tariffs
-        const [tariffsPda] = PublicKey.findProgramAddressSync(
-            [Buffer.from('tariffs')],
-            this.program.programId
-        )
+        const tariffsPda = this.getTariffsPda()
 
         // Check if tariffs account exists
         const tariffsAccountInfo = await this.connection.getAccountInfo(tariffsPda)
@@ -135,26 +98,16 @@ class TariffsService {
         }
 
         // Create transaction
-        const { Transaction } = require('@solana/web3.js')
         const tx = new Transaction()
         tx.add(ix)
         tx.feePayer = authority
+        tx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash
 
-        // Get recent blockhash
-        const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash()
-        tx.recentBlockhash = blockhash
+        return serializeTransaction(tx)
+    }
 
-        // Serialize transaction
-        const serializedTx = tx.serialize({
-            requireAllSignatures: false,
-            verifySignatures: false,
-        })
-
-        return {
-            transaction: serializedTx.toString('base64'),
-            blockhash,
-            lastValidBlockHeight,
-        }
+    getTariffsPda() {
+        return getPda(this.program.programId, 'tariffs')
     }
 }
 
