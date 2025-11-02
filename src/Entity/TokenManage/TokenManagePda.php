@@ -21,9 +21,9 @@ class TokenManagePda
         $this->mint = $data['mint'];
         $this->owner = $data['owner'];
         $this->onSale = $data['onSale'];
-        $this->price = (int) $data['price'] ? ((int) $data['price']) / SevensToken::LAMPORTS_PER_SOL : 0;
-        $this->retailPrice = (int) $data['retailPrice'] ? ((int) $data['retailPrice']) / SevensToken::LAMPORTS_PER_SOL : 0;
-        $this->saleFee = (int) $data['saleFee'];
+        $this->price = (float) ($data['price'] ?? 0);
+        $this->retailPrice = (float) ($data['retailPrice'] ?? 0);
+        $this->saleFee = (int) ($data['saleFee'] ?? 0);
         $this->mintedThroughManagement = $data['mintedThroughManagement'];
         $this->lastOperation = $data['lastOperation'];
         $this->lastOperationTimestamp = new \DateTime()->setTimestamp((int)$data['lastOperationTimestamp']);

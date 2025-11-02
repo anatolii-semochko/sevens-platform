@@ -85,7 +85,7 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
         </div>
     )
 
-    if (tokenData && !tokenData.sale.priceSevens) return (
+    if (tokenData && !tokenData.sale.price) return (
         <div>
             <ErrorMessageBlock message={'Material is not for sale.'} className={'mt-3'} />
             <ButtonClose root={root} />

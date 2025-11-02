@@ -88,6 +88,7 @@ readonly class TokenService
      * @throws NodeServerApiException
      */
     public function mint(
+        ?UserInterface $user,
         string $tokenPublicKey,
         string $transactionId,
         string $txSignature,
@@ -100,7 +101,7 @@ readonly class TokenService
             ManageTransactionTypeEnum::TOKEN_MINT,
             $tokenManageTariffsPda,
             $tokenManageTariffsPda->getMint(),
-            null,
+            $user,
             $tokenPublicKey,
         );
     }

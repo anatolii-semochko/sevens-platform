@@ -28,7 +28,7 @@ readonly class TokenRepository
                 $tokenData['metadata']['hash'],
                 $tokenData['walletPublicKey'],
                 $tokenData['sale']['onSale'],
-                $tokenData['sale']['priceSevens'],
+                $tokenData['sale']['price'],
             );
         } catch (NodeServerApiException $e) {
             throw new NotFoundException('The token was not found on the blockchain.');

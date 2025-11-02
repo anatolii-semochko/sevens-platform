@@ -44,7 +44,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
         ['Token description', tokenData.metadata.description],
         ['Token hash', tokenData.metadata.hash],
         ['Token can be burned', tokenData.metadata.canBeBurned ? 'Yes' : 'No'],
-        ['Token on sale', tokenData.sale.priceSevens ? 'Yes' : 'No'],
+        ['Token on sale', tokenData.sale.price ? 'Yes' : 'No'],
         ['Token minting time', getDateTimeFromDate(tokenData.mintingTime)],
     ]
 

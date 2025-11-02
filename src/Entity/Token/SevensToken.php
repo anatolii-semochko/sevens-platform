@@ -6,8 +6,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 class SevensToken
 {
-    public const int LAMPORTS_PER_SOL = 1000000000;
-
     #[Groups(['sevens-token:read'])]
     private string $tokenPublicKey;
     private \DateTime $mintingTimestamp;

@@ -37,10 +37,10 @@ class TariffsController {
             success(res, await tariffsService.getSetTariffsTransaction(
                 authorityPublicKey,
                 targetWallet,
-                parseInt(mint, 10),
-                parseInt(setSale, 10),
+                parseFloat(mint),
+                parseFloat(setSale),
                 parseInt(buy, 10),
-                parseInt(burn, 10)
+                parseFloat(burn)
             ))
         } catch (error) {
             badResponse('Get tariffs manage transaction', res, req, error)

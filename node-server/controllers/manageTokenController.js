@@ -99,7 +99,7 @@ class ManageTokenController {
         }
 
         try {
-            success(res, await manageTokenService.getSetSaleTransaction(tokenPublicKey, parseInt(price, 10)))
+            success(res, await manageTokenService.getSetSaleTransaction(tokenPublicKey, parseFloat(price)))
         } catch (error) {
             badResponse('Get sale transaction', res, req, error)
         }

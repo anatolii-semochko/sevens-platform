@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import TokenApi from '@react/api/tokenApi'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
 import { getDeserializedTransaction, getSerializedTransaction } from '@js/blockchain/sevens'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
@@ -13,7 +12,7 @@ const tokenApi = new TokenApi()
 
 const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
     const wallet = useWallet()
-    const [price, setPrice] = useState(tokenData.sale.priceSevens || '')
+    const [price, setPrice] = useState(tokenData.sale.price || '')
     const [type, setType] = useState(null)
     const [waitingSignature, setWaitingSignature] = useState(false)
     const [processing, setProcessing] = useState(false)
@@ -33,7 +32,7 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
             setProcessing(true)
             const transactionData = await tokenApi.getSaleTransaction(
                 tokenData.tokenPublicKey,
-                type === 'sale' ? price * LAMPORTS_PER_SOL : 0,
+                type === 'sale' ? price : 0,
             )
             setProcessing(false)
 
@@ -98,7 +97,7 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
                     label={'Set for sale'}
                     processingLabel={processingLabel()}
                     processing={type === 'sale' && busy()}
-                    disabled={price === tokenData.sale.priceSevens || price <= 0 || busy()}
+                    disabled={price === tokenData.sale.price || price <= 0 || busy()}
                     onClick={() => setType('sale')}
                 /><>
                 {!!tokenData.sale.price && (

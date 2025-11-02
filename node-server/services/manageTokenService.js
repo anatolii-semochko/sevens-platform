@@ -2,6 +2,7 @@ const anchor = require('@coral-xyz/anchor')
 const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
 const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
 const { loadIdl, initializeProvider, getPda, serializeTransaction} = require('../utils/blockchain')
+const { sevensToLamp, lampToSevens } = require('../utils/currency')
 const sevensTokenService = require('./sevensTokenService')
 const tariffsService = require('./tariffsService')
 
@@ -31,18 +32,19 @@ class ManageTokenService {
         }
 
         // Validate price matches between TokenPDA and token.sale
-        const tokenSalePrice = sevensTokenData.sale.priceLamports.toString()
-        if (managementData.price !== tokenSalePrice) {
-            throw new Error(`TokenPDA price (${managementData.price}) does not match token.sale.price (${tokenSalePrice})`)
+        const tokenSalePrice = parseFloat(sevensTokenData.sale.price)
+        const managementPrice = lampToSevens(managementData.price)
+        if (Math.abs(tokenSalePrice - managementPrice) > 0.000000001) {
+            throw new Error(`TokenPDA price (${managementPrice}) does not match token.sale.price (${tokenSalePrice})`)
         }
 
         // Calculate retailPrice = price + (price * saleFee / 100)
-        const basePrice = BigInt(managementData.price)
-        const saleFee = BigInt(managementData.saleFee)
-        const feeAmount = (basePrice * saleFee) / BigInt(100)
-        const retailPrice = (basePrice + feeAmount).toString()
+        const basePrice = lampToSevens(managementData.price)
+        const saleFee = managementData.saleFee
+        const feeAmount = (basePrice * saleFee) / 100
+        const retailPrice = basePrice + feeAmount
 
-        return {...managementData, retailPrice}
+        return {...managementData, price: basePrice, retailPrice}
     }
 
     async getTokenManagementData(tokenPublicKey) {
@@ -92,7 +94,9 @@ class ManageTokenService {
             if (sevensTokenData.sale.onSale !== managementData.onSale) {
                 mismatches.push('onSale')
             }
-            if (sevensTokenData.sale.priceLamports.toString() !== managementData.price) {
+            // Compare prices
+            const managementPriceSevens = lampToSevens(managementData.price)
+            if (Math.abs(sevensTokenData.sale.price - managementPriceSevens) > 0.000000001) {
                 mismatches.push('price')
             }
 
@@ -111,23 +115,16 @@ class ManageTokenService {
     }
 
     async getPriceWithFee(tokenPublicKey) {
-        try {
-            const managementData = await this.getTokenManagementData(tokenPublicKey)
+        const managementData = await this.getTokenManagementData(tokenPublicKey)
 
-            if (!managementData || !managementData.onSale) {
-                return null
-            }
-
-            // Calculate retail price (base price + fee percentage)
-            const basePrice = BigInt(managementData.price)
-            const feePercentage = BigInt(managementData.saleFee)
-            const retailPrice = basePrice + (basePrice * (feePercentage ? feePercentage / 100 : 1))
-
-            return retailPrice.toString()
-        } catch (error) {
-            console.error('Error getting price with fee:', error)
-            throw error
+        if (!managementData || !managementData.onSale) {
+            return null
         }
+
+        const basePrice = lampToSevens(managementData.price)
+        const feeAmount = (basePrice * managementData.saleFee) / 100
+
+        return  basePrice + feeAmount
     }
 
     async getMintTransaction(walletPublicKey, mintPublicKey, mintParams) {
@@ -190,7 +187,7 @@ class ManageTokenService {
         }
     }
 
-    async getSetSaleTransaction(tokenPublicKey, price) {
+    async getSetSaleTransaction(tokenPublicKey, priceSevens) {
         const mint = new PublicKey(tokenPublicKey)
         const ownerPublicKey = await sevensTokenService.getWalletPublicKeyByToken(tokenPublicKey)
         const owner = new PublicKey(ownerPublicKey)
@@ -205,8 +202,8 @@ class ManageTokenService {
         // Build instruction
         const ix = await this.managementProgram.methods
             .managedSetSale(
-                price > 0,
-                new anchor.BN(price || 0),
+                priceSevens > 0,
+                new anchor.BN(sevensToLamp(priceSevens)),
             )
             .accounts({
                 owner,

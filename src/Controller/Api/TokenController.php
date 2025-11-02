@@ -49,6 +49,7 @@ class TokenController extends BaseApiController
     {
         try {
             $this->tokenService->mint(
+                $this->getUser(),
                 $token,
                 $request->getPayload()->get('transactionId'),
                 $request->getPayload()->get('txSignature'),

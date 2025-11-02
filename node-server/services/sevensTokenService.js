@@ -1,7 +1,8 @@
 const crypto = require('crypto')
-const { PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction} = require('@solana/web3.js')
+const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
 const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
 const { commitment, loadIdl, initializeProvider, getPda, serializeTransaction } = require('../utils/blockchain')
+const { lampToSevens } = require('../utils/currency')
 
 class SevensTokenService {
     constructor() {
@@ -38,9 +39,7 @@ class SevensTokenService {
         const { metadataPda, salePda } = this.getSevensToken(new PublicKey(tokenPublicKey))
         const metadata = await this.program.account.trustDataMetadata.fetch(metadataPda)
         const sale = await this.program.account.tokenSaleData.fetch(salePda)
-
-        sale.priceLamports = sale.price.toNumber() // TODO - remove
-        sale.priceSevens = sale.price.toNumber() / LAMPORTS_PER_SOL // TODO - return only sevens
+        sale.price = lampToSevens(sale.price.toNumber())
 
         return {
             tokenPublicKey,

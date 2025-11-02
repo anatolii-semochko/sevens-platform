@@ -1,6 +1,6 @@
 import * as anchor from '@coral-xyz/anchor'
 import crypto from 'crypto'
-import { PublicKey, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { PublicKey, Transaction } from '@solana/web3.js'
 import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { connection, commitment, getPda, getAnchorErrorText } from './sevens'
 
@@ -71,13 +71,8 @@ const getData = async (tokenPublicKey) => {
             salePda,
             hashRegistryPda,
         } = getSevensToken(publicKey)
-
         const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
         const sale = await program.account.tokenSaleData.fetch(salePda)
-
-        sale.priceLamports = sale.price.toNumber()
-        sale.priceSevens = sale.price.toNumber() / LAMPORTS_PER_SOL
-
         const walletPublicKey = await getWalletPublicKeyByToken(tokenPublicKey)
 
         return {

@@ -1,6 +1,7 @@
 const anchor = require('@coral-xyz/anchor')
 const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
 const { loadIdl, initializeProvider, serializeTransaction, getPda } = require('../utils/blockchain')
+const { lampToSevens, sevensToLamp } = require('../utils/currency')
 
 class TariffsService {
     constructor() {
@@ -27,15 +28,15 @@ class TariffsService {
         return {
             authority: tariffsAccount.authority.toString(),
             targetWallet: tariffsAccount.targetWallet.toString(),
-            mint: tariffsAccount.mint.toString(),
-            setSale: tariffsAccount.setSale.toString(),
+            mint: lampToSevens(tariffsAccount.mint.toString()),
+            setSale: lampToSevens(tariffsAccount.setSale.toString()),
             buy: tariffsAccount.buy,
-            burn: tariffsAccount.burn.toString(),
+            burn: lampToSevens(tariffsAccount.burn.toString()),
             paused: tariffsAccount.paused,
         }
     }
 
-    async getSetTariffsTransaction(authorityPublicKey, targetWallet, mint, setSale, buy, burn) {
+    async getSetTariffsTransaction(authorityPublicKey, targetWallet, mintSevens, setSaleSevens, buy, burnSevens) {
         // Validate inputs
         if (!PublicKey.isOnCurve(authorityPublicKey)) {
             throw new Error('Invalid authority public key')
@@ -45,8 +46,8 @@ class TariffsService {
             throw new Error('Invalid target wallet address')
         }
 
-        if (mint < 0 || setSale < 0 || burn < 0) {
-            throw new Error('TokenManage values must be >= 0')
+        if (mintSevens < 0 || setSaleSevens < 0 || burnSevens < 0) {
+            throw new Error('Tariff values must be >= 0')
         }
 
         if (buy < 0 || buy >= 100) {
@@ -69,10 +70,10 @@ class TariffsService {
             ix = await this.program.methods
                 .initialize(
                     targetWalletPubkey,
-                    new anchor.BN(mint),
-                    new anchor.BN(setSale),
+                    new anchor.BN(sevensToLamp(mintSevens)),
+                    new anchor.BN(sevensToLamp(setSaleSevens)),
                     buy,
-                    new anchor.BN(burn)
+                    new anchor.BN(sevensToLamp(burnSevens))
                 )
                 .accounts({
                     authority: authority,
@@ -85,10 +86,10 @@ class TariffsService {
             ix = await this.program.methods
                 .updateTariffs(
                     targetWalletPubkey,
-                    new anchor.BN(mint),
-                    new anchor.BN(setSale),
+                    new anchor.BN(sevensToLamp(mintSevens)),
+                    new anchor.BN(sevensToLamp(setSaleSevens)),
                     buy,
-                    new anchor.BN(burn)
+                    new anchor.BN(sevensToLamp(burnSevens))
                 )
                 .accounts({
                     authority: authority,
