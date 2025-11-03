@@ -22,7 +22,7 @@ class ManageTokenController {
         try {
             success(res, await manageTokenService.getValidatedTokenData(tokenPublicKey))
         } catch (error) {
-            badResponse('Get validated token data', res, req, 500)
+            badResponse('Get validated token data', res, req, error, 500)
         }
     }
 
@@ -125,7 +125,7 @@ class ManageTokenController {
     }
 
     async getBurnTransaction(req, res) {
-        const { tokenPublicKey } = req.body
+        const { tokenPublicKey } = req.query
 
         try {
             checkIsNotEmpty(tokenPublicKey, 'tokenPublicKey')

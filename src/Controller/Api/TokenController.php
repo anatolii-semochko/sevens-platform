@@ -152,6 +152,7 @@ class TokenController extends BaseApiController
         try {
             $payload = $request->getPayload();
             $this->tokenService->burn(
+                $this->getUser(),
                 $token,
                 $payload->get('transactionId'),
                 $payload->get('txSignature'),

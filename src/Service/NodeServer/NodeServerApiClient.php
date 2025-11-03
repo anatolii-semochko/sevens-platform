@@ -117,7 +117,7 @@ readonly class NodeServerApiClient extends NodeServerApi
      */
     public function getBurnTokenTransaction(string $tokenPublicKey): string
     {
-        return $this->get('/sevens-token/get-burn-transaction', [
+        return $this->get('/manage/burn-transaction', [
             'tokenPublicKey' => $tokenPublicKey,
         ]);
     }

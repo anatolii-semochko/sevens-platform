@@ -33,13 +33,15 @@ app.post('/auth/verify', AuthController.verifySignature)
 // Token routes
 app.get('/sevens-token', TokenController.getTokens)
 app.get('/sevens-token/age-minutes', TokenController.getAgeMinutes)
+
 app.get('/sevens-token/get-buy-transaction', TokenController.getBuyTransaction) // TODO - deprecated direct query
 app.get('/sevens-token/get-burn-transaction', TokenController.getBurnTransaction) // TODO - deprecated direct query
 
-// Managed token operations routes
+// Token operations tariffs routes
 app.get('/manage/tariffs', TariffsController.getTariffs)
 app.get('/manage/tariffs/transaction', TariffsController.getTransaction)
 
+// Token operations routes
 app.get('/manage/mint-transaction', ManageTokenController.getMintTransaction)
 app.get('/manage/sale-transaction', ManageTokenController.getSaleTransaction)
 app.get('/manage/buy-transaction', ManageTokenController.getBuyTransaction)
@@ -90,7 +92,7 @@ app.listen(port, '0.0.0.0', () => {
     console.log(`  Managed: GET /node/manage/mint-transaction?walletPublicKey=xxx&mintPublicKey=xxx&tokenName=xxx&hash=xxx&author=xxx&description=xxx&canBeBurned=xxx`)
     console.log(`  Managed: GET /node/manage/sale-transaction?tokenPublicKey=xxx&price=xxx`)
     console.log(`  Managed: GET /node/manage/buy-transaction?tokenPublicKey=xxx&buyerPublicKey=xxx`)
-    console.log(`  Managed: GET /node/manage/burn-transaction`)
+    console.log(`  Managed: GET /node/manage/burn-transaction?tokenPublicKey=xxx`)
     console.log(`  Managed: GET /node/manage/get-data?tokenPublicKey=xxx`)
     console.log(`  Managed: GET /node/manage/match-data?tokenPublicKey=xxx`)
     console.log(`  Managed: GET /node/manage/price?tokenPublicKey=xxx`)

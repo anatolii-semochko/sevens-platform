@@ -17,19 +17,8 @@ class ManageTokenService {
     }
 
     async getValidatedTokenData(tokenPublicKey) {
-        let sevensTokenData
-        try {
-            sevensTokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
-        } catch (e) {
-            throw new Error('Sevens token not found')
-        }
-
-        let managementData
-        try {
-            managementData = await this.getTokenManagementData(tokenPublicKey)
-        } catch (e) {
-            return null
-        }
+        const sevensTokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
+        const managementData = await this.getTokenManagementData(tokenPublicKey)
 
         // Validate price matches between TokenPDA and token.sale
         const tokenSalePrice = parseFloat(sevensTokenData.sale.price)
@@ -284,29 +273,33 @@ class ManageTokenService {
     }
 
     async getBurnTransaction(tokenPublicKey) {
-        if (!this.managementProgram) {
-            throw new Error('Management program not initialized. IDL not loaded.')
-        }
-
+        const tokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
+        const ownerPublicKey = await sevensTokenService.getWalletPublicKeyByToken(tokenPublicKey)
+        const tariffs = await tariffsService.getTariffs()
         const mint = new PublicKey(tokenPublicKey)
         const owner = new PublicKey(ownerPublicKey)
         const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID)
-
-        const tariffs = await tariffsService.getTariffs()
-
-        const tariffsPda = this.getTariffsPda()
-        const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
+        const {
+            metadataPda,
+            salePda,
+            hashRegistryPda,
+        } = sevensTokenService.getSevensToken(tokenPublicKey, tokenData.metadata.hash)
 
         // Build instruction
         const ix = await this.managementProgram.methods
             .managedBurn()
             .accounts({
                 owner,
-                tariffs: tariffsPda,
+                tariffs: this.getTariffsPda(),
                 targetWallet: new PublicKey(tariffs.targetWallet),
                 mint,
                 tokenAccount,
-                tokenManagementData: tokenDataPda,
+                tokenManagementData: this.getTokenManagementDataPda(tokenPublicKey),
+                metadata: metadataPda,
+                sale: salePda,
+                hashRegistry: hashRegistryPda,
+                sevensTokenProgram: sevensTokenService.program.programId,
+                tokenProgram: TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
             })
             .instruction()

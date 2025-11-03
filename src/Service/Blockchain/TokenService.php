@@ -230,9 +230,18 @@ readonly class TokenService
     /**
      * @throws NodeServerApiException
      */
-    public function burn(string $tokenPublicKey, string $transactionId, string $txSignature): void {
+    public function burn(?UserInterface $user, string $tokenPublicKey, string $transactionId, string $txSignature): void {
         $this->walletService->matchTransactionSignature($transactionId, $txSignature);
         $this->nodeServerApiClient->sendSignedTransaction($txSignature);
+
+        $tokenManageTariffsPda = $this->tokenManagePdaRepository->getTariffsPda();
+        $this->manageTransactionRepository->createEntry(
+            ManageTransactionTypeEnum::TOKEN_BURN,
+            $tokenManageTariffsPda,
+            $tokenManageTariffsPda->getBurn(),
+            $user,
+            $tokenPublicKey,
+        );
 
         $this->materialCommentRepository->deleteByMaterialToken($tokenPublicKey);
         $this->materialRepository->deleteByToken($tokenPublicKey);
