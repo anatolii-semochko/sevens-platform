@@ -1,7 +1,6 @@
 const crypto = require('crypto')
-const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
-const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
-const { commitment, loadIdl, initializeProvider, getPda, serializeTransaction } = require('../utils/blockchain')
+const { PublicKey } = require('@solana/web3.js')
+const { loadIdl, initializeProvider, getPda } = require('../utils/blockchain')
 const { lampToSevens } = require('../utils/currency')
 
 class SevensTokenService {
@@ -66,80 +65,6 @@ class SevensTokenService {
         const ageInMinutes = Math.floor(ageInSeconds / 60)
 
         return Math.max(0, ageInMinutes)
-    }
-
-    async getBuyTransaction(tokenPublicKey, buyerPublicKey) {
-        const mint = new PublicKey(tokenPublicKey)
-        const buyer = new PublicKey(buyerPublicKey)
-        const tokenData = await this.getTokenByPublicKey(tokenPublicKey)
-        const owner = await this.getTokenOwner(mint)
-        const buyerToken = getAssociatedTokenAddressSync(mint, buyer, false, TOKEN_PROGRAM_ID)
-        const { salePda } = this.getSevensToken(mint)
-
-        const ix = await this.program.methods
-            .buyToken(tokenData.sale.price)
-            .accounts({
-                buyerAccount: buyer,
-                ownerAccount: owner.publicKey,
-                buyerTokenAccount: buyerToken,
-                ownerTokenAccount: owner.tokenAccount,
-                mint,
-                sale: salePda,
-                saleAuthority: salePda,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: SystemProgram.programId,
-                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            })
-            .instruction()
-
-        const tx = new Transaction()
-        tx.add(ix)
-        tx.feePayer = buyer
-        tx.recentBlockhash = (await this.connection.getLatestBlockhash(commitment)).blockhash
-
-        return serializeTransaction(tx)
-    }
-
-    async getBurnTransaction(tokenPublicKey) {
-        const tokenData = await this.getTokenByPublicKey(tokenPublicKey)
-        const mint = new PublicKey(tokenPublicKey)
-        const payerPublicKey = new PublicKey(tokenData.walletPublicKey)
-        const tokenAccount = getAssociatedTokenAddressSync(mint, payerPublicKey, false, TOKEN_PROGRAM_ID)
-        const { metadataPda, salePda, hashRegistryPda } = this.getSevensToken(mint, tokenData.metadata.hash)
-
-        const burnIx = await this.program.methods
-            .burnToken()
-            .accounts({
-                mint,
-                tokenAccount,
-                metadata: metadataPda,
-                sale: salePda,
-                hashRegistry: hashRegistryPda,
-                payerAccount: payerPublicKey,
-                tokenProgram: TOKEN_PROGRAM_ID,
-            })
-            .instruction()
-
-        const tx = new Transaction().add(burnIx)
-        tx.feePayer = payerPublicKey
-        tx.recentBlockhash = (await this.connection.getLatestBlockhash(commitment)).blockhash
-
-        return serializeTransaction(tx)
-    }
-
-    async getTokenOwner(tokenPublicKey) {
-        const largestAccounts = await this.connection.getTokenLargestAccounts(tokenPublicKey)
-        const largestAccountInfo = largestAccounts.value[0]
-        if (!largestAccountInfo) {
-            throw new Error('No token accounts found for this mint.')
-        }
-        const parsedAccount = await this.connection.getParsedAccountInfo(largestAccountInfo.address)
-        const owner = new PublicKey(parsedAccount.value.data.parsed.info.owner)
-
-        return {
-            tokenAccount: largestAccountInfo.address,
-            publicKey: owner,
-        }
     }
 
     getSevensToken (publicKey, hash = null){

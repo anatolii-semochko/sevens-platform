@@ -1,21 +1,9 @@
-const { PublicKey, Connection } = require('@solana/web3.js')
-const anchor = require('@coral-xyz/anchor')
-const https = require('https')
 const fs = require('fs').promises
-const { URL } = require('url')
+const anchor = require('@coral-xyz/anchor')
+const { PublicKey, Connection } = require('@solana/web3.js')
 
 const commitment = 'confirmed'
 
-/**
- * Universal IDL loader that supports multiple sources
- *
- * Loads and validates Anchor IDL files from:
- * - Local file system (absolute paths starting with '/')
- * - HTTPS URLs (with self-signed certificate support in development)
- * - HTTP URLs (using fetch API) *
- * @returns {Promise<Object>} Parsed and validated IDL object with metadata.address
- * @throws {Error} If IDL file cannot be read, parsed, or is missing required fields
- */
 const loadedIds = []
 const loadIdl = async (idlName) => {
     if (loadedIds[idlName]) {
@@ -28,58 +16,15 @@ const loadIdl = async (idlName) => {
     }
 
     try {
-        let idl
+        const data = await fs.readFile(idlPath, 'utf8')
+        const idl = JSON.parse(data)
 
-        // Local file path
-        if (idlPath.startsWith('/')) {
-            const data = await fs.readFile(idlPath, 'utf8')
-            idl = JSON.parse(data)
-        }
-        // HTTPS URL - development mode with self-signed certificates
-        else if (process.env.NODE_ENV === 'development' && idlPath.startsWith('https:')) {
-            const url = new URL(idlPath)
-            const options = {
-                hostname: url.hostname,
-                port: url.port || 443,
-                path: url.pathname + url.search,
-                method: 'GET',
-                rejectUnauthorized: false, // Ignore self-signed certificates in development
-            }
-
-            const data = await new Promise((resolve, reject) => {
-                const req = https.request(options, (res) => {
-                    let body = ''
-                    res.on('data', chunk => body += chunk)
-                    res.on('end', () => {
-                        if (res.statusCode === 200) {
-                            resolve(body)
-                        } else {
-                            reject(new Error(`Failed to fetch IDL (${idlName}): HTTP ${res.statusCode}`))
-                        }
-                    })
-                })
-                req.on('error', reject)
-                req.end()
-            })
-
-            idl = JSON.parse(data)
-        }
-        // Production URL or HTTP - use fetch
-        else {
-            const response = await fetch(idlPath)
-            if (!response.ok) {
-                throw new Error(`Failed to fetch IDL (${idlName}): ${response.statusText}`)
-            }
-            idl = await response.json()
-        }
-
-        // Validate IDL structure
         if (!idl?.metadata?.address) {
             throw new Error(`Invalid IDL structure - missing metadata.address (${idlName})`)
         }
 
-        console.log(`✅ ${idlName} loaded successfully`)
         loadedIds[idlName] = idl
+        console.log(`✅ ${idlName} loaded successfully from ${idlPath}`)
 
         return idl
     } catch (error) {

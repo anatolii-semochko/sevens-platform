@@ -34,10 +34,7 @@ app.post('/auth/verify', AuthController.verifySignature)
 app.get('/sevens-token', TokenController.getTokens)
 app.get('/sevens-token/age-minutes', TokenController.getAgeMinutes)
 
-app.get('/sevens-token/get-buy-transaction', TokenController.getBuyTransaction) // TODO - deprecated direct query
-app.get('/sevens-token/get-burn-transaction', TokenController.getBurnTransaction) // TODO - deprecated direct query
-
-// Token operations tariffs routes
+// Token operation tariffs routes
 app.get('/manage/tariffs', TariffsController.getTariffs)
 app.get('/manage/tariffs/transaction', TariffsController.getTransaction)
 
