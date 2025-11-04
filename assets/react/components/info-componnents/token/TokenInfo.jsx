@@ -19,7 +19,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
 
         return (
             <div className="alert-danger alert text-center text-break p-4">
-                <h4>Token not found for this files container: {tokenData.error}</h4>
+                <h4>Checking container error - {tokenData.error}</h4>
                 <InnerTable data={data} />
             </div>
         )
@@ -50,7 +50,7 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
 
     return (
         <div className="alert-success alert text-center text-break p-4">
-            <h3 className="mb-3">{label || 'Your token is valid in blockchain.'}</h3>
+            <h3 className="mb-3">{label || 'Your token is valid in the blockchain.'}</h3>
             {!!text && (
                 <p className="text-center">{text}</p>
             )}

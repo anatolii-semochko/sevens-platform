@@ -81,7 +81,7 @@ app.listen(port, '0.0.0.0', () => {
     console.log(`  Wallet: GET /node/wallet/balance?walletAddress=xxx`)
     console.log(`  Auth nonce: GET /node/auth/nonce?walletAddress=xxx`)
     console.log(`  Auth verify: POST /node/auth/verify`)
-    console.log(`  Tokens: GET /node/sevens-token?publicKey=xxx`)
+    console.log(`  Tokens: GET /node/sevens-token?publicKey|hash|walletPublicKey=xxx`)
     console.log(`  Tokens: GET /node/sevens-token?hash=xxx`)
     console.log(`  Tokens: GET /node/sevens-token/age-minutes?publicKey=xxx`)
     console.log(`  Managed: GET /node/manage/tariffs`)

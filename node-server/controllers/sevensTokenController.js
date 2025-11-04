@@ -12,12 +12,13 @@ class SevensTokenController {
         this.getTokens = this.getTokens.bind(this)
         this.getByPublicKey = this.getByPublicKey.bind(this)
         this.getByHash = this.getByHash.bind(this)
+        this.getByWallet = this.getByWallet.bind(this)
         this.getAgeMinutes = this.getAgeMinutes.bind(this)
     }
 
     async getTokens(req, res) {
         try {
-            const { publicKey, hash } = req.query
+            const { publicKey, hash, walletPublicKey } = req.query
 
             if (publicKey) {
                 return await this.getByPublicKey(publicKey, res)
@@ -27,7 +28,11 @@ class SevensTokenController {
                 return await this.getByHash(hash, res)
             }
 
-            badRequest(res, 'Either publicKey or hash query parameter is required')
+            if (walletPublicKey) {
+                return await this.getByWallet(walletPublicKey, res)
+            }
+
+            badRequest(res, 'The publicKey, hash, or walletPublicKey query parameter is required.')
         } catch (error) {
             badResponse('Get token', res, req, error)
         }
@@ -57,6 +62,21 @@ class SevensTokenController {
 
         try {
             success(res, await tokenService.getTokenByHash(hash))
+        } catch (error) {
+            badResponse('Get token by hash', res, {req: {query: {hash}}}, error)
+        }
+    }
+
+    async getByWallet(walletPublicKey, res) {
+        try {
+            checkIsNotEmpty(walletPublicKey, 'walletPublicKey')
+            checkIsWalletAddress(walletPublicKey, 'walletPublicKey')
+        } catch (e) {
+            return badRequest(res, e)
+        }
+
+        try {
+            success(res, await tokenService.getTokenByWallet(walletPublicKey))
         } catch (error) {
             badResponse('Get token by hash', res, {req: {query: {hash}}}, error)
         }

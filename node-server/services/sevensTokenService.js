@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 const { PublicKey } = require('@solana/web3.js')
+const { TOKEN_PROGRAM_ID } = require('@solana/spl-token')
 const { loadIdl, initializeProvider, getPda } = require('../utils/blockchain')
 const { lampToSevens } = require('../utils/currency')
 
@@ -55,6 +56,25 @@ class SevensTokenService {
         const mintPublicKey = hashRegistry.mintKey.toString()
 
         return await this.getTokenByPublicKey(mintPublicKey)
+    }
+
+    async getTokenByWallet(walletPublicKey){
+        const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+            new PublicKey(walletPublicKey),
+            {programId: TOKEN_PROGRAM_ID},
+        )
+
+        const tokens = []
+        for (const accountInfo of tokenAccounts.value) {
+            const accountData = accountInfo.account.data.parsed.info
+            const amount = parseInt(accountData.tokenAmount.amount, 10)
+            const decimals = parseInt(accountData.tokenAmount.decimals, 10)
+            if (amount === 1 && decimals === 0) {
+                tokens.push(accountData.mint)
+            }
+        }
+
+        return tokens
     }
 
     async getAgeMinutes(publicKey) {

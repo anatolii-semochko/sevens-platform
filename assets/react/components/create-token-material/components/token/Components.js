@@ -1,9 +1,8 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import TokenApi from '@react/api/tokenApi'
 import { Keypair } from '@solana/web3.js'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { getDeserializedTransaction, getSerializedTransaction } from '@js/blockchain/sevens'
-import { getData } from '@js/blockchain/sevens-token'
+import { getDeserializedTransaction, getSerializedTransaction } from '@js/utils/blockchain'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 
 const tokenApi = new TokenApi()
@@ -62,7 +61,7 @@ export const ButtonCreateToken = ({tokenData, container, setMinted, setErrorMess
             const serializedTx = getSerializedTransaction(txSignature)
             await tokenApi.postMintTransaction(mintKeypair.publicKey.toString(), transactionData.transactionId, serializedTx)
 
-            const minted = await getData(mintKeypair.publicKey.toString())
+            const minted = await tokenApi.getTokenData(mintKeypair.publicKey.toString())
 
             setMinted(minted)
         } catch (error) {

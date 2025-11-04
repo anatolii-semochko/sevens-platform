@@ -49,6 +49,26 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
+    public function getTokenMetadataByHash(string $hash): array
+    {
+        return $this->get('/sevens-token', [
+            'hash' => $hash,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
+    public function fetchTokensByWallet(string $walletPublicKey): array
+    {
+        return $this->get('/sevens-token', [
+            'walletPublicKey' => $walletPublicKey,
+        ]);
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
     public function getManageTokenData(string $tokenPublicKey): array
     {
         return $this->get('/manage/get-data', [

@@ -3,6 +3,30 @@ import api, { throwErrorMessage } from '@react/api/indexApi'
 const mainUrl = '/token'
 
 export default class TokenApi {
+    async getTokenData(token){
+        const url = `${mainUrl}/${token}`
+        return await api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
+    async getTokenDataByHash(hash){
+        const url = `${mainUrl}/get-buy-hash/${hash}`
+        return await api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
+    async fetchTokensByWallet(walletPublicKey){
+        const url = `${mainUrl}/fetch-buy-wallet/${walletPublicKey}`
+        return await api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
     async getMintTransaction(mintPublicKey, params) {
         const url = `${mainUrl}/${mintPublicKey}/mint`
         return await api

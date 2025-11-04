@@ -6,6 +6,7 @@ use App\Controller\BaseApiController;
 use App\Exception\WrappedHttpException;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
+use App\Service\NodeServer\NodeServerApiClient;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -15,6 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class TokenController extends BaseApiController
 {
     public function __construct(
+        private readonly NodeServerApiClient $nodeServerApiClient,
         private readonly TokenService $tokenService,
         private readonly MaterialRepository $materialRepository,
     ) {}
@@ -159,6 +161,45 @@ class TokenController extends BaseApiController
             );
 
             return $this->json(null);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}', name: 'get_token_data', methods: ['GET'])]
+    public function getTokenData(string $token): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->getTokenMetadata($token));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/get-buy-hash/{hash}', name: 'get_token_data_by_hash', methods: ['GET'])]
+    public function getTokenDataByHash(string $hash): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->getTokenMetadataByHash($hash));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/fetch-buy-wallet/{walletPublicKey}', name: 'fetch_tokens_by_wallet', methods: ['GET'])]
+    public function getTokensByWallet(string $walletPublicKey): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->fetchTokensByWallet($walletPublicKey));
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
         }

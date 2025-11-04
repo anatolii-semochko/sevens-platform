@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { deriveTokenData } from '../create-token-material/utils/blockchain'
+import TokenApi from '@react/api/tokenApi'
 import { calculateContainerHash } from '../create-token-material/utils/files'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { ActionButtons, ContainerCheckMessage } from '../check-token/components/Components'
@@ -10,6 +10,8 @@ import {
     SelectContainerFile,
     ContainerFileInfo,
 } from '../create-token-material/components/container/Components'
+
+const tokenApi = new TokenApi()
 
 export const CheckToken = () =>  {
     const [container, setContainer] = useState(null)
@@ -33,7 +35,9 @@ export const CheckToken = () =>  {
             calculateContainerHash(container, setContainer, setOverallHashing, setErrorMessage).catch()
         }
         if (container?.hash) {
-            deriveTokenData(container.hash, setTokenData).catch(error => setErrorMessage(error.message))
+            tokenApi.getTokenDataByHash(container.hash).then(setTokenData).catch(() => setTokenData({
+                error: 'Token not found in blockchain',
+            }))
         }
     }, [container])
 

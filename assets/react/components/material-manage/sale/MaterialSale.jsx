@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import TokenApi from '@react/api/tokenApi'
-import { getDeserializedTransaction, getSerializedTransaction } from '@js/blockchain/sevens'
+import { getDeserializedTransaction, getSerializedTransaction } from '@js/utils/blockchain'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { Number } from '@react/components/form-elements/Inputs'
