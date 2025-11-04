@@ -1,5 +1,11 @@
 const walletService = require('../services/walletService')
-const { success, badRequest, badResponse , checkIsNotEmpty , checkIsWalletAddress } = require('../utils/controller')
+const {
+    success,
+    badRequest,
+    badResponse ,
+    checkIsNotEmpty ,
+    checkIsWalletAddress,
+} = require('../utils/controller')
 
 class WalletController {
 

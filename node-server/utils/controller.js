@@ -65,6 +65,8 @@ const checkIsWalletAddress = (publicKey, propertyName) => {
     }
 }
 
+const parseBoolean = (value) => value === 'true' || value === true || value === 1 || value === '1'
+
 const success = (res, data = null) => res.status(200).json({
     success: true,
     data,
@@ -96,4 +98,5 @@ module.exports = {
     checkIsAddress,
     checkIsPdaAddress,
     checkIsWalletAddress,
+    parseBoolean,
 }

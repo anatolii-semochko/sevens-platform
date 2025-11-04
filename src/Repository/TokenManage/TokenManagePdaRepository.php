@@ -51,6 +51,10 @@ readonly class TokenManagePdaRepository
     {
         try {
             $manageTokenTariffsData = $this->nodeServerApiClient->getManageTokenTariffsData();
+            if (!$manageTokenTariffsData) {
+                throw new NotFoundException('This operation is currently unavailable. Please try again later.');
+            }
+
             return new TokenManageTariffsPda($manageTokenTariffsData);
         } catch (NodeServerApiException $e) {
             throw new NotFoundException('Token manage tariffs data not found.', previous: $e);

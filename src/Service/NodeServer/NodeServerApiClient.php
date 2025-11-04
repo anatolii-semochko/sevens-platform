@@ -59,7 +59,7 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function getManageTokenTariffsData(): array
+    public function getManageTokenTariffsData(): ?array
     {
         return $this->get('/manage/tariffs');
     }

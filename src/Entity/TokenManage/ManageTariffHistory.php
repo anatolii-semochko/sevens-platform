@@ -49,6 +49,10 @@ class ManageTariffHistory
     #[Groups(['tariff-history:read'])]
     private int $burn;
 
+    #[ORM\Column(type: 'boolean')]
+    #[Groups(['tariff-history:read'])]
+    private bool $paused;
+
     public function __construct()
     {
         $this->id = Uuid::v4()->toRfc4122();
@@ -123,6 +127,17 @@ class ManageTariffHistory
     public function setBurn(int $burn): self
     {
         $this->burn = $burn;
+        return $this;
+    }
+
+    public function isPaused(): bool
+    {
+        return $this->paused;
+    }
+
+    public function setPaused(bool $paused): self
+    {
+        $this->paused = $paused;
         return $this;
     }
 }

@@ -127,7 +127,7 @@ readonly class MaterialService
             ->getResult();
     }
 
-    public function updateMaterial(Material $material, array $data): void
+    public function patch(Material $material, array $data): void
     {
         foreach ($data as $key => $value) {
             if (is_string($value)) {

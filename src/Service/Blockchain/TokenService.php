@@ -7,6 +7,7 @@ use App\Entity\Token\SevensToken;
 use App\Entity\TokenManage\ManageTransactionTypeEnum;
 use App\Entity\Wallet\WalletMessageSignature;
 use App\Entity\Wallet\WalletTransactionTypeEnum;
+use App\Exception\NotFoundException;
 use App\Repository\Material\MaterialCommentRepository;
 use App\Repository\Material\MaterialRepository;
 use App\Repository\Material\MaterialSaleHistoryRepository;
@@ -74,8 +75,12 @@ readonly class TokenService
      */
     public function getMintTransaction(string $mintPublicKey, array $tokenData): array
     {
+        $this->checkManagementTariffsStatus();
         $result = $this->nodeServerApiClient->getMintTokenTransaction($mintPublicKey, $tokenData);
-        $transactionId = $this->walletService->saveTransaction(WalletTransactionTypeEnum::TOKEN_MINT, $result['transaction']);
+        $transactionId = $this->walletService->saveTransaction(
+            WalletTransactionTypeEnum::TOKEN_MINT,
+            $result['transaction'],
+        );
 
         return [
             'transactionId' => $transactionId,
@@ -111,6 +116,7 @@ readonly class TokenService
      */
     public function getSaleTransaction(string $tokenPublicKey, int $price): array
     {
+        $this->checkManagementTariffsStatus();
         $material = $this->materialRepository->get($tokenPublicKey);
         $transaction = $this->nodeServerApiClient->getSaleTokenTransaction($material->getToken(), $price);
         $transactionId = $this->walletService->saveTransaction(WalletTransactionTypeEnum::TOKEN_SALE, $transaction);
@@ -166,6 +172,7 @@ readonly class TokenService
      */
     public function getBuyTransaction(string $tokenPublicKey, string $buyerPublicKey): array
     {
+        $this->checkManagementTariffsStatus();
         $material = $this->materialRepository->get($tokenPublicKey);
         $transaction = $this->nodeServerApiClient->getBuyTokenTransaction($material->getToken(), $buyerPublicKey);
         $transactionId = $this->walletService->saveTransaction(WalletTransactionTypeEnum::TOKEN_BUY, $transaction);
@@ -218,6 +225,7 @@ readonly class TokenService
      */
     public function getBurnTransaction(string $tokenPublicKey): array
     {
+        $this->checkManagementTariffsStatus();
         $transaction = $this->nodeServerApiClient->getBurnTokenTransaction($tokenPublicKey);
         $transactionId = $this->walletService->saveTransaction(WalletTransactionTypeEnum::TOKEN_BURN, $transaction);
 
@@ -245,5 +253,13 @@ readonly class TokenService
 
         $this->materialCommentRepository->deleteByMaterialToken($tokenPublicKey);
         $this->materialRepository->deleteByToken($tokenPublicKey);
+    }
+
+    private function checkManagementTariffsStatus(): void
+    {
+        $tokenManageTariffsPda = $this->tokenManagePdaRepository->getTariffsPda();
+        if ($tokenManageTariffsPda->isPaused()) {
+            throw new NotFoundException('This operation is currently unavailable. Please try again later.');
+        }
     }
 }

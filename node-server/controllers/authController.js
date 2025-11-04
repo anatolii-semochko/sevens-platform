@@ -1,5 +1,11 @@
 const authService = require('../services/authService')
-const { success, badRequest, badResponse, checkIsNotEmpty, checkIsWalletAddress } = require('../utils/controller')
+const {
+    success,
+    badRequest,
+    badResponse,
+    checkIsNotEmpty,
+    checkIsWalletAddress,
+} = require('../utils/controller')
 
 class AuthController {
     async getNonce(req, res) {

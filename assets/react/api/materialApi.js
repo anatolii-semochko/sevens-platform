@@ -19,10 +19,10 @@ export default class MaterialApi {
             .catch(throwErrorMessage)
     }
 
-    async put(token, material) {
+    async patch(token, material) {
         const url = `${mainUrl}/${token}`
         return api
-            .put(url, material)
+            .patch(url, material)
             .then(response => response.data)
             .catch(throwErrorMessage)
     }

@@ -6,6 +6,7 @@ const {
     checkIsNotEmpty,
     checkIsWalletAddress,
     checkIsNotNegative,
+    parseBoolean,
 } = require('../utils/controller')
 
 class TariffsController {
@@ -18,7 +19,7 @@ class TariffsController {
     }
 
     async getTransaction(req, res) {
-        const { authorityPublicKey, targetWallet, mint, setSale, buy, burn } = req.query
+        const { authorityPublicKey, targetWallet, mint, setSale, buy, burn, paused } = req.query
 
         try {
             checkIsNotEmpty(authorityPublicKey, 'authorityPublicKey')
@@ -29,6 +30,7 @@ class TariffsController {
             checkIsNotNegative(setSale, 'setSale')
             checkIsNotNegative(buy, 'buy')
             checkIsNotNegative(burn, 'burn')
+            checkIsNotEmpty(paused, 'paused')
         } catch (e) {
             return badRequest(res, e)
         }
@@ -40,7 +42,8 @@ class TariffsController {
                 parseFloat(mint),
                 parseFloat(setSale),
                 parseInt(buy, 10),
-                parseFloat(burn)
+                parseFloat(burn),
+                parseBoolean(paused),
             ))
         } catch (error) {
             badResponse('Get tariffs manage transaction', res, req, error)

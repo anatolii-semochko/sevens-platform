@@ -36,7 +36,15 @@ class TariffsService {
         }
     }
 
-    async getSetTariffsTransaction(authorityPublicKey, targetWallet, mintSevens, setSaleSevens, buy, burnSevens) {
+    async getSetTariffsTransaction(
+        authorityPublicKey,
+        targetWallet,
+        mintSevens,
+        setSaleSevens,
+        buy,
+        burnSevens,
+        paused,
+    ) {
         // Validate inputs
         if (!PublicKey.isOnCurve(authorityPublicKey)) {
             throw new Error('Invalid authority public key')
@@ -54,6 +62,10 @@ class TariffsService {
             throw new Error('Buy fee must be between 0 and 99')
         }
 
+        if (typeof paused !== 'boolean') {
+            throw new Error('Paused must be a boolean value')
+        }
+
         const authority = new PublicKey(authorityPublicKey)
         const targetWalletPubkey = new PublicKey(targetWallet)
 
@@ -63,11 +75,12 @@ class TariffsService {
         const tariffsAccountInfo = await this.connection.getAccountInfo(tariffsPda)
         const tariffsAccountExists = tariffsAccountInfo !== null
 
-        // Build instruction - use initialize if account doesn't exist, updateTariffs otherwise
-        let ix
+        // Build instructions
+        const tx = new Transaction()
+
         if (!tariffsAccountExists) {
             // First time initialization
-            ix = await this.program.methods
+            const initIx = await this.program.methods
                 .initialize(
                     targetWalletPubkey,
                     new anchor.BN(sevensToLamp(mintSevens)),
@@ -81,9 +94,10 @@ class TariffsService {
                     systemProgram: SystemProgram.programId,
                 })
                 .instruction()
+            tx.add(initIx)
         } else {
             // Update existing tariffs
-            ix = await this.program.methods
+            const updateIx = await this.program.methods
                 .updateTariffs(
                     targetWalletPubkey,
                     new anchor.BN(sevensToLamp(mintSevens)),
@@ -96,11 +110,20 @@ class TariffsService {
                     tariffs: tariffsPda,
                 })
                 .instruction()
+            tx.add(updateIx)
         }
 
-        // Create transaction
-        const tx = new Transaction()
-        tx.add(ix)
+        // Add setPaused instruction
+        const setPausedIx = await this.program.methods
+            .setPaused(paused)
+            .accounts({
+                authority: authority,
+                tariffs: tariffsPda,
+            })
+            .instruction()
+        tx.add(setPausedIx)
+
+        // Set transaction metadata
         tx.feePayer = authority
         tx.recentBlockhash = (await this.connection.getLatestBlockhash()).blockhash
 

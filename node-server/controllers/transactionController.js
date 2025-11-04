@@ -1,5 +1,10 @@
 const transactionService = require('../services/transactionService')
-const { success, badRequest, badResponse, checkIsNotEmpty } = require('../utils/controller')
+const {
+    success,
+    badRequest,
+    badResponse,
+    checkIsNotEmpty,
+} = require('../utils/controller')
 
 class TransactionController {
     async sendTransaction(req, res) {

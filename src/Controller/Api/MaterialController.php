@@ -79,13 +79,13 @@ class MaterialController extends BaseApiController
     /**
      * @throws HttpException
      */
-    #[Route('/{token}', name: 'put', methods: ['PUT'])]
-    public function put(string $token, Request $request): JsonResponse
+    #[Route('/{token}', name: 'patch', methods: ['PATCH'])]
+    public function patch(string $token, Request $request): JsonResponse
     {
         try {
             $material = $this->materialRepository->get($token);
             $this->checkAuthorization($material->getUser()?->getId());
-            $this->materialService->updateMaterial($material, $request->getPayload()->all());
+            $this->materialService->patch($material, $request->getPayload()->all());
 
             return $this->json(null);
         } catch (\Exception $e) {
