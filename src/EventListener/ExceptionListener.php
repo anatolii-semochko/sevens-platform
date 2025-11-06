@@ -4,7 +4,9 @@ namespace App\EventListener;
 
 use App\Service\PageContent\PageService;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Twig\Environment;
 
@@ -18,7 +20,24 @@ readonly class ExceptionListener
 
     public function onKernelException(ExceptionEvent $event): void
     {
-        if ($event->getThrowable() instanceof NotFoundHttpException) {
+        $exception = $event->getThrowable();
+        $request = $event->getRequest();
+
+        // Handle API requests with JSON response
+        $routeName = $request->attributes->get('_route');
+        if ($routeName && str_starts_with($routeName, 'api_')) {
+            $statusCode = $exception instanceof HttpExceptionInterface
+                ? $exception->getStatusCode()
+                : Response::HTTP_INTERNAL_SERVER_ERROR;
+
+            $event->setResponse(new JsonResponse([
+                'error' => $exception->getMessage(),
+            ], $statusCode));
+            return;
+        }
+
+        // Handle 404 errors with custom page
+        if ($exception instanceof NotFoundHttpException) {
             $this->pageInitializerListener->initLocale($event);
             $this->pageInitializerListener->initLanguage();
             $this->pageService->init('/404');
