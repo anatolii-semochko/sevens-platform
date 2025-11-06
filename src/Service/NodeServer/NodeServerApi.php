@@ -65,8 +65,8 @@ readonly class NodeServerApi
 
         if ($httpCode >= 400) {
             $errorData = json_decode($response, true);
-            $errorMessage = $errorData['error'] ?? 'HTTP ' . $httpCode . ' error';
-            throw new NodeServerApiException($errorMessage);
+            $errorMessage = $errorData['message'] ?? $errorData['error'] ?? 'HTTP ' . $httpCode . ' error';
+            throw new NodeServerApiException($errorMessage, $httpCode);
         }
 
         if (json_decode($response, true)['success'] !== true) {
