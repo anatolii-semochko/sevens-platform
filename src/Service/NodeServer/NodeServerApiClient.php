@@ -113,7 +113,7 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function getSaleTokenTransaction(string $tokenPublicKey, int $price): string
+    public function getSaleTokenTransaction(string $tokenPublicKey, float $price): string
     {
         return $this->get('/manage/sale-transaction', [
             'tokenPublicKey' => $tokenPublicKey,
@@ -168,6 +168,6 @@ readonly class NodeServerApiClient extends NodeServerApi
      */
     public function getTariffs(): array
     {
-        return $this->get('/tariffs', null);
+        return $this->get('/manage/tariffs', null);
     }
 }

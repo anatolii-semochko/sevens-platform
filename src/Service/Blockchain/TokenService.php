@@ -114,7 +114,7 @@ readonly class TokenService
     /**
      * @throws NodeServerApiException
      */
-    public function getSaleTransaction(string $tokenPublicKey, int $price): array
+    public function getSaleTransaction(string $tokenPublicKey, float $price): array
     {
         $this->checkManagementTariffsStatus();
         $material = $this->materialRepository->get($tokenPublicKey);

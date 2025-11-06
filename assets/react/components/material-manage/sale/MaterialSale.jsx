@@ -3,27 +3,48 @@ import TokenApi from '@react/api/tokenApi'
 import { getDeserializedTransaction, getSerializedTransaction } from '@js/utils/blockchain'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
-import { Number } from '@react/components/form-elements/Inputs'
-import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
+import { SaleActions, SaleForm, SaleMessage, SignActions } from './components/SaleComponents'
 
 const tokenApi = new TokenApi()
 
 const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
     const wallet = useWallet()
-    const [price, setPrice] = useState(tokenData.sale.price || '')
+    const [price, setPrice] = useState(tokenData.sale.price > 0 ? tokenData.sale.price : '')
+    const [currentPrice, setCurrentPrice] = useState(price)
+    const [retailPrice, setRetailPrice] = useState('')
+    const [currentRetailPrice, setCurrentRetailPrice] = useState('')
+    const [tariffBuy, setTariffBuy] = useState(0)
     const [type, setType] = useState(null)
     const [waitingSignature, setWaitingSignature] = useState(false)
     const [processing, setProcessing] = useState(false)
     const [error, setError] = useState(false)
 
-    const isWalletExpected = () => wallet?.publicKey?.toString() === tokenData?.walletPublicKey
-    const busy = () => waitingSignature || processing
-    const processingLabel = () => waitingSignature ? 'Waiting signature...' : 'Processing...'
-
-    const getTransaction = async () => {
+    const init = async () => {
+        const tariffs = await tokenApi.getTariffs()
+        setTariffBuy(tariffs.buy)
         try {
+            const tokenManage = await tokenApi.getManageToken(tokenData.tokenPublicKey)
+            const manageRetailPrice = tokenManage.retailPrice || ''
+            setRetailPrice(manageRetailPrice)
+            setCurrentRetailPrice(manageRetailPrice)
+        } catch (e) {
+            const currentPrice = tokenData.sale.price > 0 ? tokenData.sale.price : ''
+            if (currentPrice && currentPrice > 0) {
+                const tokenRetailPrice = round(currentPrice * (1 + tariffBuy / 100))
+                setRetailPrice(tokenRetailPrice)
+                setCurrentRetailPrice(tokenRetailPrice)
+            }
+        }
+    }
+
+    const handleSetSale = async () => {
+        try {
+            if (!wallet.publicKey?.toString()) {
+                setError('Wallet is not activated')
+                return
+            }
             if (!isWalletExpected() || !type || waitingSignature || processing) {
                 return
             }
@@ -50,84 +71,55 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
             handlerSave()
         } catch (error) {
             setError(error.message)
-        } finally {
-            setType(false)
-            setWaitingSignature(false)
             setProcessing(false)
+            setWaitingSignature(false)
         }
     }
-
-    useEffect(() => {
-        if (isWalletExpected()) {
-            getTransaction().catch()
-        }
-        if (!wallet?.publicKey?.toString()) {
-            setWaitingSignature(null)
-        }
-    }, [wallet?.publicKey?.toString(), type])
 
     const handleCancel = () => {
         setType(null)
         setError(null)
     }
 
+    const isWalletExpected = () => wallet?.publicKey?.toString() === tokenData?.walletPublicKey
+    const busy = () => waitingSignature || processing
+    const round = (value) => Math.round(value * 1e9) / 1e9
+
+    useEffect(() => {
+        init().then()
+    }, [])
+
+    useEffect(() => {
+        setError(null)
+    }, [wallet.publicKey?.toString()])
+
     return (
         <div className="mb-3">
             <h4 className="text-center mb-4">Sale Management</h4>
-            <div className="d-flex align-items-end gap-2 mb-4">
-                <label htmlFor="material-price" className="mb-2 me-1">
-                    Price $SEV:
-                </label>
-                <div className="flex-grow-1">
-                    <Number
-                        id="material-price"
-                        type={'number'}
-                        placeholder="Enter price in SOL (e.g., 1.5)"
-                        value={price}
-                        min={0}
-                        max={1000000000}
-                        maxDecimals={9}
-                        disabled={waitingSignature || processing}
-                        onChange={setPrice}
-                        setErrorMessage={setError}
-                    />
-                </div>
-                <ButtonWithProcessing
-                    className={'btn-success'}
-                    label={'Set for sale'}
-                    processingLabel={processingLabel()}
-                    processing={type === 'sale' && busy()}
-                    disabled={price === tokenData.sale.price || price <= 0 || busy()}
-                    onClick={() => setType('sale')}
-                /><>
-                {!!tokenData.sale.price && (
-                    <ButtonWithProcessing
-                        className={'btn-primary'}
-                        label={'Cancel Sale'}
-                        processingLabel={processingLabel()}
-                        processing={type === 'cancel' && busy()}
-                        disabled={busy()}
-                        onClick={() => {
-                            setType('cancel')
-                            setError(null)
-                        }}
-                    />
-                )}</>
-            </div>
+            <SaleForm {...{
+                price,
+                currentPrice,
+                setPrice,
+                retailPrice,
+                currentRetailPrice,
+                setRetailPrice,
+                tariffBuy,
+                setError,
+                busy,
+                round,
+            }} />
             {!!type && (
                 <div>
-                    <h4 className="text-center mb-4">
-                        {type === 'sale' ? `Put the token up for sale at ${price} $SEV` : 'Remove a token from sale'}
-                    </h4>
+                    <SaleMessage {...{type, price, retailPrice}} />
                     <WalletForm {...{operation: 'sale', expectedPublicKey: tokenData.walletPublicKey, waitingSignature}} />
                 </div>
             )}
-            {type && !busy() && (
-                <button className="btn btn-danger w-100 p-2 mb-3" onClick={handleCancel}>
-                    Cancel
-                </button>
-            )}
             <MessagesBlock error={error} />
+            {type ? (
+                <SignActions {...{type, waitingSignature, busy, handleCancel, handleSetSale}} />
+            ) : (
+                <SaleActions {...{tokenData, setType, price, currentPrice, setError}} />
+            )}
             <HistoryTable tokenPublicKey={tokenData.tokenPublicKey} showChart={true} showTable={true} showWallet={true} />
             <button className="btn btn-primary w-100" onClick={() => setMaterialForm(null)} disabled={busy()}>
                 Back

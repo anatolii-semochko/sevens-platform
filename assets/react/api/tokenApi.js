@@ -90,4 +90,20 @@ export default class TokenApi {
             .then(response => response.data)
             .catch(throwErrorMessage)
     }
+
+    async getTariffs() {
+        const url = `${mainUrl}/tariffs`
+        return await api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
+
+    async getManageToken(token) {
+        const url = `${mainUrl}/${token}/manage-token`
+        return await api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
 }

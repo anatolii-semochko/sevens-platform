@@ -8,6 +8,7 @@ const initialState = {
     translations: {},
     helpLinks: {},
     terms: {},
+    sevensUsdRate: 5,
 }
 
 const reducer = (state = initialState, action) => {

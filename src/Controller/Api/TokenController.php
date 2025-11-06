@@ -24,6 +24,32 @@ class TokenController extends BaseApiController
     /**
      * @throws HttpException
      */
+    #[Route('/tariffs', name: 'get_tariffs', methods: ['GET'])]
+    public function getTariffs(): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->getTariffs());
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/manage-token', name: 'get_token_manage', methods: ['GET'])]
+    public function getTokenManagePda(string $token): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->getManageTokenData($token));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
     #[Route('/{mintPublicKey}/mint', name: 'get_mint_transaction', methods: ['GET'])]
     public function getMintTransaction(string $mintPublicKey, Request $request): JsonResponse
     {
@@ -67,7 +93,7 @@ class TokenController extends BaseApiController
      * @throws HttpException
      */
     #[Route('/{token}/sale/{price}', name: 'get_sale_transaction', methods: ['GET'])]
-    public function getSaleTransaction(string $token, int $price): JsonResponse
+    public function getSaleTransaction(string $token, float $price): JsonResponse
     {
         try {
             return $this->json($this->tokenService->getSaleTransaction($token, $price));
