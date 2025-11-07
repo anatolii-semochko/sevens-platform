@@ -68,7 +68,7 @@ class Material
 
     #[ORM\Column(type: 'json', nullable: true)]
     #[Groups(['material:read'])]
-    private ?array $galleryImages = [];
+    private ?array $files = [];
 
     #[ORM\Column(type: 'decimal', precision: 20, scale: 9, nullable: true)]
     #[Groups(['material:read'])]
@@ -81,6 +81,22 @@ class Material
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     #[Groups(['material:read'])]
     private bool $hasBlockchainProof = false;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Groups(['material:read'])]
+    private ?string $archiveS3Key = null;
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    #[Groups(['material:read'])]
+    private ?string $archiveS3Bucket = null;
+
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[Groups(['material:read'])]
+    private ?string $archiveStatus = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['material:read'])]
+    private ?string $archiveValidationError = null;
 
     #[ORM\OneToMany(targetEntity: MaterialVote::class, mappedBy: 'materialToken', cascade: ['persist', 'remove'])]
     private Collection $votes;
@@ -226,14 +242,14 @@ class Material
         $this->contractAddress = $contractAddress;
     }
 
-    public function getGalleryImages(): ?array
+    public function getFiles(): ?array
     {
-        return $this->galleryImages;
+        return $this->files;
     }
 
-    public function setGalleryImages(?array $galleryImages): void
+    public function setFiles(?array $files): void
     {
-        $this->galleryImages = $galleryImages;
+        $this->files = $files;
     }
 
     public function getPrice(): ?float
@@ -294,5 +310,56 @@ class Material
     public function getDislikeCount(): int
     {
         return 0; // Will be implemented via repository service
+    }
+
+    public function getArchiveS3Key(): ?string
+    {
+        return $this->archiveS3Key;
+    }
+
+    public function setArchiveS3Key(?string $archiveS3Key): void
+    {
+        $this->archiveS3Key = $archiveS3Key;
+    }
+
+    public function getArchiveS3Bucket(): ?string
+    {
+        return $this->archiveS3Bucket;
+    }
+
+    public function setArchiveS3Bucket(?string $archiveS3Bucket): void
+    {
+        $this->archiveS3Bucket = $archiveS3Bucket;
+    }
+
+    public function getArchiveStatus(): ?string
+    {
+        return $this->archiveStatus;
+    }
+
+    public function setArchiveStatus(?string $archiveStatus): void
+    {
+        $this->archiveStatus = $archiveStatus;
+    }
+
+    public function getArchiveValidationError(): ?string
+    {
+        return $this->archiveValidationError;
+    }
+
+    public function setArchiveValidationError(?string $archiveValidationError): void
+    {
+        $this->archiveValidationError = $archiveValidationError;
+    }
+
+    /**
+     * Get gallery images (alias for files for backward compatibility).
+     * Returns array of file objects with 'key', 'name', 'size', 'type' fields.
+     *
+     * @return array|null
+     */
+    public function getGalleryImages(): ?array
+    {
+        return $this->files;
     }
 }
