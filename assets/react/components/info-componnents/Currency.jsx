@@ -36,7 +36,7 @@ export const $Sevens = ({sevens, label, color, bold}) => {
 
 export const $Usd = ({usd, sevens, label, color, bold}) => {
     const rate = store.getState().sevensUsdRate
-    const sum = sevens ? sevens / rate : usd
+    const sum = sevens !== undefined ? sevens / rate : usd
 
     if (sum === null || sum === undefined || isNaN(sum)) return null
 

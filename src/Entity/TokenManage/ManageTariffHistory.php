@@ -33,21 +33,21 @@ class ManageTariffHistory
     #[Groups(['tariff-history:read'])]
     private string $targetWallet;
 
-    #[ORM\Column(type: 'bigint', options: ['unsigned' => true])]
+    #[ORM\Column(type: 'float', options: ['unsigned' => true])]
     #[Groups(['tariff-history:read'])]
-    private int $mint;
+    private float $mint;
 
-    #[ORM\Column(type: 'bigint', options: ['unsigned' => true])]
+    #[ORM\Column(type: 'float', options: ['unsigned' => true])]
     #[Groups(['tariff-history:read'])]
-    private int $setSale;
+    private float $setSale;
 
     #[ORM\Column(type: 'smallint', options: ['unsigned' => true])]
     #[Groups(['tariff-history:read'])]
     private int $buy;
 
-    #[ORM\Column(type: 'bigint', options: ['unsigned' => true])]
+    #[ORM\Column(type: 'float', options: ['unsigned' => true])]
     #[Groups(['tariff-history:read'])]
-    private int $burn;
+    private float $burn;
 
     #[ORM\Column(type: 'boolean')]
     #[Groups(['tariff-history:read'])]
@@ -89,22 +89,22 @@ class ManageTariffHistory
         $this->targetWallet = $targetWallet;
     }
 
-    public function getMint(): int
+    public function getMint(): float
     {
         return $this->mint;
     }
 
-    public function setMint(int $mint): void
+    public function setMint(float $mint): void
     {
         $this->mint = $mint;
     }
 
-    public function getSetSale(): int
+    public function getSetSale(): float
     {
         return $this->setSale;
     }
 
-    public function setSetSale(int $setSale): void
+    public function setSetSale(float $setSale): void
     {
         $this->setSale = $setSale;
     }
@@ -119,12 +119,12 @@ class ManageTariffHistory
         $this->buy = $buy;
     }
 
-    public function getBurn(): int
+    public function getBurn(): float
     {
         return $this->burn;
     }
 
-    public function setBurn(int $burn): self
+    public function setBurn(float $burn): self
     {
         $this->burn = $burn;
         return $this;
