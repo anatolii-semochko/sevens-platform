@@ -50,7 +50,7 @@ export const WalletForm = ({operation, error, expectedPublicKey, waitingSignatur
     }, [wallet.wallet, wallet.connected])
 
     return (
-        <div className="alert-success bg-light alert border text-center">
+        <div className="bg-light alert border text-center">
             <h4>Wallet</h4>
             <h6 className="lh-base mb-3">{texts[operation]}</h6>
             <PublicKeyText {...{wallet, expectedPublicKey}} />
