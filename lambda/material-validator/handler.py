@@ -67,11 +67,13 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         expected_hash = None
         expected_size = None
         expected_name = None
+        validate_only = False
         if container_metadata:
             expected_hash = container_metadata.get('hash')
             expected_size = container_metadata.get('size')
             expected_name = container_metadata.get('name')
-            print(f"Container validation enabled - hash: {expected_hash}, size: {expected_size}")
+            validate_only = container_metadata.get('validateOnly', False)
+            print(f"Container validation enabled - hash: {expected_hash}, size: {expected_size}, validateOnly: {validate_only}")
 
         # Download ZIP from S3
         try:
@@ -111,6 +113,15 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         except Exception as e:
             return create_error_response(f'Failed to download ZIP from S3: {str(e)}')
+
+        # If validation-only mode, return success after hash/size validation
+        if validate_only:
+            print("Validation-only mode: Skipping file extraction")
+            return {
+                'success': True,
+                'status': 'validated',
+                'message': 'Container validation successful (hash and size verified)'
+            }
 
         # Validate and extract ZIP contents
         files = []

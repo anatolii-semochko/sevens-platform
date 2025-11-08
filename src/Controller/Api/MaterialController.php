@@ -107,13 +107,12 @@ class MaterialController extends BaseApiController
             }
 
             // VALIDATE BEFORE CREATING MATERIAL: If S3 upload provided, validate container first
-            $validatedFiles = null;
             if ($payload->has('s3Upload') && $s3Upload = $payload->all('s3Upload')) {
                 $tempS3Key = $s3Upload['tempS3Key'] ?? null;
 
                 if ($tempS3Key) {
                     try {
-                        // Validate uploaded container against expected metadata
+                        // Validate uploaded container against expected metadata (hash + size only)
                         $container = $this->tokenContainerService->getFromArray($payload->all('container'));
                         $validationResult = $this->materialFileService->validateUploadedContainer(
                             $tempS3Key,
@@ -130,9 +129,6 @@ class MaterialController extends BaseApiController
                                 'validationError' => $validationResult['error'] ?? 'Unknown error',
                             ], 400);
                         }
-
-                        // Store extracted files for later use
-                        $validatedFiles = $validationResult['files'] ?? [];
                     } catch (\Exception $e) {
                         // Clean up temp file on error
                         $this->materialFileService->deleteTempFile($tempS3Key);
@@ -154,23 +150,22 @@ class MaterialController extends BaseApiController
 
             $material = $this->materialService->finByTokenPublicKey($tokenPublicKey);
 
-            // Move validated file to permanent location
+            // Move validated file to permanent location and extract files
             if ($payload->has('s3Upload') && $s3Upload = $payload->all('s3Upload')) {
                 $tempS3Key = $s3Upload['tempS3Key'] ?? null;
                 $originalFileName = $s3Upload['fileName'] ?? $payload->get('container')['name'] ?? 'archive.zip';
 
                 if ($tempS3Key) {
                     try {
-                        // File already validated, just move it
-                        $this->materialFileService->moveTempArchive(
+                        // Move archive to permanent location and trigger file extraction
+                        $this->materialFileService->moveAndProcessTempArchive(
                             $material,
                             $tempS3Key,
-                            $originalFileName,
-                            $validatedFiles
+                            $originalFileName
                         );
                     } catch (\Exception $e) {
-                        // Material created but file move failed - log error
-                        error_log("Failed to move validated archive for material {$tokenPublicKey}: " . $e->getMessage());
+                        // Material created but file processing failed - log error
+                        error_log("Failed to process archive for material {$tokenPublicKey}: " . $e->getMessage());
                     }
                 }
             }

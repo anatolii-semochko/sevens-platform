@@ -99,7 +99,7 @@ readonly class MaterialFileService
             if ($result['success'] ?? false) {
                 $material->setArchiveStatus(self::STATUS_VALIDATED);
                 $material->setArchiveValidationError(null);
-                $material->setFiles($result['images'] ?? []);
+                $material->setFiles($result['files'] ?? []);
             } else {
                 $material->setArchiveStatus(self::STATUS_FAILED);
                 $material->setArchiveValidationError($result['error'] ?? 'Unknown validation error');
@@ -321,11 +321,11 @@ readonly class MaterialFileService
 
     /**
      * Validate uploaded container file against expected metadata.
-     * Invokes Lambda to verify hash, size, and extract files.
+     * Invokes Lambda to verify hash and size only (does not extract files).
      *
      * @param string $tempS3Key S3 key of uploaded temp file
      * @param \App\Entity\Token\SevensTokenContainer $expectedContainer Expected container metadata
-     * @return array{success: bool, error?: string, files?: array}
+     * @return array{success: bool, error?: string}
      * @throws \RuntimeException
      */
     public function validateUploadedContainer(
@@ -356,15 +356,16 @@ readonly class MaterialFileService
                 ];
             }
 
-            // Invoke Lambda for full validation (hash + ZIP structure)
+            // Invoke Lambda for hash validation only (skip file extraction during validation)
             $result = $this->lambdaService->validateMaterialArchive(
                 $this->s3Service->getBucket(),
                 $tempS3Key,
-                'temp-validation', // Temporary token for validation
+                'validation-only', // Special token to indicate validation-only mode
                 [
                     'hash' => $expectedContainer->getHash(),
                     'size' => $expectedContainer->getSize(),
                     'name' => $expectedContainer->getName(),
+                    'validateOnly' => true, // Skip file extraction during validation
                 ]
             );
 
