@@ -4,7 +4,9 @@ namespace App\Controller\Api;
 
 use App\Controller\BaseApiController;
 use App\Exception\WrappedHttpException;
+use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenService;
+use App\Service\NodeServer\NodeServerApiClient;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -14,19 +16,108 @@ use Symfony\Component\Routing\Annotation\Route;
 class TokenController extends BaseApiController
 {
     public function __construct(
+        private readonly NodeServerApiClient $nodeServerApiClient,
         private readonly TokenService $tokenService,
+        private readonly MaterialRepository $materialRepository,
     ) {}
 
     /**
      * @throws HttpException
      */
-    #[Route('/{token}/sale-status', name: 'refresh_sale_status', methods: ['GET'])]
-    public function refreshSaleStatus(string $token): JsonResponse
+    #[Route('/tariffs', name: 'get_tariffs', methods: ['GET'])]
+    public function getTariffs(): JsonResponse
     {
         try {
-            $tokenData = $this->tokenService->refreshSaleStatus($token);
+            return $this->json($this->nodeServerApiClient->getTariffs());
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
 
-            return $this->json($tokenData, context: ['groups' => ['material:read']]);
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/manage-token', name: 'get_token_manage', methods: ['GET'])]
+    public function getTokenManagePda(string $token): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->getManageTokenData($token));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{mintPublicKey}/mint', name: 'get_mint_transaction', methods: ['GET'])]
+    public function getMintTransaction(string $mintPublicKey, Request $request): JsonResponse
+    {
+        try {
+            $tokenData = [
+                'walletPublicKey' => $request->query->get('walletPublicKey'),
+                'tokenName' => $request->query->get('tokenName'),
+                'hash' => $request->query->get('hash'),
+                'author' => $request->query->get('author'),
+                'description' => $request->query->get('description'),
+                'canBeBurned' => $request->query->get('canBeBurned'),
+            ];
+
+            return $this->json($this->tokenService->getMintTransaction($mintPublicKey, $tokenData));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/mint', name: 'mint', methods: ['POST'])]
+    public function mint(string $token, Request $request): JsonResponse
+    {
+        try {
+            $this->tokenService->mint(
+                $this->getUser(),
+                $token,
+                $request->getPayload()->get('transactionId'),
+                $request->getPayload()->get('txSignature'),
+            );
+
+            return $this->json(null);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/sale/{price}', name: 'get_sale_transaction', methods: ['GET'])]
+    public function getSaleTransaction(string $token, float $price): JsonResponse
+    {
+        try {
+            return $this->json($this->tokenService->getSaleTransaction($token, $price));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}/sale', name: 'sale', methods: ['POST'])]
+    public function sale(string $token, Request $request): JsonResponse
+    {
+        try {
+            $material = $this->materialRepository->get($token);
+            $this->checkAuthorization($material->getUser()->getId());
+            $this->tokenService->sale(
+                $material,
+                $request->getPayload()->get('transactionId'),
+                $request->getPayload()->get('txSignature'),
+            );
+
+            return $this->json(null);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
         }
@@ -89,12 +180,52 @@ class TokenController extends BaseApiController
         try {
             $payload = $request->getPayload();
             $this->tokenService->burn(
+                $this->getUser(),
                 $token,
                 $payload->get('transactionId'),
                 $payload->get('txSignature'),
             );
 
             return $this->json(null);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/{token}', name: 'get_token_data', methods: ['GET'])]
+    public function getTokenData(string $token): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->getTokenMetadata($token));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/get-buy-hash/{hash}', name: 'get_token_data_by_hash', methods: ['GET'])]
+    public function getTokenDataByHash(string $hash): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->getTokenMetadataByHash($hash));
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * @throws HttpException
+     */
+    #[Route('/fetch-buy-wallet/{walletPublicKey}', name: 'fetch_tokens_by_wallet', methods: ['GET'])]
+    public function getTokensByWallet(string $walletPublicKey): JsonResponse
+    {
+        try {
+            return $this->json($this->nodeServerApiClient->fetchTokensByWallet($walletPublicKey));
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
         }

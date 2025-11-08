@@ -4,6 +4,7 @@ namespace App\Service\Blockchain;
 
 use App\Entity\Wallet\WalletMessageSignature;
 use App\Entity\Wallet\WalletTransaction;
+use App\Entity\Wallet\WalletTransactionTypeEnum;
 use App\Repository\Wallet\WalletTransactionRepository;
 use App\Service\NodeServer\NodeServerApiClient;
 use App\Service\NodeServer\NodeServerApiException;
@@ -27,11 +28,7 @@ readonly class WalletService
                 $walletSignature->geNonce(),
             );
 
-            if (!isset($response['success']) || !$response['success']) {
-                throw new InvalidArgumentException('Authentication failed');
-            }
-
-            if (!isset($response['data']['authenticated']) || !$response['data']['authenticated']) {
+            if (!$response['authenticated']) {
                 throw new InvalidArgumentException('Wallet not authenticated');
             }
         } catch (\Throwable $e) {
@@ -61,9 +58,10 @@ readonly class WalletService
         return new WalletMessageSignature($data['walletPublicKey'], $data['nonce'], $data['message'], $data['signature']);
     }
 
-    public function saveTransaction(string $transaction): string
+    public function saveTransaction(WalletTransactionTypeEnum $type, string $transaction): string
     {
         $walletTransaction = new WalletTransaction();
+        $walletTransaction->setType($type);
         $walletTransaction->setTransaction($transaction);
         $this->em->persist($walletTransaction);
         $this->em->flush();

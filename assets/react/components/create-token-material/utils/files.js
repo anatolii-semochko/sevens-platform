@@ -1,5 +1,3 @@
-import { isValidSolanaAddress } from '@js/blockchain/sevens'
-import { getData } from '@js/blockchain/sevens-token'
 import { unzip } from 'fflate'
 import { getFileType, isAudio, isImage, isPdf, isVideo} from '@js/utils/file'
 

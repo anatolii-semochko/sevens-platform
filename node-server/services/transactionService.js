@@ -1,17 +1,16 @@
-const anchor = require('@coral-xyz/anchor')
 const nacl = require('tweetnacl')
-const { Connection, Transaction, VersionedTransaction } = require('@solana/web3.js')
-
-const commitment = 'confirmed'
+const { Transaction, VersionedTransaction } = require('@solana/web3.js')
+const { commitment, initializeProvider, deserializeTransaction } = require("../utils/blockchain");
 
 class TransactionService {
     constructor() {
-        this.connection = new Connection(process.env.ANCHOR_PROVIDER_URL, commitment)
-        this.provider = new anchor.AnchorProvider(this.connection, { commitment })
+        const { connection, provider } = initializeProvider()
+        this.connection = connection
+        this.provider = provider
     }
 
     async sendTransaction(txSignature) {
-        const signature = await this.connection.sendRawTransaction(Buffer.from(txSignature, 'base64'), {
+        const signature = await this.connection.sendRawTransaction(deserializeTransaction(txSignature), {
             skipPreflight: false,
             preflightCommitment: commitment,
         })
@@ -22,7 +21,7 @@ class TransactionService {
     async matchTransactionAndSignature(transaction, txSignature) {
         try {
             // Parse unsigned transaction (original)
-            const unsignedTransactionBuffer = Buffer.from(transaction, 'base64')
+            const unsignedTransactionBuffer = deserializeTransaction(transaction)
             let unsignedTransaction
             try {
                 unsignedTransaction = VersionedTransaction.deserialize(unsignedTransactionBuffer)
@@ -31,7 +30,7 @@ class TransactionService {
             }
 
             // Parse signed transaction
-            const signedTransactionBuffer = Buffer.from(txSignature, 'base64')
+            const signedTransactionBuffer = deserializeTransaction(txSignature)
             let signedTransaction
             try {
                 signedTransaction = VersionedTransaction.deserialize(signedTransactionBuffer)
@@ -84,8 +83,6 @@ class TransactionService {
                     }
                 }
             }
-
-            return true
         } catch (error) {
             if (error.message.includes('Signature') || error.message.includes('signature') || error.message.includes('Transaction')) {
                 throw error

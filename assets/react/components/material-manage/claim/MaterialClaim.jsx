@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react'
+import TokenApi from '@react/api/tokenApi'
 import MaterialClaimApi from '@react/api/materialClaimApi'
 import store from '@react/store'
 import { route } from '@js/router/routing-with-locale'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { signNonce, WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { getDateFromDate } from '@js/utils/time'
-import { getWalletTokens } from '@js/blockchain/sevens-token'
 import { UserAuthorization } from '@react/components/user-auth/UserAuth'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 
+const tokenApi = new TokenApi()
 const materialClaimApi = new MaterialClaimApi()
 
 const MaterialClaimInner = () => {
@@ -31,7 +32,9 @@ const MaterialClaimInner = () => {
         setWaitingSignature(null)
         setProcessing(null)
         if (wallet.publicKey) {
-            getWalletTokens(wallet.publicKey.toString()).then(materialClaimApi.get).then(setMaterials).catch(setError)
+            tokenApi.fetchTokensByWallet(
+                wallet.publicKey.toString(),
+            ).then(materialClaimApi.get).then(setMaterials).catch(setError)
         }
     }, [wallet.publicKey?.toString()])
 

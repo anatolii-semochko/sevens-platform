@@ -1,103 +1,17 @@
-const anchor = require('@coral-xyz/anchor')
 const crypto = require('crypto')
-const https = require('https')
-const { URL } = require('url')
-const { Connection, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction} = require('@solana/web3.js')
-const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
-const { getPda } = require('../utils/blockchain')
-
-const commitment = 'confirmed'
+const { PublicKey } = require('@solana/web3.js')
+const { TOKEN_PROGRAM_ID } = require('@solana/spl-token')
+const { loadIdl, initializeProvider, getPda } = require('../utils/blockchain')
+const { lampToSevens } = require('../utils/currency')
 
 class SevensTokenService {
     constructor() {
-        this.connection = new Connection(process.env.ANCHOR_PROVIDER_URL, commitment)
-
-        this.dummyWallet = {
-            publicKey: PublicKey.default,
-            signAllTransactions: async (txs) => txs,
-            signTransaction: async (tx) => tx,
-        }
-
-        this.provider = new anchor.AnchorProvider(this.connection, this.dummyWallet, {commitment})
-
-        this.sevensIdl = null
-        this.program = null
-
-        this.loadIdl().catch(e => console.error(`IDL loading error. Path: ${process.env.SEVENS_TOKEN_IDL_PATH}.`, e))
-    }
-
-    async loadIdl() {
-        try {
-            const idlPath = process.env.SEVENS_TOKEN_IDL_PATH
-            if (!idlPath) {
-                console.error('SEVENS_TOKEN_IDL_PATH not set in environment')
-                return
-            }
-
-            // Fetch IDL for development, ignore SSL certificate errors
-            let response
-            if (process.env.NODE_ENV === 'development' && idlPath.startsWith('https:')) {
-                const url = new URL(idlPath)
-                const options = {
-                    hostname: url.hostname,
-                    port: url.port || 443,
-                    path: url.pathname + url.search,
-                    method: 'GET',
-                    rejectUnauthorized: false, // Ignore self-signed certificates
-                }
-
-                const data = await new Promise((resolve, reject) => {
-                    const req = https.request(options, (res) => {
-                        let data = ''
-                        res.on('data', chunk => data += chunk)
-                        res.on('end', () => resolve({ ok: res.statusCode === 200, text: () => Promise.resolve(data) }))
-                    })
-                    req.on('error', reject)
-                    req.end()
-                })
-
-                response = data
-            } else {
-                response = await fetch(idlPath)
-            }
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch IDL: ${response.statusText || 'Request failed'}`)
-            }
-
-            const jsonText = typeof response.text === 'function' ? await response.text() : response.text
-            this.sevensIdl = JSON.parse(jsonText)
-            console.log('IDL loaded successfully')
-
-            if (this.sevensIdl && this.sevensIdl.metadata && this.sevensIdl.metadata.address) {
-                this.program = new anchor.Program(
-                    this.sevensIdl,
-                    this.sevensIdl.metadata.address,
-                    this.provider,
-                )
-                console.log('Anchor program initialized')
-            } else {
-                console.error('Invalid IDL structure - missing metadata.address')
-            }
-        } catch (error) {
-            console.error('Error loading IDL:', error.message)
-        }
-    }
-
-    getHashPda(programId, hash) {
-        try {
-            const hashOfHash = crypto.createHash('sha256').update(hash).digest()
-            const shortHashBuffer = hashOfHash.slice(0, 28)
-            const [pda] = PublicKey.findProgramAddressSync(
-                [Buffer.from('hash'), shortHashBuffer],
-                new PublicKey(programId),
-            )
-
-            return pda
-        } catch (error) {
-            console.error('Error getting hash PDA:', error)
-            return null
-        }
+        loadIdl('SEVENS_TOKEN_IDL_PATH').then(idl => {
+            const { connection, provider, program} = initializeProvider(idl)
+            this.connection = connection
+            this.provider = provider
+            this.program = program
+        })
     }
 
     async getWalletPublicKeyByToken(tokenPublicKey) {
@@ -121,20 +35,11 @@ class SevensTokenService {
     }
 
     async getTokenByPublicKey(tokenPublicKey){
-        const publicKey = new PublicKey(tokenPublicKey)
-        const {
-            program,
-            metadataPda,
-            salePda,
-        } = this.getSevensToken(publicKey)
-
-        const metadata = await program.account.trustDataMetadata.fetch(metadataPda)
-        const sale = await program.account.tokenSaleData.fetch(salePda)
-
-        sale.priceLamports = sale.price.toNumber()
-        sale.priceSevens = sale.price.toNumber() / LAMPORTS_PER_SOL
-
         const walletPublicKey = await this.getWalletPublicKeyByToken(tokenPublicKey)
+        const { metadataPda, salePda } = this.getSevensToken(new PublicKey(tokenPublicKey))
+        const metadata = await this.program.account.trustDataMetadata.fetch(metadataPda)
+        const sale = await this.program.account.tokenSaleData.fetch(salePda)
+        sale.price = lampToSevens(sale.price.toNumber())
 
         return {
             tokenPublicKey,
@@ -146,12 +51,30 @@ class SevensTokenService {
     }
 
     async getTokenByHash(hash) {
-        const { program } = this.getSevensToken(null, hash)
-        const hashRegistryPda = this.getHashPda(program.programId, hash)
-        const hashRegistry = await program.account.hashRegistry.fetch(hashRegistryPda)
+        const hashRegistryPda = this.getHashPda(hash)
+        const hashRegistry = await this.program.account.hashRegistry.fetch(hashRegistryPda)
         const mintPublicKey = hashRegistry.mintKey.toString()
 
         return await this.getTokenByPublicKey(mintPublicKey)
+    }
+
+    async getTokenByWallet(walletPublicKey){
+        const tokenAccounts = await this.connection.getParsedTokenAccountsByOwner(
+            new PublicKey(walletPublicKey),
+            {programId: TOKEN_PROGRAM_ID},
+        )
+
+        const tokens = []
+        for (const accountInfo of tokenAccounts.value) {
+            const accountData = accountInfo.account.data.parsed.info
+            const amount = parseInt(accountData.tokenAmount.amount, 10)
+            const decimals = parseInt(accountData.tokenAmount.decimals, 10)
+            if (amount === 1 && decimals === 0) {
+                tokens.push(accountData.mint)
+            }
+        }
+
+        return tokens
     }
 
     async getAgeMinutes(publicKey) {
@@ -164,112 +87,32 @@ class SevensTokenService {
         return Math.max(0, ageInMinutes)
     }
 
-    async getBuyTransaction(tokenPublicKey, buyerPublicKey) {
-        const tokenData = await this.getTokenByPublicKey(tokenPublicKey)
-
-        const mint = new PublicKey(tokenPublicKey)
-        const buyer = new PublicKey(buyerPublicKey)
-        const {
-            program,
-            salePda,
-        } = this.getSevensToken(mint)
-
-        const owner = await this.getTokenOwner(mint)
-        const buyerToken = getAssociatedTokenAddressSync(mint, buyer, false, TOKEN_PROGRAM_ID)
-
-        const ix = await program.methods
-            .buyToken(tokenData.sale.price)
-            .accounts({
-                buyerAccount: buyer,
-                ownerAccount: owner.publicKey,
-                buyerTokenAccount: buyerToken,
-                ownerTokenAccount: owner.tokenAccount,
-                mint,
-                sale: salePda,
-                saleAuthority: salePda,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                systemProgram: SystemProgram.programId,
-                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-            })
-            .instruction()
-
-        const tx = new Transaction()
-        tx.add(ix)
-        tx.feePayer = buyer
-        tx.recentBlockhash = (await this.connection.getLatestBlockhash(commitment)).blockhash
-
-        return tx.serialize({
-            requireAllSignatures: false,
-            verifySignatures: false,
-        }).toString('base64')
-    }
-
-    async getBurnTransaction(tokenPublicKey) {
-        const mint = new PublicKey(tokenPublicKey)
-        const tokenData = await this.getTokenByPublicKey(tokenPublicKey)
-        const hash = tokenData.metadata.hash
-
-        const {
-            program,
-            metadataPda,
-            salePda,
-            hashRegistryPda,
-        } = this.getSevensToken(mint, hash)
-
-        const payerPublicKey = new PublicKey(tokenData.walletPublicKey)
-        const tokenAccount = getAssociatedTokenAddressSync(mint, payerPublicKey, false, TOKEN_PROGRAM_ID)
-
-        const burnIx = await program.methods
-            .burnToken()
-            .accounts({
-                mint,
-                tokenAccount,
-                metadata: metadataPda,
-                sale: salePda,
-                hashRegistry: hashRegistryPda,
-                payerAccount: payerPublicKey,
-                tokenProgram: TOKEN_PROGRAM_ID,
-            })
-            .instruction()
-
-        const tx = new Transaction().add(burnIx)
-        tx.feePayer = payerPublicKey
-        tx.recentBlockhash = (await this.connection.getLatestBlockhash(commitment)).blockhash
-
-        return tx.serialize({
-            requireAllSignatures: false,
-            verifySignatures: false,
-        }).toString('base64')
-    }
-
     getSevensToken (publicKey, hash = null){
-        if (!this.sevensIdl || !this.sevensIdl.metadata || !this.sevensIdl.metadata.address) {
-            throw new Error('IDL not loaded or invalid')
-        }
-
-        const program = new anchor.Program(this.sevensIdl, this.sevensIdl.metadata.address, this.provider)
         const pubKey = publicKey ? new PublicKey(publicKey) : null
         return {
-            sevensIdl: this.sevensIdl,
-            program,
-            metadataPda: pubKey ? getPda(program.programId, 'metadata', pubKey) : null,
-            salePda: pubKey ? getPda(program.programId, 'sale', pubKey) : null,
-            hashRegistryPda: hash ? this.getHashPda(program.programId, hash) : null,
+            metadataPda: pubKey ? this.getMetadataPda(pubKey) : null,
+            salePda: pubKey ? this.getSalePda(pubKey) : null,
+            hashRegistryPda: hash ? this.getHashPda(hash) : null,
         }
     }
 
-    async getTokenOwner(tokenPublicKey) {
-        const largestAccounts = await this.connection.getTokenLargestAccounts(tokenPublicKey)
-        const largestAccountInfo = largestAccounts.value[0]
-        if (!largestAccountInfo) {
-            throw new Error('No token accounts found for this mint.')
-        }
-        const parsedAccount = await this.connection.getParsedAccountInfo(largestAccountInfo.address)
-        const owner = new PublicKey(parsedAccount.value.data.parsed.info.owner)
+    getMetadataPda = (tokenPublicKey) => getPda(this.program.programId, 'metadata', new PublicKey(tokenPublicKey))
 
-        return {
-            tokenAccount: largestAccountInfo.address,
-            publicKey: owner,
+    getSalePda = (tokenPublicKey) => getPda(this.program.programId, 'sale', new PublicKey(tokenPublicKey))
+
+    getHashPda = (hash) => {
+        try {
+            const hashOfHash = crypto.createHash('sha256').update(hash).digest()
+            const shortHashBuffer = hashOfHash.slice(0, 28)
+            const [pda] = PublicKey.findProgramAddressSync(
+                [Buffer.from('hash'), shortHashBuffer],
+                new PublicKey(this.program.programId),
+            )
+
+            return pda
+        } catch (error) {
+            console.error('Error getting hash PDA:', error)
+            return null
         }
     }
 }

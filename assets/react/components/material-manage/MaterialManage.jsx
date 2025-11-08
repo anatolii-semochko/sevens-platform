@@ -50,7 +50,7 @@ const MaterialManage = ({token}) => {
         try {
             setErrorMessage(null)
             if (materialData) {
-                await materialApi.put(token, materialData)
+                await materialApi.patch(token, materialData)
             } else {
                 await getTokenData()
             }

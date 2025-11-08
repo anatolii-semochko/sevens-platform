@@ -2,18 +2,19 @@
 
 namespace App\Entity\Wallet;
 
+use App\Repository\Wallet\WalletTransactionRepository;
 use DateTime;
 use DateTimeInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity(repositoryClass: \App\Repository\Wallet\WalletTransactionRepository::class)]
+#[ORM\Entity(repositoryClass: WalletTransactionRepository::class)]
 #[ORM\Table(name: 'wallet_transaction')]
 class WalletTransaction
 {
     #[ORM\Id]
-    #[ORM\Column(type: "string", length: 36)]
+    #[ORM\Column(type: 'string', length: 36)]
     #[Groups(['wallet-transaction:read'])]
     private string $id;
 
@@ -24,6 +25,10 @@ class WalletTransaction
     #[ORM\Column(type: 'datetime', nullable: true)]
     #[Groups(['wallet-transaction:read'])]
     private ?DateTimeInterface $usedAt = null;
+
+    #[ORM\Column(type: 'string', length: 10, enumType: WalletTransactionTypeEnum::class)]
+    #[Groups(['wallet-transaction:read'])]
+    private WalletTransactionTypeEnum $type;
 
     #[ORM\Column(type: 'text')]
     #[Groups(['wallet-transaction:read'])]
@@ -57,6 +62,16 @@ class WalletTransaction
     public function setUsedAt(DateTimeInterface $usedAt): void
     {
         $this->usedAt = $usedAt;
+    }
+
+    public function getType(): WalletTransactionTypeEnum
+    {
+        return $this->type;
+    }
+
+    public function setType(WalletTransactionTypeEnum $type): void
+    {
+        $this->type = $type;
     }
 
     public function getTransaction(): string

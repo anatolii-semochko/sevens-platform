@@ -109,7 +109,7 @@ class AuthService {
             })
 
             return {
-                success: true,
+                authenticated: true,
                 walletAddress,
                 verifiedAt: new Date(),
             }
@@ -144,7 +144,7 @@ Timestamp: ${timestamp}`
     async cleanupExpiredNonces() {
         try {
             const now = new Date().toISOString().slice(0, 19).replace('T', ' ')
-            const result = await db.query('DELETE FROM nonces WHERE expires_at < ?', [now])
+            const result = await db.query('DELETE FROM wallet_message_nonces WHERE expires_at < ?', [now])
 
             if (result.affectedRows > 0) {
                 console.log(`Cleaned up ${result.affectedRows} expired nonces`)

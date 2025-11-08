@@ -1,10 +1,70 @@
-const { PublicKey } = require('@solana/web3.js')
+const fs = require('fs').promises
+const anchor = require('@coral-xyz/anchor')
+const { PublicKey, Connection } = require('@solana/web3.js')
 
-const getPda = (programId, pdaName, publicKey) => PublicKey.findProgramAddressSync(
-    [Buffer.from(pdaName), publicKey.toBuffer()],
-    programId,
-)[0]
+const commitment = 'confirmed'
 
+const loadedIds = []
+const loadIdl = async (idlName) => {
+    if (loadedIds[idlName]) {
+        return loadedIds[idlName]
+    }
+
+    const idlPath = process.env[idlName]
+    if (!idlPath) {
+        throw new Error(`${idlName} not set in environment`)
+    }
+
+    try {
+        const data = await fs.readFile(idlPath, 'utf8')
+        const idl = JSON.parse(data)
+
+        if (!idl?.metadata?.address) {
+            throw new Error(`Invalid IDL structure - missing metadata.address (${idlName})`)
+        }
+
+        loadedIds[idlName] = idl
+        console.log(`✅ ${idlName} loaded successfully from ${idlPath}`)
+
+        return idl
+    } catch (error) {
+        throw new Error(`IDL loading error from ${idlPath}: ${error.message}`)
+    }
+}
+
+const initializeProvider = (idl) => {
+    const connection = new Connection(process.env.ANCHOR_PROVIDER_URL, commitment)
+    const provider = new anchor.AnchorProvider(connection, getDummyWallet(), { commitment })
+    return {
+        connection,
+        provider,
+        program: idl ? new anchor.Program(idl, new PublicKey(idl.metadata.address), provider) : null,
+    }
+}
+
+const getDummyWallet = () => ({
+    publicKey: PublicKey.default,
+    signAllTransactions: async (txs) => txs,
+    signTransaction: async (tx) => tx,
+})
+
+const getPda = (programId, pdaName, publicKey) => {
+    const seeds = [Buffer.from(pdaName)]
+    if (publicKey) {
+        seeds.push(publicKey.toBuffer())
+    }
+    return PublicKey.findProgramAddressSync(seeds, programId)[0]
+}
+
+const serializeTransaction = (transaction) => transaction.serialize({
+    requireAllSignatures: false,
+    verifySignatures: false,
+}).toString('base64')
+
+const deserializeTransaction = (transaction) => Buffer.from(transaction, 'base64')
+
+
+// TODO - create one common file for all project
 const getAnchorErrorText = (error) => {
     const originalMessage = error?.message || 'Unknown error'
 
@@ -73,6 +133,20 @@ const getAnchorErrorText = (error) => {
                 }
 
                 const errorCodeMap = {
+                    // sevens-token-management errors (6000-6011)
+                    '6000': 'Unauthorized: only the authority can update tariffs',
+                    '6001': 'Invalid buy percentage: must be between 0 and 99',
+                    '6002': 'Invalid target wallet: cannot be the default address',
+                    '6003': 'Operations are currently paused',
+                    '6004': 'Not the token owner',
+                    '6005': 'No tokens in account',
+                    '6006': 'Invalid price: must be greater than 0 when setting on sale',
+                    '6007': 'Token is not for sale',
+                    '6008': 'Price mismatch: expected price doesn\'t match current price',
+                    '6009': 'Invalid mint address',
+                    '6010': 'Invalid seller address',
+                    '6011': 'Math overflow occurred',
+                    // sevens-token errors (6012+)
                     '6012': 'Token name cannot be empty',
                     '6013': 'Invalid token parameters',
                     '6014': 'Insufficient funds',
@@ -142,6 +216,9 @@ const getAnchorErrorText = (error) => {
 }
 
 module.exports = {
+    commitment,
+    loadIdl, initializeProvider,
     getPda,
+    serializeTransaction, deserializeTransaction,
     getAnchorErrorText,
 }

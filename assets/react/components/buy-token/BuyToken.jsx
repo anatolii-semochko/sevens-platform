@@ -1,22 +1,18 @@
 import store from '@react/store'
 import React, { useEffect, useRef, useState } from 'react'
 import TokenApi from '@react/api/tokenApi'
-import MaterialSaleApi from '@react/api/materialSaleApi'
-import { Transaction } from '@solana/web3.js'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { createRoot } from 'react-dom/client'
 import { route } from '@js/router/routing-with-locale'
-import { buy } from '@js/blockchain/sevens-token'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { callUserAuthorization } from '@react/components/user-auth/UserAuth'
-import { getAnchorErrorText } from '@js/blockchain/sevens'
+import { getAnchorErrorText, getDeserializedTransaction, getSerializedTransaction } from '@js/utils/blockchain'
 import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
 import { DownloadContainer } from '@react/components/download-container/DownloadContainer'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 
 const tokenApi = new TokenApi()
-const materialSaleApi = new MaterialSaleApi()
 
 const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
     const wallet = useWallet()
@@ -50,10 +46,7 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
             setInProgress(false)
 
             setWaitingSignature(true)
-            const txSignature = await wallet.signTransaction(Transaction.from(Buffer.from(
-                transactionData.transaction,
-                'base64'
-            )))
+            const txSignature = await wallet.signTransaction(getDeserializedTransaction(transactionData.transaction))
             setWaitingSignature(false)
 
             setInProgress(true)
@@ -61,10 +54,7 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
                 tokenPublicKey,
                 deactivate,
                 transactionData.transactionId,
-                txSignature.serialize({
-                    requireAllSignatures: false,
-                    verifySignatures: false,
-                }).toString('base64')
+                getSerializedTransaction(txSignature),
             )
 
             setSold(true)
@@ -95,7 +85,7 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
         </div>
     )
 
-    if (tokenData && !tokenData.sale.priceSevens) return (
+    if (tokenData && !tokenData.sale.price) return (
         <div>
             <ErrorMessageBlock message={'Material is not for sale.'} className={'mt-3'} />
             <ButtonClose root={root} />
@@ -169,14 +159,12 @@ const DownloadFilesContainer = ({ tokenPublicKey }) => {
         modal.show()
     }, [])
 
-    const handleDownloaded = async () => {
-        materialSaleApi.refresh(tokenPublicKey).then(() => {
-            if (store.getState().user?.id) {
-                window.location.href = route('material_manage_one', {token: tokenPublicKey})
-            } else {
-                window.location.reload()
-            }
-        })
+    const handleDownloaded = () => {
+        if (store.getState().user?.id) {
+            window.location.href = route('material_manage_one', {token: tokenPublicKey})
+        } else {
+            window.location.reload()
+        }
     }
 
     return (

@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 import TokenApi from '@react/api/tokenApi'
-import { Transaction } from '@solana/web3.js'
 import { route } from '@js/router/routing-with-locale'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { getDeserializedTransaction, getSerializedTransaction } from '@js/utils/blockchain'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
@@ -29,20 +29,16 @@ const TokenBurnInner = ({material, tokenData, setMaterialForm}) => {
             setProcessing(false)
 
             setWaitingSignature(true)
-            const walletSignature = await wallet.signTransaction(Transaction.from(Buffer.from(
-                transactionData.transaction,
-                'base64'
-            )))
+            const walletSignature = await wallet.signTransaction(
+                getDeserializedTransaction(transactionData.transaction)
+            )
             setWaitingSignature(false)
 
             setProcessing(true)
             await tokenApi.postBurnTransaction(
                 tokenData.tokenPublicKey,
                 transactionData.transactionId,
-                walletSignature.serialize({
-                    requireAllSignatures: false,
-                    verifySignatures: false,
-                }).toString('base64')
+                getSerializedTransaction(walletSignature),
             )
 
             window.location.href = route('material_manage')

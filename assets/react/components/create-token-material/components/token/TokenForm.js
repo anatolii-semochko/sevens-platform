@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { sevensIdl } from '@js/blockchain/sevens-token'
+import { sevensIdl } from '@js/utils/blockchain'
 import { Input, TextArea, Select } from '@react/components/form-elements/Inputs'
 
 const Name = ({name, setName, maxLength, error, setErrorMessage}) => (

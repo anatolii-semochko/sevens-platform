@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import store from '@react/store'
-import { deriveTokenData } from './utils/blockchain'
+import TokenApi from '@react/api/tokenApi'
 import { calculateContainerHash, removeExtractedFilesFolder } from './utils/files'
 import { UserAuthorization } from '@react/components/user-auth/UserAuth'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
@@ -8,6 +8,8 @@ import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
 import { HashingStatus, SelectContainerFile } from './components/container/Components'
 import { PublishMaterial } from '@react/components/create-token-material/components/material/PublishMaterial'
 import { ButtonClearPickContainer, ShowContainerFiles } from './components/container/DecompressContainer'
+
+const tokenApi = new TokenApi()
 
 export const CreateMaterialFromToken = () => {
     const [container, setContainer] = useState(null)
@@ -56,7 +58,9 @@ export const CreateMaterialFromToken = () => {
 
     useEffect(() => {
         if (container?.hash) {
-            deriveTokenData(container.hash, setTokenData).catch(error => setErrorMessage(error.message))
+            tokenApi.getTokenDataByHash(container.hash).then(setTokenData).catch(() => setTokenData({
+                error: 'Token not found in blockchain',
+            }))
         }
     }, [container?.hash])
 

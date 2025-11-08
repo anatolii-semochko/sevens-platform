@@ -1,149 +1,103 @@
 const tokenService = require('../services/sevensTokenService')
-const { getAnchorErrorText } = require('../utils/blockchain')
+const {
+    success,
+    badRequest,
+    badResponse,
+    checkIsNotEmpty,
+    checkIsWalletAddress,
+} = require('../utils/controller')
 
 class SevensTokenController {
-    static async getTokens(req, res) {
+    constructor() {
+        this.getTokens = this.getTokens.bind(this)
+        this.getByPublicKey = this.getByPublicKey.bind(this)
+        this.getByHash = this.getByHash.bind(this)
+        this.getByWallet = this.getByWallet.bind(this)
+        this.getAgeMinutes = this.getAgeMinutes.bind(this)
+    }
+
+    async getTokens(req, res) {
         try {
-            const { publicKey, hash } = req.query
+            const { publicKey, hash, walletPublicKey } = req.query
 
             if (publicKey) {
-                return await SevensTokenController.getByPublicKey(publicKey, res)
+                return await this.getByPublicKey(publicKey, res)
             }
 
             if (hash) {
-                return await SevensTokenController.getByHash(hash, res)
+                return await this.getByHash(hash, res)
             }
 
-            res.status(400).json({
-                error: 'Bad Request',
-                message: 'Either publicKey or hash query parameter is required',
-            })
+            if (walletPublicKey) {
+                return await this.getByWallet(walletPublicKey, res)
+            }
+
+            badRequest(res, 'The publicKey, hash, or walletPublicKey query parameter is required.')
         } catch (error) {
-            console.error('Error in getTokens:', error)
-            res.status(404).json({
-                error: 'Failed to retrieve token data',
-                message: getAnchorErrorText(error),
-            })
+            badResponse('Get token', res, req, error)
         }
     }
 
-    static async getByPublicKey(publicKey, res) {
+    async getByPublicKey(publicKey, res) {
         try {
-            if (!publicKey) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'publicKey query parameter is required',
-                })
-            }
+            checkIsNotEmpty(publicKey, 'publicKey')
+            checkIsWalletAddress(publicKey, 'publicKey')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            res.json({
-                success: true,
-                data: await tokenService.getTokenByPublicKey(publicKey),
-            })
+        try {
+            success(res, await tokenService.getTokenByPublicKey(publicKey))
         } catch (error) {
-            console.error('Error getting token by public key:', error)
-            res.status(404).json({
-                error: 'Token not found',
-                message: getAnchorErrorText(error),
-            })
+            badResponse('Get token by public key', res, {req: {query: {publicKey}}}, error)
         }
     }
 
-    static async getByHash(hash, res) {
+    async getByHash(hash, res) {
         try {
-            if (!hash) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'Hash query parameter is required',
-                })
-            }
+            checkIsNotEmpty(hash, 'hash')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            res.json({
-                success: true,
-                data: await tokenService.getTokenByHash(hash),
-            })
+        try {
+            success(res, await tokenService.getTokenByHash(hash))
         } catch (error) {
-            console.error('Error getting token by hash:', error)
-            res.status(404).json({
-                error: 'Token not found',
-                message: getAnchorErrorText(error),
-            })
+            badResponse('Get token by hash', res, {req: {query: {hash}}}, error)
         }
     }
 
-    static async getAgeMinutes(req, res) {
+    async getByWallet(walletPublicKey, res) {
         try {
-            const { publicKey } = req.query
+            checkIsNotEmpty(walletPublicKey, 'walletPublicKey')
+            checkIsWalletAddress(walletPublicKey, 'walletPublicKey')
+        } catch (e) {
+            return badRequest(res, e)
+        }
 
-            if (!publicKey) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'publicKey query parameter is required',
-                })
-            }
-
-            const ageMinutes = await tokenService.getAgeMinutes(publicKey)
-
-            res.json({
-                success: true,
-                data: ageMinutes,
-            })
+        try {
+            success(res, await tokenService.getTokenByWallet(walletPublicKey))
         } catch (error) {
-            console.error('Error getting token age:', error)
-            res.status(404).json({
-                error: 'Failed to get token age',
-                message: getAnchorErrorText(error),
-            })
+            badResponse('Get token by hash', res, {req: {query: {hash}}}, error)
         }
     }
 
-    static async getBuyTransaction(req, res) {
+    async getAgeMinutes(req, res) {
+        const { publicKey } = req.query
+
         try {
-            const { tokenPublicKey, buyerPublicKey } = req.query
-
-            if (!tokenPublicKey || !buyerPublicKey) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'Both tokenPublicKey and buyerPublicKey query parameters are required',
-                })
-            }
-
-            res.json({
-                success: true,
-                data: await tokenService.getBuyTransaction(tokenPublicKey, buyerPublicKey),
-            })
-        } catch (error) {
-            console.error('Error getting sevens token buy transaction:', error)
-            res.status(404).json({
-                error: 'Failed to create transaction',
-                message: getAnchorErrorText(error),
-            })
+            checkIsNotEmpty(publicKey, 'publicKey')
+            checkIsWalletAddress(publicKey, 'publicKey')
+        } catch (e) {
+            return badRequest(res, e)
         }
-    }
 
-    static async getBurnTransaction(req, res) {
         try {
-            const { tokenPublicKey } = req.query
-
-            if (!tokenPublicKey) {
-                return res.status(400).json({
-                    error: 'Bad Request',
-                    message: 'tokenPublicKey query parameter are required',
-                })
-            }
-
-            res.json({
-                success: true,
-                data: await tokenService.getBurnTransaction(tokenPublicKey),
-            })
+            success(res, await tokenService.getAgeMinutes(publicKey))
         } catch (error) {
-            console.error('Error getting sevens token burn transaction:', error)
-            res.status(404).json({
-                error: 'Failed to create transaction',
-                message: getAnchorErrorText(error),
-            })
+            badResponse('Get token age', res, req, error)
         }
     }
 }
 
-module.exports = SevensTokenController
+module.exports = new SevensTokenController()

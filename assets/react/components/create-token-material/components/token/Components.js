@@ -1,7 +1,11 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
+import TokenApi from '@react/api/tokenApi'
+import { Keypair } from '@solana/web3.js'
 import { useWallet } from '@solana/wallet-adapter-react'
-import { getData, mint } from '@js/blockchain/sevens-token'
+import { getDeserializedTransaction, getSerializedTransaction } from '@js/utils/blockchain'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
+
+const tokenApi = new TokenApi()
 
 export const TryMoreOptions = ({minted, doMaterial, handlerClear}) => !doMaterial && minted && (
     <div className="d-flex flex-column align-items-center gap-2 text-center mb-3">
@@ -18,34 +22,59 @@ export const TryMoreOptions = ({minted, doMaterial, handlerClear}) => !doMateria
 
 export const ButtonCreateToken = ({tokenData, container, setMinted, setErrorMessage}) => {
     const wallet = useWallet()
-    const [minting, setMinting] = useState(false)
+    const [processing, setProcessing] = useState(false)
+    const [waitingSignature, setWaitingSignature] = useState(false)
 
     const handlerCreateToken = async () => {
         try {
-            setErrorMessage(null)
+            if (waitingSignature || processing) {
+                return
+            }
             if (!wallet.publicKey?.toString()) {
                 throw new Error('Wallet is not activated')
             }
-            setMinting(true)
-            const {tokenPublicKey, signature} = await mint({
+            setErrorMessage(null)
+
+            setProcessing(true)
+            const mintKeypair = Keypair.generate()
+            const transactionData = await tokenApi.getMintTransaction(mintKeypair.publicKey.toString(), {
+                walletPublicKey: wallet.publicKey.toString(),
                 tokenName: tokenData.name,
                 hash: container.hash,
                 author: tokenData.author,
                 description: tokenData.description,
                 canBeBurned: tokenData.burnable,
-                wallet,
             })
-            const minted = await getData(tokenPublicKey)
-            setMinted({...minted, signature})
+            const transaction = getDeserializedTransaction(transactionData.transaction)
+            transaction.partialSign(mintKeypair)
+            setProcessing(false)
+
+
+            setWaitingSignature(true)
+            const txSignature = await wallet.signTransaction(transaction)
+            setWaitingSignature(false)
+
+            setProcessing(true)
+            if (txSignature.signatures.some(s => !s.signature && s.publicKey.equals(mintKeypair.publicKey))) {
+                txSignature.partialSign(mintKeypair)
+            }
+            const serializedTx = getSerializedTransaction(txSignature)
+            await tokenApi.postMintTransaction(mintKeypair.publicKey.toString(), transactionData.transactionId, serializedTx)
+
+            const minted = await tokenApi.getTokenData(mintKeypair.publicKey.toString())
+
+            setMinted(minted)
         } catch (error) {
             setErrorMessage(error.message)
         } finally {
-            setMinting(false)
+            setWaitingSignature(false)
+            setProcessing(false)
         }
     }
 
     useEffect(() => {
-        setMinting(false)
+        setProcessing(false)
+        setWaitingSignature(false)
         setErrorMessage(false)
     }, [wallet.publicKey?.toString()])
 
@@ -53,10 +82,10 @@ export const ButtonCreateToken = ({tokenData, container, setMinted, setErrorMess
         <ButtonWithProcessing
             className={'btn-success px-5 py-2'}
             label={'Create Token'}
-            disabled={minting}
+            disabled={processing || waitingSignature}
             onClick={handlerCreateToken}
-            processingLabel={'Waiting wallet signature...'}
-            processing={minting}
+            processingLabel={waitingSignature ? 'Waiting wallet signature...' : 'Processing...'}
+            processing={processing || waitingSignature}
         />
     )
 }

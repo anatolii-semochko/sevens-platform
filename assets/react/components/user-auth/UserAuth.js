@@ -11,7 +11,17 @@ export default function UserAuth() {
     const [showLoginPopup, setShowLoginPopup] = useState(false)
     const [showDropdown, setShowDropdown] = useState(false)
 
-    // Attach click handler to the icon in the template
+    useEffect(() => {
+        const handleAuthRequest = () => {
+            if (!user) {
+                setShowLoginPopup(true)
+            }
+        }
+        window.addEventListener('auth-request', handleAuthRequest)
+
+        return () => window.removeEventListener('auth-request', handleAuthRequest)
+    }, [user])
+
     useEffect(() => {
         const iconToggle = document.getElementById('user-dropdown-toggle')
         if (iconToggle) {
@@ -33,12 +43,11 @@ export default function UserAuth() {
     }
 
     if (user) {
-        // User is logged in - show dropdown menu only
         return <UserDropdown user={user} isOpen={showDropdown} setIsOpen={setShowDropdown} />
     }
 
-    // User is not logged in - show login popup
     const registerUrl = route('app_register')
+
     return (
         <LoginPopup
             isOpen={showLoginPopup}
@@ -49,12 +58,7 @@ export default function UserAuth() {
 }
 
 export const callUserAuthorization = () => {
-    const link = document.querySelector('#user-dropdown-toggle')
-    if (link) {
-        link.click()
-        return true
-    }
-    return false
+    window.dispatchEvent(new CustomEvent('auth-request'))
 }
 
 export const UserAuthorization = ({message}) => {
@@ -62,15 +66,12 @@ export const UserAuthorization = ({message}) => {
         if (store.getState().user) {
             return
         }
-        if (callUserAuthorization()) {
-            return
-        }
-        const observer = new MutationObserver(() => {
-            if (callUserAuthorization()) observer.disconnect()
-        })
-        observer.observe(document.body, { childList: true, subtree: true })
 
-        return () => observer.disconnect()
+        const timeoutId = setTimeout(() => {
+            callUserAuthorization()
+        }, 100)
+
+        return () => clearTimeout(timeoutId)
     }, [])
 
     return (

@@ -13,7 +13,7 @@ readonly class NodeServerApi
     /**
      * @throws NodeServerApiException
      */
-    public function get(string $endpoint, ?array $data): array
+    public function get(string $endpoint, ?array $data = []): mixed
     {
         $handle = curl_init();
 
@@ -26,13 +26,13 @@ readonly class NodeServerApi
             CURLOPT_FAILONERROR => false,
         ]);
 
-        return $this->getCurlResponse($handle);
+        return $this->getCurlResponse($handle)['data'];
     }
 
     /**
      * @throws NodeServerApiException
      */
-    public function post(string $endpoint, array $data): array
+    public function post(string $endpoint, array $data): mixed
     {
         $handle = curl_init();
 
@@ -46,7 +46,7 @@ readonly class NodeServerApi
             CURLOPT_FAILONERROR => false,
         ]);
 
-        return $this->getCurlResponse($handle);
+        return $this->getCurlResponse($handle)['data'];
     }
 
     /**
@@ -65,8 +65,12 @@ readonly class NodeServerApi
 
         if ($httpCode >= 400) {
             $errorData = json_decode($response, true);
-            $errorMessage = $errorData['error'] ?? 'HTTP ' . $httpCode . ' error';
-            throw new NodeServerApiException($errorMessage);
+            $errorMessage = $errorData['message'] ?? $errorData['error'] ?? 'HTTP ' . $httpCode . ' error';
+            throw new NodeServerApiException($errorMessage, $httpCode);
+        }
+
+        if (json_decode($response, true)['success'] !== true) {
+            throw new NodeServerApiException('Node server response error.');
         }
 
         return json_decode($response, true);

@@ -57,12 +57,15 @@ services:
     build:
       context: .
       dockerfile: docker/development/node-server/Dockerfile
+    volumes:
+      - ../sevenstime-storage:/app/public/storage
     networks:
       - default
       - blockchain.dev
     environment:
       - NODE_ENV=development
-      - SEVENS_TOKEN_IDL_PATH=${SEVENS_TOKEN_IDL_PATH}
+      - SEVENS_TOKEN_IDL_PATH=${NODE_SERVER_SEVENS_TOKEN_IDL_PATH}
+      - SEVENS_TOKEN_MANAGEMENT_IDL_PATH=${NODE_SERVER_SEVENS_TOKEN_MANAGEMENT_IDL_PATH}
       - ANCHOR_PROVIDER_URL=${ANCHOR_PROVIDER_URL}
       - NONCE_EXPIRATION_MIN=${NONCE_EXPIRATION_MIN}
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
