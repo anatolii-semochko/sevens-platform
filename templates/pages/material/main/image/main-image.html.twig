@@ -4,9 +4,9 @@
         <div class="mp-thumb">
             <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
         </div>
-        {% for galleryImage in data.material.getGalleryImages() %}
+        {% for file in data.material.getGalleryImages() %}
             <div class="mp-thumb">
-                <img src="{{ global.path.materials }}/{{ galleryImage }}" alt="{{ data.material.getTitle }}" />
+                <img src="{{ file.url ?? (global.path.materials ~ '/' ~ file.name) }}" alt="{{ data.material.getTitle }}" />
             </div>
         {% endfor %}
     </div>
