@@ -1,17 +1,26 @@
 <div class="mp-media">
-    {% if data.material.getGalleryImages() and data.material.getGalleryImages()|length > 0 %}
+    {% set imageFiles = [] %}
+    {% if data.material.getGalleryImages() %}
+        {% for file in data.material.getGalleryImages() %}
+            {% if file.type|lower in ['png', 'jpg', 'jpeg', 'gif', 'webp'] %}
+                {% set imageFiles = imageFiles|merge([file]) %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if imageFiles|length > 0 %}
     <div class="mp-thumbs">
         <div class="mp-thumb">
-            <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
+            <img src="{{ data.material.getLogo()|cdn_url ?? (global.path.materials ~ '/' ~ data.material.getLogo()) }}" alt="{{ data.material.getTitle }}" />
         </div>
-        {% for file in data.material.getGalleryImages() %}
+        {% for file in imageFiles %}
             <div class="mp-thumb">
-                <img src="{{ file.url ?? (global.path.materials ~ '/' ~ file.name) }}" alt="{{ data.material.getTitle }}" />
+                <img src="{{ file.url }}" alt="{{ data.material.getTitle }}" />
             </div>
         {% endfor %}
     </div>
     {% endif %}
     <div class="mp-carousel">
-        <img src="{{ global.path.materials }}/{{ data.material.getLogo() }}" alt="{{ data.material.getTitle }}" />
+        <img src="{{ data.material.getLogo()|cdn_url ?? (global.path.materials ~ '/' ~ data.material.getLogo()) }}" alt="{{ data.material.getTitle }}" />
     </div>
 </div>

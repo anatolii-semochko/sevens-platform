@@ -101,4 +101,17 @@ export default class MaterialApi {
             throw new Error(message)
         }
     }
+
+    /**
+     * Get archive processing status and files with CDN URLs.
+     * @param {string} token - Material token
+     * @returns {Promise<{status: string, error: string|null, files: Array}>}
+     */
+    async getArchiveStatus(token) {
+        const url = `${mainUrl}/${token}/archive-status`
+        return api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
 }

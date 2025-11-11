@@ -29,7 +29,7 @@ class Material
     #[Groups(['material:read'])]
     private string $title;
 
-    #[ORM\Column(type: 'string', length: 64)]
+    #[ORM\Column(type: 'string', length: 512)]
     #[Groups(['material:read'])]
     private string $logo;
 

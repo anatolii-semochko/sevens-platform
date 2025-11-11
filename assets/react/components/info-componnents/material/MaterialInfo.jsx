@@ -4,15 +4,57 @@ import { route } from '@js/router/routing-with-locale'
 
 const materialApi = new MaterialApi()
 
-export const LogoPreview = ({logo}) => logo ? (
-    <div className="d-flex justify-content-center">
-        <img src={window.AppConfig.path.materials + '/' + logo} alt={logo} />
-    </div>
-) : (
-    <div className="bg-light rounded d-flex align-items-center justify-content-center py-5">
-        <span className="small text-muted">No main file selected</span>
-    </div>
-)
+export const LogoPreview = ({logo, files}) => {
+    // If files array is provided, find the file object matching the logo key
+    const logoFile = files?.find(file => file.key === logo)
+
+    // Determine logo URL
+    let logoUrl = null
+    if (logoFile?.url) {
+        // File object with URL found (from files array)
+        logoUrl = logoFile.url
+    } else if (logo) {
+        // Convert S3 key to CDN URL (matches backend CdnService)
+        // S3 key format: materials/{token}/files/{filename}
+        // CDN URL format: https://localhost/s3/sevenstime-materials/materials/{token}/files/{filename}
+        if (logo.startsWith('materials/')) {
+            logoUrl = `https://localhost/s3/sevenstime-materials/${logo}`
+        } else {
+            // Legacy filename format (backward compatibility)
+            logoUrl = window.AppConfig.path.materials + '/' + logo
+        }
+    }
+
+    return logoUrl ? (
+        <div
+            className="d-flex justify-content-center align-items-center bg-light rounded mb-3"
+            style={{
+                minHeight: '200px',
+                maxHeight: '400px',
+                overflow: 'hidden'
+            }}
+        >
+            <img
+                src={logoUrl}
+                alt={logoFile?.name || logo}
+                style={{
+                    maxWidth: '100%',
+                    maxHeight: '400px',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain'
+                }}
+            />
+        </div>
+    ) : (
+        <div
+            className="bg-light rounded d-flex align-items-center justify-content-center mb-3"
+            style={{ minHeight: '200px' }}
+        >
+            <span className="small text-muted">No main file selected</span>
+        </div>
+    )
+}
 
 export const MaterialPreview = ({material}) => {
     if (!material) {
