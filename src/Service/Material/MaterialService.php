@@ -196,4 +196,32 @@ readonly class MaterialService
             $this->repository->deleteByToken($material->getToken());
         }
     }
+
+    /**
+     * Get main image file object by logo (thumbnail key).
+     * Returns the full file object with all variants (key, keyPreview, keyThumbnail).
+     *
+     * @return array|null File object with key, keyPreview, keyThumbnail, etc.
+     */
+    public function getMainImageFile(Material $material): ?array
+    {
+        $logo = $material->getLogo();
+        if (!$logo) {
+            return null;
+        }
+
+        $files = $material->getFiles();
+        if (!$files) {
+            return null;
+        }
+
+        // Find file where keyThumbnail matches logo
+        foreach ($files as $file) {
+            if (($file['keyThumbnail'] ?? null) === $logo) {
+                return $file;
+            }
+        }
+
+        return null;
+    }
 }

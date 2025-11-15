@@ -45,15 +45,28 @@ readonly class CdnService
     }
 
     /**
-     * Transform image metadata array to include CDN URLs.
+     * Transform image metadata array to include CDN URLs for all variants.
+     * Adds url (original), urlThumbnail, and urlPreview fields.
      *
      * @param array<array{key: string, name: string, size: int, type: string}> $images
-     * @return array<array{key: string, name: string, size: int, type: string, url: string}>
+     * @return array<array{key: string, name: string, size: int, type: string, url: string, urlThumbnail?: string, urlPreview?: string}>
      */
     public function addUrlsToImages(array $images): array
     {
         return array_map(function (array $image): array {
+            // Original URL (always present)
             $image['url'] = $this->getUrl($image['key']);
+
+            // Thumbnail URL (if variant exists)
+            if (isset($image['keyThumbnail'])) {
+                $image['urlThumbnail'] = $this->getUrl($image['keyThumbnail']);
+            }
+
+            // Preview URL (if variant exists)
+            if (isset($image['keyPreview'])) {
+                $image['urlPreview'] = $this->getUrl($image['keyPreview']);
+            }
+
             return $image;
         }, $images);
     }

@@ -85,75 +85,79 @@ export const ImageSelectMain = ({files, logo, setLogo}) => {
 
     if (imageFiles.length < 2) return null
 
-    const handleClick = (fileKey) => {
-        setLogo(fileKey)
+    const handleClick = (fileThumbnailKey) => {
+        // Logo should be set to thumbnail key for fast list loading
+        setLogo(fileThumbnailKey)
     }
 
     return (
         <div className="mt-3">
             <label htmlFor="imageSelect" className="form-label">Select main image:</label>
             <div className="row g-2">
-                {imageFiles.map((file) => (
-                    <div key={file.key} className="col-6 col-sm-4 col-md-3 col-lg-4 col-xl-3 mb-2">
-                        <div
-                            className={`border rounded p-2 position-relative ${
-                                logo === file.key
-                                    ? 'border-primary shadow-sm'
-                                    : 'border-light'
-                            }`}
-                            onClick={() => handleClick(file.key)}
-                            style={{
-                                cursor: 'pointer',
-                                height: '140px',
-                                transition: 'all 0.2s ease'
-                            }}
-                            title={file.name}
-                            onMouseEnter={(e) => {
-                                if (logo !== file.key) {
-                                    e.currentTarget.classList.add('border-secondary', 'shadow-sm')
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (logo !== file.key) {
-                                    e.currentTarget.classList.remove('border-secondary', 'shadow-sm')
-                                }
-                            }}
-                        >
-                            {logo === file.key && (
-                                <div className="position-absolute top-0 end-0 mt-1 me-1" style={{ zIndex: 1 }}>
-                                    <span className="badge bg-primary text-white small">Main</span>
-                                </div>
-                            )}
+                {imageFiles.map((file) => {
+                    const isSelected = logo === file.keyThumbnail
+                    return (
+                        <div key={file.key} className="col-6 col-sm-4 col-md-3 col-lg-4 col-xl-3 mb-2">
                             <div
-                                className="d-flex align-items-center justify-content-center bg-light rounded"
+                                className={`border rounded p-2 position-relative ${
+                                    isSelected
+                                        ? 'border-primary shadow-sm'
+                                        : 'border-light'
+                                }`}
+                                onClick={() => handleClick(file.keyThumbnail)}
                                 style={{
-                                    height: '90px',
-                                    width: '100%',
-                                    overflow: 'hidden'
+                                    cursor: 'pointer',
+                                    height: '140px',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                title={file.name}
+                                onMouseEnter={(e) => {
+                                    if (!isSelected) {
+                                        e.currentTarget.classList.add('border-secondary', 'shadow-sm')
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isSelected) {
+                                        e.currentTarget.classList.remove('border-secondary', 'shadow-sm')
+                                    }
                                 }}
                             >
-                                <img
-                                    src={file.url}
-                                    alt={file.name}
+                                {isSelected && (
+                                    <div className="position-absolute top-0 end-0 mt-1 me-1" style={{ zIndex: 1 }}>
+                                        <span className="badge bg-primary text-white small">Main</span>
+                                    </div>
+                                )}
+                                <div
+                                    className="d-flex align-items-center justify-content-center bg-light rounded"
                                     style={{
-                                        maxWidth: "100%",
-                                        maxHeight: "100%",
-                                        width: "auto",
-                                        height: "auto",
-                                        objectFit: "contain"
+                                        height: '90px',
+                                        width: '100%',
+                                        overflow: 'hidden'
                                     }}
-                                />
-                            </div>
-                            <div className="text-center mt-2" style={{ height: '32px', overflow: 'hidden' }}>
-                                <small className={`text-truncate d-block ${
-                                    logo === file.key ? 'text-primary fw-bold' : 'text-muted'
-                                }`} style={{ fontSize: '0.75rem' }}>
-                                    {file.name}
-                                </small>
+                                >
+                                    <img
+                                        src={file.urlThumbnail || file.url}
+                                        alt={file.name}
+                                        style={{
+                                            maxWidth: "100%",
+                                            maxHeight: "100%",
+                                            width: "auto",
+                                            height: "auto",
+                                            objectFit: "contain"
+                                        }}
+                                    />
+                                </div>
+                                <div className="text-center mt-2" style={{ height: '32px', overflow: 'hidden' }}>
+                                    <small className={`text-truncate d-block ${
+                                        isSelected ? 'text-primary fw-bold' : 'text-muted'
+                                    }`} style={{ fontSize: '0.75rem' }}>
+                                        {file.name}
+                                    </small>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
     )
@@ -243,14 +247,14 @@ export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessa
                 if (archiveStatus?.files) {
                     setFiles(archiveStatus.files)
 
-                    // Auto-select first image as logo if none is set
+                    // Auto-select first image's thumbnail as logo if none is set
                     if (!logo && archiveStatus.files.length > 0) {
                         const firstImage = archiveStatus.files.find(file => {
                             const type = file.type?.toLowerCase() || ''
                             return type === 'png' || type === 'jpg' || type === 'jpeg' || type === 'gif' || type === 'webp'
                         })
-                        if (firstImage) {
-                            setLogo(firstImage.key)
+                        if (firstImage && firstImage.keyThumbnail) {
+                            setLogo(firstImage.keyThumbnail)
                         }
                     }
                 }

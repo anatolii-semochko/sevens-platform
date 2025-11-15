@@ -5,22 +5,20 @@ import { route } from '@js/router/routing-with-locale'
 const materialApi = new MaterialApi()
 
 export const LogoPreview = ({logo, files}) => {
-    // If files array is provided, find the file object matching the logo key
-    const logoFile = files?.find(file => file.key === logo)
+    // Logo is the thumbnail key, find the file object to get preview variant
+    const logoFile = files?.find(file => file.keyThumbnail === logo)
 
-    // Determine logo URL
+    // Determine logo URL (use preview for best quality, fallback to thumbnail, then original)
     let logoUrl = null
-    if (logoFile?.url) {
-        // File object with URL found (from files array)
-        logoUrl = logoFile.url
+    if (logoFile) {
+        // Use urlPreview (best quality for display), then urlThumbnail, then original url
+        logoUrl = logoFile.urlPreview || logoFile.urlThumbnail || logoFile.url
     } else if (logo) {
-        // Convert S3 key to CDN URL (matches backend CdnService)
-        // S3 key format: materials/{token}/files/{filename}
-        // CDN URL format: https://localhost/s3/sevenstime-materials/materials/{token}/files/{filename}
+        // No file found, use logo thumbnail key directly
         if (logo.startsWith('materials/')) {
             logoUrl = `https://localhost/s3/sevenstime-materials/${logo}`
         } else {
-            // Legacy filename format (backward compatibility)
+            // Legacy filename format
             logoUrl = window.AppConfig.path.materials + '/' + logo
         }
     }

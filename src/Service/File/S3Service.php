@@ -259,10 +259,15 @@ readonly class S3Service
 
     /**
      * Get the public URL for a file (when bucket is public or CDN is used).
+     * For LocalStack/development, this will use presigned URLs with public endpoint replacement.
+     * For production with public S3 buckets or CDN, this returns the direct object URL.
      */
     public function getPublicUrl(string $key): string
     {
-        return $this->s3Client->getObjectUrl($this->bucket, $key);
+        $url = $this->s3Client->getObjectUrl($this->bucket, $key);
+
+        // Replace internal endpoint with public endpoint for browser access (e.g., LocalStack)
+        return $this->replaceWithPublicEndpoint($url);
     }
 
     /**

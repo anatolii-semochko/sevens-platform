@@ -1,26 +1,48 @@
 <div class="mp-media">
     {% set imageFiles = [] %}
+    {% set mainImage = null %}
+    {% set logo = data.material.getLogo() %}
+
     {% if data.material.getGalleryImages() %}
+        {# Find the main image by thumbnail key and collect other image files #}
+        {% set mainImage = find_file_by_thumbnail(data.material.getGalleryImages(), logo) %}
+
         {% for file in data.material.getGalleryImages() %}
             {% if file.type|lower in ['png', 'jpg', 'jpeg', 'gif', 'webp'] %}
-                {% set imageFiles = imageFiles|merge([file]) %}
+                {# Skip the main image, we'll add it first #}
+                {% if (file.keyThumbnail ?? null) != logo %}
+                    {% set imageFiles = imageFiles|merge([file]) %}
+                {% endif %}
             {% endif %}
         {% endfor %}
+
+        {# Reorder: put main image first if it exists #}
+        {% if mainImage %}
+            {% set imageFiles = [mainImage]|merge(imageFiles) %}
+        {% endif %}
     {% endif %}
 
     {% if imageFiles|length > 0 %}
-    <div class="mp-thumbs">
-        <div class="mp-thumb">
-            <img src="{{ data.material.getLogo()|cdn_url ?? (global.path.materials ~ '/' ~ data.material.getLogo()) }}" alt="{{ data.material.getTitle }}" />
+        <div class="mp-thumbs">
+            {% for file in imageFiles %}
+                <div class="mp-thumb">
+                    {# Use thumbnail variant for thumbs #}
+                    <img src="{{ file|image_url('thumbnail') }}"
+                         data-preview="{{ file|image_url('preview') }}"
+                         data-original="{{ file|image_url('original') }}"
+                         alt="{{ data.material.getTitle }}" />
+                </div>
+            {% endfor %}
         </div>
-        {% for file in imageFiles %}
-            <div class="mp-thumb">
-                <img src="{{ file.url }}" alt="{{ data.material.getTitle }}" />
-            </div>
-        {% endfor %}
-    </div>
+        <div class="mp-carousel">
+            {# Show the first image (main image) using preview variant in carousel #}
+            <img src="{{ imageFiles[0]|image_url('preview') }}" alt="{{ data.material.getTitle }}" />
+        </div>
+    {% else %}
+        {# Fallback: if no files, show logo directly (logo is thumbnail key) #}
+        {% set cdnUrl = logo|cdn_url %}
+        <div class="mp-carousel">
+            <img src="{{ cdnUrl ?: (global.path.materials ~ '/' ~ logo) }}" alt="{{ data.material.getTitle }}" />
+        </div>
     {% endif %}
-    <div class="mp-carousel">
-        <img src="{{ data.material.getLogo()|cdn_url ?? (global.path.materials ~ '/' ~ data.material.getLogo()) }}" alt="{{ data.material.getTitle }}" />
-    </div>
 </div>

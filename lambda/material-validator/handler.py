@@ -1,11 +1,15 @@
 """
-Lambda function to validate and process material ZIP archives.
+Lambda function to validate and process material ZIP archives with image optimization.
 
 This function:
 1. Downloads ZIP file from S3
 2. Validates ZIP structure and contents
 3. Extracts all files from archive
-4. Returns list of valid files with metadata
+4. Generates optimized image variants (thumbnail 300px, preview 1200px) for images
+5. Returns list of valid files with metadata and CDN keys
+
+Image files get 3 variants: original, preview (1200px), thumbnail (300px)
+Non-image files only get the original version
 """
 
 import json
@@ -14,7 +18,8 @@ import io
 import os
 import hashlib
 import boto3
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
+from PIL import Image
 
 # Initialize S3 client
 s3_client = boto3.client(
@@ -29,6 +34,14 @@ s3_client = boto3.client(
 MAX_ZIP_SIZE = 100 * 1024 * 1024  # 100 MB
 MAX_FILE_SIZE = 20 * 1024 * 1024   # 20 MB per file
 MAX_FILES = 100  # Maximum number of files to extract and upload
+
+# Image optimization settings
+THUMBNAIL_MAX_SIZE = 300  # Max dimension for thumbnails (list display)
+PREVIEW_MAX_SIZE = 1200   # Max dimension for preview (gallery display)
+JPEG_QUALITY = 85         # JPEG quality for optimized images
+
+# Supported image types for variant generation
+IMAGE_TYPES = {'.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'}
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -152,28 +165,44 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
                     # Extract file content
                     file_content = zip_ref.read(file_name)
-
-                    # Generate S3 key for extracted file
                     base_name = os.path.basename(file_name)
-                    s3_file_key = f"materials/{material_token}/files/{base_name}"
+                    file_type = file_ext[1:] if file_ext else 'unknown'  # Remove leading dot
 
-                    # Upload file to S3
+                    # Upload original file to original/ subfolder
+                    original_key = f"materials/{material_token}/files/original/{base_name}"
+
                     try:
                         s3_client.put_object(
                             Bucket=bucket,
-                            Key=s3_file_key,
+                            Key=original_key,
                             Body=file_content,
                             ContentType=get_content_type(file_ext)
                         )
 
-                        files.append({
-                            'key': s3_file_key,
+                        file_entry = {
+                            'key': original_key,
                             'name': base_name,
                             'size': file_size,
-                            'type': file_ext[1:] if file_ext else 'unknown'  # Remove leading dot
-                        })
+                            'type': file_type
+                        }
 
-                        print(f"Uploaded file: {s3_file_key}")
+                        print(f"Uploaded original: {original_key}")
+
+                        # Generate image variants if file is an image
+                        if file_ext in IMAGE_TYPES:
+                            try:
+                                process_image_variants(
+                                    bucket=bucket,
+                                    material_token=material_token,
+                                    base_name=base_name,
+                                    image_data=file_content,
+                                    file_entry=file_entry
+                                )
+                            except Exception as e:
+                                print(f"Warning: Failed to generate variants for {base_name}: {str(e)}")
+                                # Continue without variants - original is still available
+
+                        files.append(file_entry)
 
                     except Exception as e:
                         print(f"Failed to upload file {base_name}: {str(e)}")
@@ -224,6 +253,83 @@ def create_error_response(error_message: str) -> Dict[str, Any]:
         'error': error_message,
         'files': []
     }
+
+
+def process_image_variants(bucket: str, material_token: str, base_name: str,
+                          image_data: bytes, file_entry: Dict[str, Any]) -> None:
+    """
+    Generate and upload image variants (thumbnail and preview).
+
+    Args:
+        bucket: S3 bucket name
+        material_token: Material token for S3 path
+        base_name: File name
+        image_data: Original image bytes
+        file_entry: File metadata dict to update with variant keys
+    """
+    # Open image
+    img = Image.open(io.BytesIO(image_data))
+
+    # Convert RGBA/LA/P to RGB for JPEG compatibility
+    if img.mode in ('RGBA', 'LA', 'P'):
+        # Create white background
+        background = Image.new('RGB', img.size, (255, 255, 255))
+        if img.mode == 'P':
+            img = img.convert('RGBA')
+        # Paste with alpha channel as mask
+        background.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+        img = background
+
+    # Store original dimensions
+    file_entry['width'] = img.width
+    file_entry['height'] = img.height
+
+    # Generate thumbnail (300px max dimension)
+    thumbnail_data = resize_image(img, THUMBNAIL_MAX_SIZE)
+    thumbnail_key = f"materials/{material_token}/files/thumbnail/{base_name}"
+    s3_client.put_object(
+        Bucket=bucket,
+        Key=thumbnail_key,
+        Body=thumbnail_data,
+        ContentType='image/jpeg'
+    )
+    file_entry['keyThumbnail'] = thumbnail_key
+    print(f"  ✓ Generated thumbnail: {thumbnail_key}")
+
+    # Generate preview (1200px max dimension)
+    preview_data = resize_image(img, PREVIEW_MAX_SIZE)
+    preview_key = f"materials/{material_token}/files/preview/{base_name}"
+    s3_client.put_object(
+        Bucket=bucket,
+        Key=preview_key,
+        Body=preview_data,
+        ContentType='image/jpeg'
+    )
+    file_entry['keyPreview'] = preview_key
+    print(f"  ✓ Generated preview: {preview_key}")
+
+
+def resize_image(img: Image.Image, max_size: int) -> bytes:
+    """
+    Resize image maintaining aspect ratio.
+
+    Args:
+        img: PIL Image object
+        max_size: Maximum dimension (width or height)
+
+    Returns:
+        JPEG image bytes
+    """
+    # Create copy to avoid modifying original
+    img_copy = img.copy()
+
+    # Resize maintaining aspect ratio (Pillow 10+ uses Image.Resampling.LANCZOS)
+    img_copy.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+
+    # Save as optimized JPEG
+    output = io.BytesIO()
+    img_copy.save(output, format='JPEG', quality=JPEG_QUALITY, optimize=True)
+    return output.getvalue()
 
 
 def get_content_type(file_extension: str) -> str:
