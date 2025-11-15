@@ -21,7 +21,7 @@ class Database {
         }
 
         this.pool = mysql.createPool({
-            host: 'mysql',
+            host: 'sevenstime-mysql-1',
             port: 3306,
             user: 'app',
             password: password,
@@ -29,9 +29,8 @@ class Database {
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0,
-            acquireTimeout: 60000,
-            timeout: 60000,
-            reconnect: true,
+            enableKeepAlive: true,
+            keepAliveInitialDelay: 0,
         })
 
         console.log('MySQL connection pool created')

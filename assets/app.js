@@ -19,9 +19,12 @@ import streamSaver from 'streamsaver'
 import { Buffer } from 'buffer'
 import { Toaster } from 'react-hot-toast'
 import { RoutingWithLocale } from '@js/router/routing-with-locale'
-import { Provider } from 'react-redux'
 import { showModal } from '@js/modal'
 import { openWallet, closeWallet } from '@js/wallet'
+import { Provider } from 'react-redux'
+import { WebSocketProvider } from '@react/context/WebSocketContext'
+import { RateUpdateListener } from '@react/components/websocket/RateUpdateListener'
+import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 import { ButtonContainerDownload } from '@react/components/download-container/DownloadContainer'
 import Create from '@react/components/create-token-material/Create'
 import BuyToken from '@react/components/buy-token/BuyToken'
@@ -32,7 +35,6 @@ import MaterialClaim from '@react/components/material-manage/claim/MaterialClaim
 import MaterialVotes from '@react/components/material-votes/MaterialVotes'
 import MaterialComments from '@react/components/material-comments/MaterialComments'
 import CommentsManage from '@react/components/comments-manage/CommentsManage'
-import {HistoryTable} from "@react/components/info-componnents/token/TokenInfo";
 
 window.bootstrap = bootstrap
 window.Buffer = Buffer
@@ -43,6 +45,19 @@ if ('serviceWorker' in navigator) {
         .register('/streamsaver-sw.js', { scope: '/' })
         .catch(error => console.error('SW register failed:', error))
 }
+
+// Initialize WebSocket globally
+const websocketRoot = document.createElement('div')
+websocketRoot.id = 'websocket-root'
+document.body.appendChild(websocketRoot)
+const wsRoot = createRoot(websocketRoot)
+wsRoot.render(
+    <Provider store={store}>
+        <WebSocketProvider>
+            <RateUpdateListener />
+        </WebSocketProvider>
+    </Provider>
+)
 
 const createTokenMaterial = document.getElementById('create-token-material')
 if (createTokenMaterial) {
@@ -64,12 +79,20 @@ if (userAuthMount) {
 
 const materialManage = document.getElementById('material-manage')
 if (materialManage) {
-    createRoot(materialManage).render(<MaterialManage token={materialManage.dataset.token} />)
+    createRoot(materialManage).render(
+        <Provider store={store}>
+            <MaterialManage token={materialManage.dataset.token} />
+        </Provider>
+    )
 }
 
 const materialClaim = document.getElementById('material-claim')
 if (materialClaim) {
-    createRoot(materialClaim).render(<MaterialClaim />)
+    createRoot(materialClaim).render(
+        <Provider store={store}>
+            <MaterialClaim />
+        </Provider>
+    )
 }
 
 const materialVotes = document.getElementById('material-votes')
@@ -80,19 +103,25 @@ if (materialVotes) {
     const viewCount = materialVotes.dataset.viewCount || '0'
     const root = createRoot(materialVotes)
     root.render(
-        <MaterialVotes
-            materialToken={materialToken}
-            initialLikes={parseInt(initialLikes)}
-            initialDislikes={parseInt(initialDislikes)}
-            viewCount={parseInt(viewCount)}
-        />
+        <Provider store={store}>
+            <MaterialVotes
+                materialToken={materialToken}
+                initialLikes={parseInt(initialLikes)}
+                initialDislikes={parseInt(initialDislikes)}
+                viewCount={parseInt(viewCount)}
+            />
+        </Provider>
     )
 }
 
 const priceHistoryHistory = document.getElementById('token-price-history')
 if (priceHistoryHistory) {
     const root = createRoot(priceHistoryHistory)
-    root.render(<HistoryTable tokenPublicKey={priceHistoryHistory.dataset.token} showChart={true} showTable={true} />)
+    root.render(
+        <Provider store={store}>
+            <HistoryTable tokenPublicKey={priceHistoryHistory.dataset.token} showChart={true} showTable={true} />
+        </Provider>
+    )
 }
 
 const materialComments = document.getElementById('material-comments')
@@ -102,7 +131,11 @@ if (materialComments) {
 
     if (materialToken) {
         const root = createRoot(materialComments)
-        root.render(<MaterialComments materialToken={materialToken} isLoggedIn={isLoggedIn} />)
+        root.render(
+            <Provider store={store}>
+                <MaterialComments materialToken={materialToken} isLoggedIn={isLoggedIn} />
+            </Provider>
+        )
     }
 }
 
@@ -110,7 +143,11 @@ const commentsManage = document.getElementById('comments-manage')
 if (commentsManage) {
     const comments = JSON.parse(commentsManage.dataset.comments || '[]')
     const root = createRoot(commentsManage)
-    root.render(<CommentsManage initialComments={comments} />)
+    root.render(
+        <Provider store={store}>
+            <CommentsManage initialComments={comments} />
+        </Provider>
+    )
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -120,7 +157,11 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('buyTokenBtn')?.addEventListener('click', () => {
         const container = document.getElementById('buyTokenForm')
         const root = ReactDOM.createRoot(container)
-        root.render(<BuyToken root={root} token={container.dataset.token} isMyMaterial={container.dataset.isMyMaterial} />)
+        root.render(
+            <Provider store={store}>
+                <BuyToken root={root} token={container.dataset.token} isMyMaterial={container.dataset.isMyMaterial} />
+            </Provider>
+        )
     })
     document.querySelectorAll('.download-container-btn').forEach(btn => {
         btn.addEventListener('click', function() {

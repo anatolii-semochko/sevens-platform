@@ -1,4 +1,4 @@
-import store from '@react/store'
+import { useSelector } from 'react-redux'
 import clsx from 'clsx'
 
 const formatUsd = (n) => {
@@ -35,8 +35,8 @@ export const $Sevens = ({sevens, label, color, bold}) => {
 }
 
 export const $Usd = ({usd, sevens, label, color, bold}) => {
-    const rate = store.getState().sevensUsdRate
-    const sum = sevens !== undefined ? sevens / rate : usd
+    const sevensUsdRate = useSelector((state) => state.sevensUsdRate)
+    const sum = sevens !== undefined ? sevens / sevensUsdRate : usd
 
     if (sum === null || sum === undefined || isNaN(sum)) return null
 

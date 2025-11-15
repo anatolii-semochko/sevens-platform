@@ -17,6 +17,10 @@ const reducer = (state = initialState, action) => {
             return {...state, helpLinks: action.payload}
         case 'SET_TRANSLATIONS':
             return {...state, translations: action.payload}
+        case 'SET': {
+            const { type, ...updates } = action
+            return {...state, ...updates}
+        }
         default:
             return state
     }
