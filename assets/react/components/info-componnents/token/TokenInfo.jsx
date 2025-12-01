@@ -126,7 +126,7 @@ export const HistoryTable = ({tokenPublicKey, showChart, showTable, showWallet})
                         <tr key={key}>
                             <td>{getDateTimeFromDate(row.date)}</td>
                             {showWallet && (
-                                <td>{row.wallet}</td>
+                                <td className="text-break">{row.wallet}</td>
                             )}
                             <td>{event(row, key)}</td>
                             <td className="text-end">{Info(row, key)}</td>

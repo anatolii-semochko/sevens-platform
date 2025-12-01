@@ -260,64 +260,6 @@ header .bi-list {
   color: #007bff;
 }
 
-/* -------------------------
-        RIGHT PANEL
-------------------------- */
-
-.main-header,
-.layout-wrapper {
-  padding-right: 0;
-  transition: padding-right 0.4s ease;
-}
-.right-slide-panel-opened {
-  > .main-header,
-  > .layout-wrapper {
-    padding-right: 360px;
-  }
-}
-.right-slide-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 360px;
-  height: 100vh;
-  background-color: #fff;
-  border-left: 1px solid #ccc;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
-  transform: translateX(100%);
-  transition: transform 0.4s ease;
-  z-index: 1050;
-  display: flex;
-  flex-direction: column;
-}
-.right-slide-panel.open {
-  transform: translateX(0) !important;
-}
-.panel-header {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  height: 60px;
-  padding: 0 1rem;
-  border-bottom: 1px solid #ccc;
-  background: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-.panel-scroll {
-  flex: 1;
-  overflow-y: auto;
-}
-.panel-footer {
-  flex-shrink: 0;
-  padding: 1rem;
-  border-top: 1px solid #ccc;
-  background: #fff;
-  position: sticky;
-  bottom: 0;
-}
 
 /* -------------------------
         ADAPTATION

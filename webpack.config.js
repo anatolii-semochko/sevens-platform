@@ -29,19 +29,6 @@ Encore
     .enableSourceMaps(!Encore.isProduction())
     .enableVersioning(Encore.isProduction())
 
-    // // Параметри dev-server
-    // .configureDevServerOptions(options => {
-    //     options.host = '0.0.0.0'; // щоб було доступно ззовні
-    //     options.port = 8080;
-    //     options.static = {
-    //         directory: path.resolve(__dirname, 'public'),
-    //     };
-    //     options.devMiddleware = {
-    //         publicPath: '/build/',
-    //     };
-    //     options.hot = true; // гарячий перезавантажувач
-    // })
-
 module.exports = Encore.getWebpackConfig()
 
 const config = Encore.getWebpackConfig()
@@ -50,7 +37,6 @@ config.resolve.alias = {
     '@js': path.resolve(__dirname, 'assets/js'),
     '@css': path.resolve(__dirname, 'assets/css'),
     '@react': path.resolve(__dirname, 'assets/react'),
-    '@wallet': path.resolve(__dirname, 'assets/react/components/wallet'),
 }
 config.resolve.fallback = {
     ...(config.resolve.fallback || {}),
@@ -74,6 +60,7 @@ config.plugins.push(
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
         'process.env.NONCE_EXPIRATION_MIN': JSON.stringify(process.env.NONCE_EXPIRATION_MIN || 30),
         'process.env.BROWSER_FILE_MEMORY_DECOMPRESSION_LIMIT': JSON.stringify(process.env.BROWSER_FILE_MEMORY_DECOMPRESSION_LIMIT),
+        'process.env.NODE_SERVER_BASE_URL': JSON.stringify(process.env.NODE_SERVER_BASE_URL),
     }),
     new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],

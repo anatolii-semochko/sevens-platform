@@ -5,7 +5,7 @@ services:
       dockerfile: docker/development/nginx/Dockerfile
     ports:
       - "8080:80"
-      - "443:443"
+      - "8444:443"
     volumes:
       - .:/app
       - ../sevenstime-storage:/app/public/storage
@@ -44,24 +44,27 @@ services:
   web-node:
     image: node:20.18.0
     working_dir: /app
+    environment:
+      - WEBPACK_DEV_SERVER_ALLOWED_HOSTS=${WEBPACK_DEV_SERVER_ALLOWED_HOSTS}
     volumes:
       - .:/app
       - ../sevenstime-storage:/app/public/storage
-      - ../sevens-wallet-react/src:/app/assets/react/components/wallet
     command: sh -c "yarn install && yarn encore dev --watch"
     tty: true
     networks:
       - default
 
-  node-server:
+  sevenstime-node-server:
     build:
       context: .
       dockerfile: docker/development/node-server/Dockerfile
     volumes:
+      - ./node-server:/app/node-server
       - ../sevenstime-storage:/app/public/storage
     networks:
       - default
       - blockchain.dev
+      - sevens-exchanger-default
     environment:
       - NODE_ENV=development
       - SEVENS_TOKEN_IDL_PATH=${NODE_SERVER_SEVENS_TOKEN_IDL_PATH}
@@ -69,6 +72,7 @@ services:
       - ANCHOR_PROVIDER_URL=${ANCHOR_PROVIDER_URL}
       - NONCE_EXPIRATION_MIN=${NONCE_EXPIRATION_MIN}
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
+      - EXCHANGER_WEBSOCKET_URL=${EXCHANGER_WEBSOCKET_URL}
     extra_hosts:
       - "sevenstime.local:host-gateway"
       - "localhost:host-gateway"
@@ -77,6 +81,7 @@ services:
     depends_on:
       - mysql
       - web
+    container_name: sevenstime-node-server
 
   mysql:
     image: mysql:9.3
@@ -118,3 +123,6 @@ networks:
   blockchain.dev:
     external: true
     name: sevens.dev
+  sevens-exchanger-default:
+    external: true
+    name: sevens-exchanger-default

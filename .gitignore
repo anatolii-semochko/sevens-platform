@@ -29,3 +29,5 @@ sevenstime.local-key.pem
 ###> Claude Code documentation ###
 CLAUDE.md
 ###< Claude Code documentation ###
+/sevenstime.local.crt
+/sevenstime.local.key

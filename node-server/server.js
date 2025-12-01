@@ -1,7 +1,9 @@
 const express = require('express')
+const http = require('http')
 const helmet = require('helmet')
 const cors = require('cors')
 
+const WebSocketController = require('./controllers/websocketController')
 const TransactionController = require('./controllers/transactionController')
 const AuthController = require('./controllers/authController')
 const WalletController = require('./controllers/walletController')
@@ -9,8 +11,15 @@ const TokenController = require('./controllers/sevensTokenController')
 const TariffsController = require('./controllers/tariffsController')
 const ManageTokenController = require('./controllers/manageTokenController')
 
+const websocketManager = require('./services/websocketManager')
+
 const app = express()
+const server = http.createServer(app)
 const port = process.env.PORT || 3000
+
+// Initialize WebSocket
+const binanceWebSocketUrl = process.env.EXCHANGER_WEBSOCKET_URL
+websocketManager.initialize(server, binanceWebSocketUrl)
 
 // Middleware
 app.use(helmet())
@@ -18,6 +27,11 @@ app.use(cors())
 app.use(express.json())
 
 // RESTFul API Routes
+
+// WebSocket routes
+app.get('/websocket/status', WebSocketController.getStatus)
+app.post('/websocket/emit', WebSocketController.emitEvent)
+app.get('/rate', WebSocketController.getRate)
 
 // Transaction routes
 app.post('/transaction/send', TransactionController.sendTransaction)
@@ -73,9 +87,13 @@ app.use((err, req, res, next) => {
     })
 })
 
-app.listen(port, '0.0.0.0', () => {
-    console.log(`Node server running on port ${port}`)
-    console.log(`Available endpoints:`)
+server.listen(port, '0.0.0.0', () => {
+    console.log(`  Node server running on port ${port}`)
+    console.log(`  Available endpoints:`)
+    console.log(`  WebSocket: GET /node/websocket/status`)
+    console.log(`  WebSocket: POST /node/websocket/emit (internal)`)
+    console.log(`  WebSocket Client: ws://localhost:${port}/ws/socket.io/`)
+    console.log(`  WebSocket: GET /node/rate`)
     console.log(`  Transactions: POST /node/transaction/send`)
     console.log(`  Transactions: POST /node/transaction/match`)
     console.log(`  Wallet: GET /node/wallet/balance?walletAddress=xxx`)

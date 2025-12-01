@@ -1,8 +1,6 @@
 import React from 'react'
 import { showModal } from '@js/modal'
-import { openWallet } from '@js/wallet'
 import { Toaster, toast } from 'react-hot-toast'
-import { WalletButton } from '@wallet/Wallet'
 import HelpLink from '@react/components/translation-help/HelpLink'
 import Translation from '@react/components/translation-help/Translation'
 
@@ -74,10 +72,6 @@ export default class Examples extends React.Component {
                     )
                 })}>
                     <Translation text={'Open Popup'} />
-                </button>
-                <WalletButton />
-                <button className="btn btn-info ms-2" onClick={() => openWallet()}>
-                    Wallet Panel
                 </button>
             </div>
         )

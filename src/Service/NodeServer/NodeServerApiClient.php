@@ -7,6 +7,16 @@ readonly class NodeServerApiClient extends NodeServerApi
     /**
      * @throws NodeServerApiException
      */
+    public function getRate(): float
+    {
+        $response = $this->get('/rate');
+
+        return $response['rate'];
+    }
+
+    /**
+     * @throws NodeServerApiException
+     */
     public function getWalletBalance(string $walletAddress): float
     {
         return $this->get('/wallet/balance', [

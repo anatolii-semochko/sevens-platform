@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!--    TODO - remove this test page-->
+    <title>WebSocket Test</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div id="status">Connecting...</div>
+    <div id="rate">Rate: waiting...</div>
+    <div id="events" style="margin-top: 20px; font-family: monospace;"></div>
+
+    <script>
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+        const host = window.location.host
+        const websocketUrl = `${protocol}//${host}`
+
+        console.log('[WebSocket Test] Connecting to:', websocketUrl)
+        document.getElementById('events').innerHTML += `Connecting to: ${websocketUrl}<br>`
+
+        const socket = io(websocketUrl, {
+            path: '/ws/socket.io/',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionAttempts: 5,
+        })
+
+        socket.on('connect', () => {
+            console.log('[WebSocket Test] Connected:', socket.id)
+            document.getElementById('status').innerHTML = `✅ Connected: ${socket.id}`
+            document.getElementById('events').innerHTML += `✅ Connected: ${socket.id}<br>`
+        })
+
+        socket.on('connected', (data) => {
+            console.log('[WebSocket Test] Server confirmed:', data)
+            document.getElementById('events').innerHTML += `Server confirmed: ${JSON.stringify(data)}<br>`
+        })
+
+        socket.on('disconnect', (reason) => {
+            console.log('[WebSocket Test] Disconnected:', reason)
+            document.getElementById('status').innerHTML = `❌ Disconnected: ${reason}`
+            document.getElementById('events').innerHTML += `❌ Disconnected: ${reason}<br>`
+        })
+
+        socket.on('connect_error', (error) => {
+            console.error('[WebSocket Test] Connection error:', error.message)
+            document.getElementById('status').innerHTML = `❌ Error: ${error.message}`
+            document.getElementById('events').innerHTML += `❌ Error: ${error.message}<br>`
+        })
+
+        socket.on('rate.changed', (data) => {
+            console.log('[WebSocket Test] Rate changed:', data)
+            document.getElementById('rate').innerHTML = `Rate: ${data.newRate} (old: ${data.oldRate})`
+            document.getElementById('events').innerHTML += `📊 Rate changed: ${data.newRate}<br>`
+        })
+
+        // Test loading rate from API
+        fetch('/node/rate')
+            .then(res => res.json())
+            .then(data => {
+                console.log('[WebSocket Test] Initial rate from API:', data)
+                if (data.rate) {
+                    document.getElementById('rate').innerHTML = `Rate: ${data.rate} (from API)`
+                    document.getElementById('events').innerHTML += `📊 Initial rate from API: ${data.rate}<br>`
+                }
+            })
+            .catch(err => {
+                console.error('[WebSocket Test] Failed to load rate:', err)
+                document.getElementById('events').innerHTML += `❌ Failed to load rate: ${err.message}<br>`
+            })
+    </script>
+</body>
+</html>
