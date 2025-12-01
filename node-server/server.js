@@ -18,8 +18,8 @@ const server = http.createServer(app)
 const port = process.env.PORT || 3000
 
 // Initialize WebSocket
-const exchangerWebSocketUrl = process.env.EXCHANGER_WEBSOCKET_URL || 'ws://localhost:3001'
-websocketManager.initialize(server, exchangerWebSocketUrl)
+const binanceWebSocketUrl = process.env.EXCHANGER_WEBSOCKET_URL
+websocketManager.initialize(server, binanceWebSocketUrl)
 
 // Middleware
 app.use(helmet())

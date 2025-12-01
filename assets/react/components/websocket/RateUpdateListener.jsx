@@ -36,8 +36,6 @@ export const RateUpdateListener = () => {
   useWebSocketEvent(
     'rate.changed',
     (eventData) => {
-      console.log('[RateUpdateListener] Rate changed via WebSocket:', eventData)
-
       if (eventData && typeof eventData.newRate === 'number') {
         dispatch({
           type: 'SET',

@@ -36,7 +36,7 @@ export const $Sevens = ({sevens, label, color, bold}) => {
 
 export const $Usd = ({usd, sevens, label, color, bold}) => {
     const sevensUsdRate = useSelector((state) => state.sevensUsdRate)
-    const sum = sevens !== undefined ? sevens / sevensUsdRate : usd
+    const sum = sevens !== undefined ? sevens * sevensUsdRate : usd
 
     if (sum === null || sum === undefined || isNaN(sum)) return null
 

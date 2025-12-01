@@ -1,18 +1,20 @@
 const { Server } = require('socket.io')
-const { io: ioClient } = require('socket.io-client')
+const WebSocket = require('ws')
 
 class WebSocketManager {
     constructor() {
         this.io = null
-        this.exchangerClient = null
+        this.binanceWs = null
         this.connectedClients = new Map()
         this.currentRate = null
+        this.reconnectTimeout = null
+        this.reconnectDelay = 5000
     }
 
     /**
      * Initialize WebSocket server for frontend clients
      */
-    initialize(httpServer, exchangerWebSocketUrl) {
+    initialize(httpServer, binanceWebSocketUrl) {
         // Initialize Socket.IO server for frontend clients
         this.io = new Server(httpServer, {
             cors: {
@@ -40,53 +42,107 @@ class WebSocketManager {
             })
         })
 
-        // Connect to sevens-exchanger WebSocket as a client
-        this.connectToExchanger(exchangerWebSocketUrl)
+        // Connect to Binance WebSocket
+        this.connectToBinance(binanceWebSocketUrl)
 
         console.log('[WebSocket] WebSocket server initialized')
     }
 
     /**
-     * Connect to sevens-exchanger WebSocket server
+     * Connect to Binance WebSocket API
      */
-    connectToExchanger(exchangerWebSocketUrl) {
-        console.log(`[WebSocket] Connecting to exchanger at: ${exchangerWebSocketUrl}`)
+    connectToBinance(binanceWebSocketUrl) {
+        if (!binanceWebSocketUrl || !binanceWebSocketUrl.startsWith('wss://')) {
+            console.error(`[Binance] Invalid WebSocket URL: ${binanceWebSocketUrl}`)
+            return
+        }
 
-        this.exchangerClient = ioClient(exchangerWebSocketUrl, {
-            path: '/ws/',
-            transports: ['websocket', 'polling'],
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: Infinity,
-        })
+        console.log(`[Binance] Connecting to: ${binanceWebSocketUrl}`)
 
-        this.exchangerClient.on('connect', () => {
-            console.log(`[WebSocket] Connected to exchanger: ${this.exchangerClient.id}`)
-        })
+        try {
+            this.binanceWs = new WebSocket(binanceWebSocketUrl)
 
-        this.exchangerClient.on('disconnect', (reason) => {
-            console.log(`[WebSocket] Disconnected from exchanger: ${reason}`)
-        })
+            this.binanceWs.on('open', () => {
+                console.log('[Binance] Connected successfully')
+                if (this.reconnectTimeout) {
+                    clearTimeout(this.reconnectTimeout)
+                    this.reconnectTimeout = null
+                }
+            })
 
-        this.exchangerClient.on('connect_error', (error) => {
-            console.error(`[WebSocket] Connection error to exchanger: ${error.message}`)
-        })
+            this.binanceWs.on('message', (data) => {
+                try {
+                    const ticker = JSON.parse(data.toString())
 
-        // Listen for rate.changed events from exchanger
-        this.exchangerClient.on('rate.changed', (data) => {
-            console.log(`[WebSocket] Received rate.changed from exchanger:`, data)
+                    // Extract current price from Binance ticker
+                    const newRate = parseFloat(ticker.c) // 'c' is current price
+                    const oldRate = this.currentRate
 
-            // Update current rate
-            this.currentRate = data.newRate
+                    // Only broadcast if rate actually changed
+                    if (newRate !== oldRate) {
+                        this.currentRate = newRate
 
-            // Broadcast to all connected frontend clients
-            this.emit('rate.changed', data)
-        })
+                        // Broadcast rate change to all frontend clients
+                        this.emit('rate.changed', {
+                            newRate,
+                        })
 
-        // Listen for initial rate if exchanger sends it
-        this.exchangerClient.on('connected', (data) => {
-            console.log(`[WebSocket] Exchanger connection confirmed:`, data)
-        })
+                        console.log(`[Binance] Rate updated: ${oldRate} → ${newRate}`)
+                    }
+                } catch (error) {
+                    console.error('[Binance] Error parsing message:', error.message)
+                }
+            })
+
+            this.binanceWs.on('error', (error) => {
+                console.error('[Binance] WebSocket error:', error.message)
+            })
+
+            this.binanceWs.on('close', (code, reason) => {
+                console.log(`[Binance] Connection closed: ${code} - ${reason.toString()}`)
+                this.attemptReconnect(binanceWebSocketUrl)
+            })
+
+            // Handle ping/pong to keep connection alive
+            this.binanceWs.on('ping', () => {
+                this.binanceWs.pong()
+            })
+
+        } catch (error) {
+            console.error('[Binance] Connection error:', error.message)
+            this.attemptReconnect(binanceWebSocketUrl)
+        }
+    }
+
+    /**
+     * Attempt to reconnect to Binance
+     */
+    attemptReconnect(binanceWebSocketUrl) {
+        if (this.reconnectTimeout) {
+            return
+        }
+
+        console.log(`[Binance] Attempting to reconnect in ${this.reconnectDelay / 1000}s...`)
+
+        this.reconnectTimeout = setTimeout(() => {
+            this.reconnectTimeout = null
+            this.connectToBinance(binanceWebSocketUrl)
+        }, this.reconnectDelay)
+    }
+
+    /**
+     * Close Binance connection
+     */
+    closeBinanceConnection() {
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout)
+            this.reconnectTimeout = null
+        }
+
+        if (this.binanceWs) {
+            this.binanceWs.close()
+            this.binanceWs = null
+        }
     }
 
     /**
@@ -143,7 +199,7 @@ class WebSocketManager {
     getStatus() {
         return {
             serverInitialized: !!this.io,
-            exchangerConnected: this.exchangerClient?.connected || false,
+            binanceConnected: this.binanceWs?.readyState === WebSocket.OPEN,
             connectedClients: this.connectedClients.size,
             currentRate: this.currentRate,
         }
