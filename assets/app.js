@@ -1,6 +1,7 @@
 import * as bootstrap from 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
+import '@solana/wallet-adapter-react-ui/styles.css'
 import '@css/template.scss'
 import '@css/custom.scss'
 import '@css/material.scss'
@@ -20,7 +21,6 @@ import { Buffer } from 'buffer'
 import { Toaster } from 'react-hot-toast'
 import { RoutingWithLocale } from '@js/router/routing-with-locale'
 import { showModal } from '@js/modal'
-import { openWallet, closeWallet } from '@js/wallet'
 import { Provider } from 'react-redux'
 import { WebSocketProvider } from '@react/context/WebSocketContext'
 import { RateUpdateListener } from '@react/components/websocket/RateUpdateListener'
@@ -151,9 +151,6 @@ if (commentsManage) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('openWalletBtn')?.addEventListener('click', () => openWallet())
-    document.getElementById('closeWalletBtn')?.addEventListener('click',() => closeWallet())
-    document.getElementById('closeWalletBtn')?.addEventListener('click',() => closeWallet())
     document.getElementById('buyTokenBtn')?.addEventListener('click', () => {
         const container = document.getElementById('buyTokenForm')
         const root = ReactDOM.createRoot(container)

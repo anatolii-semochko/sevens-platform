@@ -13,9 +13,8 @@
             <main class="main-container d-flex flex-column">
                 {% include main_template with data %}
             </main>
-                {% include 'main-template/footer.html.twig' %}
+            {% include 'main-template/footer.html.twig' %}
         </div>
-        <div id="wallet-panel" class="right-slide-panel"></div>
     </div>
     {% block javascripts %}
     {{ encore_entry_script_tags('app') }}
