@@ -1,6 +1,7 @@
 const anchor = require('@coral-xyz/anchor')
 const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
 const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
+const { MPL_TOKEN_METADATA_PROGRAM_ID } = require('@metaplex-foundation/mpl-token-metadata')
 const { loadIdl, initializeProvider, getPda, serializeTransaction} = require('../utils/blockchain')
 const { sevensToLamp, lampToSevens } = require('../utils/currency')
 const sevensTokenService = require('./sevensTokenService')
@@ -117,7 +118,7 @@ class ManageTokenService {
     }
 
     async getMintTransaction(walletPublicKey, mintPublicKey, mintParams) {
-        const { author, hash, description, tokenName, canBeBurned } = mintParams
+        const { author, hash, description, tokenName, canBeBurned, imageUri, collectionMint } = mintParams
 
         if (!hash || !tokenName) {
             throw new Error('Missing required mint parameters: hash, tokenName')
@@ -136,14 +137,24 @@ class ManageTokenService {
         // Get Sevens Token PDAs
         const { metadataPda, salePda, hashRegistryPda } = sevensTokenService.getSevensToken(mintPublicKey, hash)
 
+        // Get Metaplex Metadata PDA
+        const metaplexMetadataPda = this.getMetaplexPda(mintPublicKey)
+
+        // Get collection mint from env or parameter
+        const collectionMintPubkey = collectionMint
+            ? new PublicKey(collectionMint)
+            : (process.env.COLLECTION_MINT_PUBLIC_KEY ? new PublicKey(process.env.COLLECTION_MINT_PUBLIC_KEY) : null)
+
         // Build instruction
         const ix = await this.managementProgram.methods
             .managedMint(
-                author,
+                author || '',
                 hash,
-                description,
+                description || '',
                 tokenName,
-                canBeBurned || false
+                canBeBurned || false,
+                imageUri || null,
+                collectionMintPubkey
             )
             .accounts({
                 payer,
@@ -154,6 +165,8 @@ class ManageTokenService {
                 sale: salePda,
                 tokenAccount,
                 hashRegistry: hashRegistryPda,
+                metaplexMetadata: metaplexMetadataPda,
+                metaplexMetadataProgram: new PublicKey(MPL_TOKEN_METADATA_PROGRAM_ID),
                 tokenManagementData: tokenDataPda,
                 sevensTokenProgram: sevensTokenService.program.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
@@ -320,6 +333,19 @@ class ManageTokenService {
         'token_data',
         new PublicKey(tokenPublicKey),
     )
+
+    getMetaplexPda = (mintPublicKey) => {
+        const mint = new PublicKey(mintPublicKey)
+        const [metadataPda] = PublicKey.findProgramAddressSync(
+            [
+                Buffer.from('metadata'),
+                new PublicKey(MPL_TOKEN_METADATA_PROGRAM_ID).toBuffer(),
+                mint.toBuffer(),
+            ],
+            new PublicKey(MPL_TOKEN_METADATA_PROGRAM_ID)
+        )
+        return metadataPda
+    }
 }
 
 module.exports = new ManageTokenService()
