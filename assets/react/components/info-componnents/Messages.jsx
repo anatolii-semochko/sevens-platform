@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import React from 'react'
 
 const SuccessMessageBlock = ({ message, className }) => !!message && (
     <div className={getMessageBlockClass('success', className)} role="alert">{getFormattedMessage(message)}</div>
@@ -21,4 +22,11 @@ const MessagesBlock = ({success, info, error, className}) => (
 )
 const getFormattedMessage = (message) => message.split('\n').map((line, idx) => <div key={idx}>{line}</div>)
 
-export { SuccessMessageBlock, InfoMessageBlock, ErrorMessageBlock, MessagesBlock }
+const LoaderBlock = ({message}) => (
+    <div className="pt-3 pb-3 d-flex justify-content-center">
+        <div className="spinner-border" role="status"></div>
+        <div className="d-flex align-items-center ps-2">{message}</div>
+    </div>
+)
+
+export { SuccessMessageBlock, InfoMessageBlock, ErrorMessageBlock, MessagesBlock, LoaderBlock }

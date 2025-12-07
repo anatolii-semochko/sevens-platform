@@ -44,4 +44,7 @@ export const handleApiError = (error) => {
   return message
 }
 
+export const isTimeOut = (error) => fetchErrorMessage(error).includes('timed out')
+    || fetchErrorMessage(error).includes('Time-out')
+
 export default api

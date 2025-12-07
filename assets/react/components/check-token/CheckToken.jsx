@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react'
 import TokenApi from '@react/api/tokenApi'
-import { calculateContainerHash } from '../create-token-material/utils/files'
+import { calculateContainerHash } from '@react/components/create-token-material/utils/files'
+import { RepeatableQuery } from '@react/api/RepeatableQuery'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
-import { ActionButtons, ContainerCheckMessage } from '../check-token/components/Components'
+import { ActionButtons, ContainerCheckMessage } from '@react/components/check-token/components/Components'
 import { MaterialInfo } from '@react/components/info-componnents/material/MaterialInfo'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
 import {
     HashingStatus,
     SelectContainerFile,
     ContainerFileInfo,
-} from '../create-token-material/components/container/Components'
+} from '@react/components/create-token-material/components/container/Components'
 
 const tokenApi = new TokenApi()
 
 export const CheckToken = () =>  {
     const [container, setContainer] = useState(null)
     const [overallHashing, setOverallHashing] = useState(0)
+    const [loadingToken, setLoadingToken] = useState(false)
     const [tokenData, setTokenData] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
 
@@ -26,6 +28,7 @@ export const CheckToken = () =>  {
     const handlerClear = () => {
         setContainer(false)
         setOverallHashing(0)
+        setLoadingToken(false)
         setTokenData(null)
         setErrorMessage(null)
     }
@@ -34,12 +37,13 @@ export const CheckToken = () =>  {
         if (container && !container.hash) {
             calculateContainerHash(container, setContainer, setOverallHashing, setErrorMessage).catch()
         }
-        if (container?.hash) {
-            tokenApi.getTokenDataByHash(container.hash).then(setTokenData).catch(() => setTokenData({
-                error: 'Token not found in blockchain',
-            }))
-        }
     }, [container])
+
+    useEffect(() => {
+        if (container?.hash && !tokenData) {
+            setLoadingToken(true)
+        }
+    }, [container?.hash])
 
     if (!container?.file) return (
         <SelectContainerFile container={container} onSelectContainer={onSelectContainer} needsExtraction={false} />
@@ -52,11 +56,25 @@ export const CheckToken = () =>  {
     return container && !container.isHashing && (
         <div>
             <ContainerFileInfo {...{container}} />
-            <ContainerCheckMessage {...{tokenData}} />
-            <MaterialInfo tokenPublicKey={tokenData?.tokenPublicKey} />
-            <HistoryTable tokenPublicKey={tokenData?.tokenPublicKey?.toString()} showChart={true} showTable={true} />
+            <RepeatableQuery
+                apiEndpoint={(hash) => tokenApi.getTokenDataByHash(hash)}
+                params={container?.hash}
+                onSuccess={setTokenData}
+                onError={(error) => setTokenData({ error: error.toString() })}
+                processing={loadingToken}
+                setProcessing={setLoadingToken}
+                loadingMessage={'Checking container in blockchain...'}
+                onCancel={handlerClear}
+            />
             <MessagesBlock error={errorMessage} />
-            <ActionButtons {...{handlerClear}}/>
+            {tokenData && !loadingToken && (
+                <div>
+                    <ContainerCheckMessage {...{tokenData}} />
+                    <MaterialInfo tokenPublicKey={tokenData?.tokenPublicKey} />
+                    <HistoryTable tokenPublicKey={tokenData?.tokenPublicKey?.toString()} showChart={true} showTable={true} />
+                    <ActionButtons {...{handlerClear}}/>
+                </div>
+            )}
         </div>
     )
 }

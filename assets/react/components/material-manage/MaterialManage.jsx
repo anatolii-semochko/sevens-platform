@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import MaterialApi from '@react/api/materialApi'
 import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
+import { RepeatableQuery } from '@react/api/RepeatableQuery'
 import { ToggleSwitch } from '@react/components/form-elements/Inputs'
 import { MaterialEdit } from '@react/components/material-manage/edit/MaterialEdit'
 import { MaterialSale } from '@react/components/material-manage/sale/MaterialSale'
@@ -14,6 +15,7 @@ const materialApi = new MaterialApi()
 
 const MaterialManage = ({token}) => {
     const [material, setMaterial] = useState(null)
+    const [loadingTokenData, setLoadingTokenData] = useState(true)
     const [tokenData, setTokenData] = useState(null)
     const [materialForm, setMaterialForm] = useState(null)
     const [errorMessage, setErrorMessage] = useState(null)
@@ -27,17 +29,8 @@ const MaterialManage = ({token}) => {
         }
     }
 
-    const getTokenData = async () => {
-        try {
-            await fetchSevensTokenByPublicKey(token).then(setTokenData)
-        } catch (error) {
-            setTokenData({error: 'Token not found'})
-        }
-    }
-
     useEffect(() => {
         getMaterial().catch()
-        getTokenData().catch()
     }, [])
 
     useEffect(() => {
@@ -51,14 +44,16 @@ const MaterialManage = ({token}) => {
             setErrorMessage(null)
             if (materialData) {
                 await materialApi.patch(token, materialData)
-            } else {
-                await getTokenData()
             }
             await getMaterial()
             setMaterialForm(null)
+            if (!materialData) {
+                setTokenData(null)
+                setLoadingTokenData(true)
+            }
         } catch (error) {
             setErrorMessage(error.message)
-            if (tokenOk()) {
+            if (tokenOk() && materialData) {
                 setMaterialForm('MaterialEdit')
             }
         }
@@ -75,6 +70,17 @@ const MaterialManage = ({token}) => {
 
     return (
         <div>
+            <RepeatableQuery
+                apiEndpoint={(token) => fetchSevensTokenByPublicKey(token)}
+                params={token}
+                onSuccess={setTokenData}
+                onError={(error) => setErrorMessage(error.message)}
+                processing={loadingTokenData}
+                setProcessing={setLoadingTokenData}
+                loadingMessage={'Loading token data from blockchain...'}
+                cancelButton={false}
+                className={'mb-4'}
+            />
             <TokenInfo tokenData={tokenData} />
             <MaterialPreview {...{material}}/>
 

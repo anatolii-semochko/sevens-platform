@@ -15,7 +15,7 @@ const websocketManager = require('./services/websocketManager')
 
 const app = express()
 const server = http.createServer(app)
-const port = process.env.PORT || 3000
+const port = process.env.NODE_SERVER_PORT
 
 // Initialize WebSocket
 const binanceWebSocketUrl = process.env.EXCHANGER_WEBSOCKET_URL
