@@ -18,7 +18,7 @@ const STORE_EXTS = new Set([
     'pdf','zip','7z','gz','bz2','xz'
 ]);
 
-export const CompressContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
+export const CompressContainer = ({tokenFiles, setTokenFiles, container, setContainer, setErrorContainer, targetRef}) => {
     const [overallCompressing, setOverallCompressing] = useState(0)
     const [overallHashing, setOverallHashing] = useState(0)
 
@@ -323,9 +323,9 @@ export const CompressContainer = ({tokenFiles, setTokenFiles, container, setCont
                             file,
                             setOverallHashing,
                         )
-                        setContainer(prev => prev ? { 
-                            ...prev, 
-                            hash, 
+                        setContainer(prev => prev ? {
+                            ...prev,
+                            hash,
                             isHashing: false,
                             file: {
                                 ...prev?.file,
@@ -333,8 +333,8 @@ export const CompressContainer = ({tokenFiles, setTokenFiles, container, setCont
                             }
                         } : null)
                     } catch (hashError) {
-                        console.warn('Could not calculate container hash:', hashError)
                         setContainer(prev => prev ? { ...prev, isHashing: false } : null)
+                        setErrorContainer(`Could not calculate container hash: ${hashError}`)
                     }
                 }
             }
