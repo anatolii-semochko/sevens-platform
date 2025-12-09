@@ -1,38 +1,25 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import streamSaver from 'streamsaver'
-import { Zip, AsyncZipDeflate, ZipPassThrough } from 'fflate'
-import { clearTargetRef } from '../../utils/files'
-import { getExt } from '@js/utils/file'
+import { downloadZip } from 'client-zip'
+import { createSHA256 } from 'hash-wasm'
+import { clearTargetRef, getContainerName } from '../../utils/files'
 import { CompressingActions, CompressingStatus, HashingStatus } from './Components'
-import { getContainerName, getFileHash } from '../../utils/files'
 
-// --- налаштування backpressure та тротлінгу ---
-const MAX_BUFFERED_BYTES = 64 * 1024 * 1024; // 64MB максимум незаписаних даних
+// --- налаштування тротлінгу UI ---
 const UI_THROTTLE_MS = 150;
-
-// формати, які вже стиснені — кладемо як store (без повторної компресії)
-const STORE_EXTS = new Set([
-    'jpg','jpeg','png','webp','gif','avif',
-    'mp4','mov','m4v','mkv','webm','avi',
-    'mp3','aac','ogg','m4a','flac',
-    'pdf','zip','7z','gz','bz2','xz'
-]);
 
 export const CompressContainer = ({tokenFiles, setTokenFiles, container, setContainer, setErrorContainer, targetRef}) => {
     const [overallCompressing, setOverallCompressing] = useState(0)
     const [overallHashing, setOverallHashing] = useState(0)
 
     const cancelFlagRef = useRef(false)
-    const activeReadersRef = useRef([])       // ReadableStreamDefaultReader[]
-    const zipInstanceRef = useRef(null)       // Zip
-
-    // backpressure лічильник
-    const bufferedBytesRef = useRef(0)        // скільки байтів ще не записано
-    const writeChainRef = useRef(Promise.resolve())
+    const zipReaderRef = useRef(null)         // ReadableStreamDefaultReader для ZIP stream
+    const hasherRef = useRef(null)            // hash-wasm SHA256 hasher instance для streaming hashing
+    const isProcessingRef = useRef(false)  // Запобігає повторним викликам createContainer
 
     // тротлінг UI
-    const lastUiFileRef = useRef(0)
     const lastUiGlobalRef = useRef(0)
+    const lastUiHashRef = useRef(0)
 
     const totalBytes = useMemo(() => tokenFiles.reduce((s, it) => s + (it.size || 0), 0), [tokenFiles])
 
@@ -138,11 +125,16 @@ export const CompressContainer = ({tokenFiles, setTokenFiles, container, setCont
         if (!container?.isCompressing) return
         cancelFlagRef.current = true
 
-        for (const r of activeReadersRef.current) { try { await r.cancel() } catch (_) {} }
-        activeReadersRef.current = []
+        try { await zipReaderRef.current?.cancel() } catch (_) {}
+        zipReaderRef.current = null
 
-        try { zipInstanceRef.current?.end() } catch (_) {}
         try { await targetRef.current?.abort() } catch (_) {}
+
+        // Очищаємо hasher
+        hasherRef.current = null
+
+        // Розблокуємо processing flag при скасуванні
+        isProcessingRef.current = false
 
         setTokenFiles((prev) => prev.map((x) => {
             if (x.status === 'compressing') return { ...x, status: 'error', error: 'Canceled by user' }
@@ -154,23 +146,29 @@ export const CompressContainer = ({tokenFiles, setTokenFiles, container, setCont
     }, [container?.isCompressing])
 
     const createContainer = useCallback(async () => {
+        // Перевірка на повторний виклик
+        if (isProcessingRef.current) return
+
         if (!tokenFiles.length || container?.isCompressing) return
+
+        // Блокуємо повторні виклики
+        isProcessingRef.current = true
 
         setContainer(null)
         setOverallCompressing(0)
         setOverallHashing(0)
         cancelFlagRef.current = false
-        activeReadersRef.current = []
-        zipInstanceRef.current = null
+        zipReaderRef.current = null
+
+        // Ініціалізуємо SHA256 hasher для streaming hashing (hash-wasm)
+        hasherRef.current = await createSHA256()
 
         // Force clear targetRef to prevent hanging on deleted files
         clearTargetRef(targetRef)
 
-        // скидання backpressure лічильників
-        bufferedBytesRef.current = 0
-        writeChainRef.current = Promise.resolve()
-        lastUiFileRef.current = 0
+        // скидання тротлінгу
         lastUiGlobalRef.current = 0
+        lastUiHashRef.current = 0
 
         const zipName = getContainerName()
 
@@ -187,7 +185,7 @@ export const CompressContainer = ({tokenFiles, setTokenFiles, container, setCont
                 isRenamed: false,
                 file: {
                     name: zipName,
-                    size: 0
+                    size: 0,
                 },
                 targetRef: targetRef,
             }
@@ -197,43 +195,25 @@ export const CompressContainer = ({tokenFiles, setTokenFiles, container, setCont
             // позначаємо всі як compressing
             setTokenFiles((prev) => prev.map((x) => ({ ...x, status: 'compressing', progress: 0, error: null })))
 
-            // обгортка запису з обліком буфера
-            const enqueueWrite = (chunk) => {
-                if (cancelFlagRef.current) return Promise.resolve()
-                const len = (chunk?.length ?? chunk?.byteLength ?? 0) | 0
-                bufferedBytesRef.current += len
-                writeChainRef.current = writeChainRef.current.then(async () => {
-                    if (!cancelFlagRef.current) {
-                        await target.write(chunk)
-                    }
-                    bufferedBytesRef.current -= len
-                })
-                return writeChainRef.current
-            }
+            // Підготовка файлів для client-zip
+            const files = tokenFiles.map(it => ({
+                name: (it.relativePath && it.relativePath.trim()) ? it.relativePath : it.name,
+                lastModified: it.lastModified ? new Date(it.lastModified) : new Date(),
+                input: it.file, // File object
+            }))
+
+            // Створення ZIP stream через client-zip (без компресії, швидко)
+            const zipResponse = downloadZip(files, {
+                buffersAreUTF8: true // підтримка UTF-8 для кирилиці
+            })
+
+            // Отримуємо reader для ZIP stream
+            const reader = zipResponse.body.getReader()
+            zipReaderRef.current = reader
 
             let processedBytes = 0
+            let totalHashBytes = 0
 
-            const zip = new Zip((err, chunk, final) => {
-                if (err) throw err
-                if (cancelFlagRef.current) return
-                enqueueWrite(chunk)
-                if (final && !cancelFlagRef.current) {
-                    writeChainRef.current = writeChainRef.current.then(() => {
-                        if (!cancelFlagRef.current) {
-                            return target.close()
-                        }
-                    })
-                }
-            })
-            zipInstanceRef.current = zip
-
-            const updateFileProgress = (id, pct) => {
-                const now = performance.now()
-                if (pct === 100 || now - lastUiFileRef.current >= UI_THROTTLE_MS) {
-                    setTokenFiles((prev) => prev.map((x) => (x.id === id ? { ...x, progress: pct } : x)))
-                    lastUiFileRef.current = now
-                }
-            }
             const updateGlobalProgress = (pct) => {
                 const now = performance.now()
                 if (pct === 100 || now - lastUiGlobalRef.current >= UI_THROTTLE_MS) {
@@ -242,100 +222,106 @@ export const CompressContainer = ({tokenFiles, setTokenFiles, container, setCont
                 }
             }
 
-            for (const it of tokenFiles) {
+            // Читаємо ZIP stream, пишемо в файл та хешуємо одночасно
+            while (true) {
                 if (cancelFlagRef.current) break
 
-                const entryName = (it.relativePath && it.relativePath.trim()) ? it.relativePath : it.name
-                const ext = getExt(it.name)
+                const { value, done } = await reader.read()
+                if (done) break
 
-                // вибір способу: store (без компресії) або deflate
-                const useStore = STORE_EXTS.has(ext)
-                const entry = useStore
-                    ? new ZipPassThrough(entryName, { mtime: it.lastModified ? new Date(it.lastModified) : new Date() })
-                    : new AsyncZipDeflate(entryName, { level: 6, mtime: it.lastModified ? new Date(it.lastModified) : new Date() })
+                // Записуємо chunk в файл
+                await target.write(value)
 
-                zip.add(entry)
+                processedBytes += value.byteLength
+                totalHashBytes += value.byteLength
 
-                const reader = it.file.stream().getReader()
-                activeReadersRef.current.push(reader)
+                // Оновлюємо hasher (streaming hashing без завантаження в пам'ять)
+                if (hasherRef.current) {
+                    hasherRef.current.update(value)
 
-                let loaded = 0
-                const total = it.size || 1
-
-                while (true) {
-                    if (cancelFlagRef.current) break
-                    const { value, done } = await reader.read()
-                    if (done) break
-
-                    loaded += value.byteLength
-                    processedBytes += value.byteLength
-
-                    // подаємо дані в ZIP
-                    entry.push(value)
-
-                    // file progress (тротл)
-                    const pctFile = Math.max(0, Math.min(99, Math.floor((loaded / total) * 100)))
-                    updateFileProgress(it.id, pctFile)
-
-                    // global progress (тротл)
-                    if (totalBytes > 0) {
-                        const pctAll = Math.max(0, Math.min(100, Math.floor((processedBytes / totalBytes) * 100)))
-                        updateGlobalProgress(pctAll)
+                    // Оновлюємо UI прогрес хешування (тротл)
+                    const now = performance.now()
+                    if (totalBytes > 0 && (now - lastUiHashRef.current >= UI_THROTTLE_MS)) {
+                        const hashProgress = Math.min(95, Math.floor((totalHashBytes / totalBytes) * 95))
+                        setOverallHashing(hashProgress)
+                        lastUiHashRef.current = now
                     }
-
-                    // backpressure: якщо накопичили більше за ліміт — чекаємо, поки запишеться
-                    if (bufferedBytesRef.current > MAX_BUFFERED_BYTES) {
-                        await writeChainRef.current // даємо запису наздогнати
-                    }
-
-                    // передаємо керування UI
-                    await new Promise(r => setTimeout(r, 0))
                 }
 
-                try { reader.releaseLock() } catch (_) {}
-
-                if (cancelFlagRef.current) {
-                    try { entry.push(new Uint8Array(0), true) } catch (_) {}
-                    break
+                // Оновлюємо загальний прогрес компресії
+                if (totalBytes > 0) {
+                    const pctAll = Math.max(0, Math.min(100, Math.floor((processedBytes / totalBytes) * 100)))
+                    updateGlobalProgress(pctAll)
                 }
 
-                entry.push(new Uint8Array(0), true) // закрити entry
-                updateFileProgress(it.id, 100)
-                setTokenFiles((prev) => prev.map((x) => (x.id === it.id ? { ...x, status: 'done' } : x)))
+                // Передаємо керування UI
+                await new Promise(r => setTimeout(r, 0))
             }
 
-            if (cancelFlagRef.current) {
-                try { zip.end() } catch (_) {}
-                await writeChainRef.current
-            } else {
-                zip.end()
-                await writeChainRef.current
+            try { reader.releaseLock() } catch (_) {}
+            zipReaderRef.current = null
+
+            if (!cancelFlagRef.current) {
+                // Закриваємо файл
+                await target.close()
+
                 updateGlobalProgress(100)
 
-                if (targetRef.current?.kind === 'savePicker' && targetRef.current?.handle) {
-                    try {
-                        // Longer delay to ensure file is fully written to disk
-                        await new Promise(resolve => setTimeout(resolve, 500))
-                        setContainer(prev => prev ? { ...prev, isHashing: true } : null)
-                        const fileHandle = targetRef.current
-                        const file = await fileHandle.handle.getFile()
-                        const hash = await getFileHash(
-                            file,
-                            setOverallHashing,
-                        )
-                        setContainer(prev => prev ? {
-                            ...prev,
-                            hash,
-                            isHashing: false,
-                            file: {
-                                ...prev?.file,
-                                size: file.size
-                            }
-                        } : null)
-                    } catch (hashError) {
-                        setContainer(prev => prev ? { ...prev, isHashing: false } : null)
-                        setErrorContainer(`Could not calculate container hash: ${hashError}`)
+                // Позначаємо всі файли як done
+                setTokenFiles((prev) => prev.map((x) =>
+                    x.status === 'compressing' ? { ...x, status: 'done', progress: 100 } : x
+                ))
+
+                // Фінальний хеш - отримуємо результат з hasher (хешування відбувалось під час компресії)
+                try {
+                    setContainer(prev => prev ? { ...prev, isHashing: true } : null)
+
+                    let hash = null
+                    let fileSize = totalHashBytes
+
+                    if (hasherRef.current) {
+                        setOverallHashing(96)
+
+                        // Фіналізуємо хеш (hasher вже отримав всі дані через update() в Zip callback)
+                        // hash-wasm повертає hex строку напряму
+                        hash = hasherRef.current.digest('hex')
+
+                        setOverallHashing(98)
+
+                        // Очищаємо hasher
+                        hasherRef.current = null
                     }
+
+                    // Отримуємо розмір файлу якщо можливо
+                    if (targetRef.current?.kind === 'savePicker' && targetRef.current?.handle) {
+                        try {
+                            await new Promise(resolve => setTimeout(resolve, 200))
+                            const file = await targetRef.current.handle.getFile()
+                            if (file && file.size > 0) {
+                                fileSize = file.size
+                            }
+                        } catch (_) {
+                            // Не критично, використаємо totalHashBytes
+                        }
+                    }
+
+                    setOverallHashing(100)
+
+                    setContainer(prev => prev ? {
+                        ...prev,
+                        hash,
+                        isHashing: false,
+                        file: {
+                            ...prev?.file,
+                            size: fileSize
+                        }
+                    } : null)
+
+                } catch (hashError) {
+                    console.error('Hash calculation error:', hashError)
+                    setContainer(prev => prev ? { ...prev, isHashing: false } : null)
+                    setErrorContainer(`Could not calculate container hash: ${hashError}`)
+                    hasherRef.current = null
                 }
             }
         } catch (e) {
@@ -344,11 +330,15 @@ export const CompressContainer = ({tokenFiles, setTokenFiles, container, setCont
             setTokenFiles((prev) => prev.map((x) =>
                 (x.status === 'compressing' || x.status === 'queued') ? { ...x, status: 'error', error: msg } : x
             ))
+            // Очищаємо hasher у випадку помилки
+            hasherRef.current = null
             alert(msg)
         } finally {
             if (!cancelFlagRef.current) {
                 setContainer(prev => prev ? { ...prev, isCompressing: false } : null)
             }
+            // Розблокуємо можливість повторного виклику
+            isProcessingRef.current = false
         }
     }, [tokenFiles, container?.isCompressing, totalBytes])
 
