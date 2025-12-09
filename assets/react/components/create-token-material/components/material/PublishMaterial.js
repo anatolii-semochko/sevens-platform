@@ -70,14 +70,13 @@ export const PublishMaterial = ({container, tokenData, setPublishing}) => {
                 })
                 console.log('PublishMaterial (with sig) - MD5 calculated')
 
-                // Phase 1: Request presigned upload URL with validation data
+                // Phase 1: Request presigned upload URL (backend fetches hash from blockchain)
                 setUploadPhase('requesting')
-                console.log('PublishMaterial (with sig) - Requesting presigned URL with validation data')
+                console.log('PublishMaterial (with sig) - Requesting presigned URL (blockchain validation)')
                 const presignedData = await materialApi.getPresignedUploadUrl(
+                    tokenData.tokenPublicKey,  // Backend validates token in blockchain
                     container.file.name,
-                    container.hash,      // SHA-256 for backend validation
-                    containerMd5,        // MD5 for S3 validation
-                    container.file.size  // Size for validation
+                    containerMd5               // MD5 for S3 validation only
                 ).catch(err => {
                     console.error('PublishMaterial (with sig) - Failed to get presigned URL:', err)
                     throw new Error('Failed to prepare upload: ' + err.message)
@@ -111,14 +110,10 @@ export const PublishMaterial = ({container, tokenData, setPublishing}) => {
                 console.log('PublishMaterial (with sig) - No File object found, skipping S3 upload')
             }
 
-            // Phase 3: Create material with S3 upload info
+            // Phase 3: Create material (backend fetches container data from blockchain)
             setUploadPhase('creating')
+            console.log('PublishMaterial (with sig) - Creating material (blockchain provides container data)')
             const response = await materialApi.create(
-                {
-                    name: container.file?.name || container.name,
-                    size: container.file?.size || container.size,
-                    hash: container.hash,
-                },
                 tokenData.tokenPublicKey,
                 walletSignature || null,
                 s3Upload
@@ -232,14 +227,13 @@ export const PublishMaterialWithoutSignature = ({container, minted, doMaterial})
                 })
                 console.log('PublishMaterial - MD5 calculated')
 
-                // Phase 2: Request presigned upload URL with validation data
+                // Phase 2: Request presigned upload URL (backend fetches hash from blockchain)
                 setUploadPhase('requesting')
-                console.log('PublishMaterial - Requesting presigned URL with validation data')
+                console.log('PublishMaterial - Requesting presigned URL (blockchain validation)')
                 const presignedData = await materialApi.getPresignedUploadUrl(
+                    minted.tokenPublicKey,  // Backend validates token in blockchain
                     file.name,
-                    container.hash,  // SHA-256 for backend validation
-                    containerMd5,    // MD5 for S3 validation
-                    file.size        // Size for validation
+                    containerMd5            // MD5 for S3 validation only
                 ).catch(err => {
                     console.error('PublishMaterial - Failed to get presigned URL:', err)
                     throw new Error('Failed to prepare upload: ' + err.message)
@@ -273,14 +267,10 @@ export const PublishMaterialWithoutSignature = ({container, minted, doMaterial})
                 console.log('PublishMaterial - No targetRef found, skipping S3 upload')
             }
 
-            // Phase 4: Create material with S3 upload info
+            // Phase 4: Create material (backend fetches container data from blockchain)
             setUploadPhase('creating')
+            console.log('PublishMaterial - Creating material (blockchain provides container data)')
             await materialApi.create(
-                {
-                    name: container.name,
-                    size: container.size,
-                    hash: container.hash,
-                },
                 minted.tokenPublicKey,
                 null,
                 s3Upload

@@ -4,6 +4,7 @@ namespace App\Entity\Material;
 
 use App\Entity\Token\SevensToken;
 use App\Entity\Token\SevensTokenContainer;
+use App\Enum\MaterialArchiveStatus;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -97,6 +98,10 @@ class Material
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['material:read'])]
     private ?string $archiveValidationError = null;
+
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
+    #[Groups(['material:read'])]
+    private ?string $archiveHash = null;
 
     #[ORM\OneToMany(targetEntity: MaterialVote::class, mappedBy: 'materialToken', cascade: ['persist', 'remove'])]
     private Collection $votes;
@@ -350,6 +355,16 @@ class Material
     public function setArchiveValidationError(?string $archiveValidationError): void
     {
         $this->archiveValidationError = $archiveValidationError;
+    }
+
+    public function getArchiveHash(): ?string
+    {
+        return $this->archiveHash;
+    }
+
+    public function setArchiveHash(?string $archiveHash): void
+    {
+        $this->archiveHash = $archiveHash;
     }
 
     /**

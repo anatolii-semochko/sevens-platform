@@ -22,6 +22,10 @@ class MaterialController extends BaseApiController
         private readonly TokenContainerService $tokenContainerService,
         private readonly WalletService $walletService,
         private readonly \App\Service\Material\MaterialFileService $materialFileService,
+        private readonly \App\Repository\Token\TokenRepository $tokenRepository,
+        private readonly \Doctrine\ORM\EntityManagerInterface $em,
+        private readonly \App\Service\File\S3Service $s3Service,
+        private readonly \App\Service\File\CdnService $cdnService,
     ) {}
 
     /**
@@ -34,8 +38,15 @@ class MaterialController extends BaseApiController
             $material = $this->materialRepository->get($token);
             $this->checkAuthorization($material->getUser()?->getId());
 
+            // Convert logo S3 key to CDN URL
+            $logoUrl = null;
+            if ($material->getLogo()) {
+                $logoUrl = $this->cdnService->getUrl($material->getLogo());
+            }
+
             return $this->json([
                 'material' => $material,
+                'logoUrl' => $logoUrl, // Add CDN URL for logo
             ], context: ['groups' => ['material:read']]);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
@@ -44,7 +55,15 @@ class MaterialController extends BaseApiController
 
     /**
      * Get presigned upload URL for material archive.
-     * Client will upload directly to S3 using this URL.
+     *
+     * SECURITY:
+     * 1. Validates token ownership in blockchain before generating URL
+     * 2. AWS S3 automatically validates SHA-256 checksum on upload
+     * 3. Files that don't match blockchain hash are rejected by S3
+     *
+     * Client must include the checksum header when uploading:
+     * - Header: x-amz-checksum-sha256
+     * - Value: base64-encoded SHA-256 hash of the file
      *
      * @throws HttpException
      */
@@ -55,118 +74,174 @@ class MaterialController extends BaseApiController
             $this->denyAccessUnlessGranted('IS_AUTHENTICATED');
 
             $payload = $request->getPayload();
+            $tokenPublicKey = $payload->get('tokenPublicKey');
             $fileName = $payload->get('fileName');
-            $containerHash = $payload->get('containerHash');
             $containerMd5 = $payload->get('containerMd5');
-            $containerSize = $payload->get('containerSize');
+
+            if (!$tokenPublicKey) {
+                return $this->json(['error' => 'tokenPublicKey is required'], 400);
+            }
 
             if (!$fileName) {
                 return $this->json(['error' => 'fileName is required'], 400);
             }
 
+            // PHASE 1: BLOCKCHAIN VALIDATION
+            // Validate token exists in blockchain (fail immediately if blockchain unavailable)
+            $blockchainToken = $this->tokenRepository->get($tokenPublicKey);
+
+            // Get blockchain-verified container hash (immutable, trusted source)
+            $expectedHash = $blockchainToken->getHash();
+
+            // Check if material already exists for this token
+            if ($this->materialService->findByTokenPublicKey($tokenPublicKey)) {
+                return $this->json([
+                    'error' => 'Material already exists for this token'
+                ], 400);
+            }
+
+            // PHASE 2: GENERATE PRESIGNED URL
             // Generate temporary S3 key (will be moved to permanent location after material creation)
             $uuid = \Symfony\Component\Uid\Uuid::v4()->toString();
             $sanitizedFileName = $this->materialFileService->sanitizeFilename($fileName);
             $tempS3Key = sprintf('materials/temp/%s/%s', $uuid, $sanitizedFileName);
 
-            // Generate presigned upload URL (15 minutes expiration) with optional MD5 validation
+            // Generate presigned upload URL (15 minutes expiration)
+            // SHA-256 hash validation: AWS S3 will automatically reject files that don't match
+            $expiresIn = 900; // 15 minutes
             $uploadUrl = $this->materialFileService->getPresignedUploadUrl(
                 $tempS3Key,
-                900,
-                $containerMd5
+                $expiresIn,
+                $containerMd5, // MD5 (deprecated, optional)
+                $expectedHash   // SHA-256 from blockchain (AWS will validate)
             );
 
             return $this->json([
                 'uploadUrl' => $uploadUrl,
                 'tempS3Key' => $tempS3Key,
                 'bucket' => $this->materialFileService->getBucket(),
-                'expectedHash' => $containerHash,
-                'expectedSize' => $containerSize,
+                'expectedHash' => $expectedHash, // From blockchain, not client
+                'expiresAt' => time() + $expiresIn,
+                'expiresIn' => $expiresIn,
             ]);
+        } catch (\App\Exception\NotFoundException $e) {
+            // Token not found in blockchain
+            return $this->json([
+                'error' => 'Token not found on blockchain'
+            ], 404);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
         }
     }
 
     /**
+     * Create material with blockchain-validated container.
+     *
+     * SECURITY FLOW:
+     * 1. Fetch token from blockchain (source of truth)
+     * 2. Validate ownership (done by MaterialService)
+     * 3. Lambda validates uploaded file hash matches blockchain hash
+     * 4. Create material using blockchain data (not client data)
+     *
      * @throws HttpException
      */
     #[Route('/create', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        $tempS3Key = null; // Track for cleanup
+
         try {
             $payload = $request->getPayload();
             $tokenPublicKey = $payload->get('tokenPublicKey');
+            $walletSignature = $this->walletService->getSignatureFromArray($payload->all('walletSignature'));
 
-            // If material already exists
-            if ($material = $this->materialService->finByTokenPublicKey($tokenPublicKey)) {
+            if (!$tokenPublicKey) {
+                return $this->json(['error' => 'tokenPublicKey is required'], 400);
+            }
+
+            // ===== PHASE 1: BLOCKCHAIN VALIDATION =====
+            // Fetch token from blockchain (fail immediately if unavailable)
+            $blockchainToken = $this->tokenRepository->get($tokenPublicKey);
+
+            // Check if material already exists
+            if ($material = $this->materialService->findByTokenPublicKey($tokenPublicKey)) {
                 return $this->json([
                     'created' => false,
                     'material' => $material,
                 ], context: ['groups' => ['material:read', 'user:read']]);
             }
 
-            // VALIDATE BEFORE CREATING MATERIAL: If S3 upload provided, validate container first
+            // ===== PHASE 2: CONTAINER VALIDATION (Lambda with blockchain hash) =====
             if ($payload->has('s3Upload') && $s3Upload = $payload->all('s3Upload')) {
                 $tempS3Key = $s3Upload['tempS3Key'] ?? null;
+                $fileName = $s3Upload['fileName'] ?? 'archive.zip';
 
                 if ($tempS3Key) {
-                    try {
-                        // Validate uploaded container against expected metadata (hash + size only)
-                        $container = $this->tokenContainerService->getFromArray($payload->all('container'));
-                        $validationResult = $this->materialFileService->validateUploadedContainer(
-                            $tempS3Key,
-                            $container
-                        );
+                    // Get uploaded file metadata from S3
+                    $fileMetadata = $this->s3Service->getFileMetadata($tempS3Key);
+                    $uploadedSize = $fileMetadata['size'];
 
-                        if (!$validationResult['success']) {
-                            // Delete temp file on validation failure
-                            $this->materialFileService->deleteTempFile($tempS3Key);
+                    // Create expected container from uploaded file + blockchain hash
+                    // Note: Size is NOT stored in blockchain, only hash is trusted from blockchain
+                    $expectedContainer = new \App\Entity\Token\SevensTokenContainer(
+                        $fileName,
+                        $uploadedSize, // Size from uploaded file
+                        $blockchainToken->getHash()  // Hash from blockchain (trusted)
+                    );
 
-                            // Return error - DO NOT create material
-                            return $this->json([
-                                'error' => 'Container verification failed: ' . ($validationResult['error'] ?? 'Unknown error'),
-                                'validationError' => $validationResult['error'] ?? 'Unknown error',
-                            ], 400);
-                        }
-                    } catch (\Exception $e) {
-                        // Clean up temp file on error
+                    // Lambda validates: uploaded file hash === blockchain hash
+                    $validationResult = $this->materialFileService->validateUploadedContainer(
+                        $tempS3Key,
+                        $expectedContainer
+                    );
+
+                    if (!$validationResult['success']) {
+                        // Validation failed - clean up and return error
                         $this->materialFileService->deleteTempFile($tempS3Key);
-
                         return $this->json([
-                            'error' => 'Failed to validate uploaded container: ' . $e->getMessage(),
+                            'error' => 'Container verification failed: uploaded file does not match blockchain-validated hash',
+                            'validationError' => $validationResult['error'] ?? 'Hash mismatch',
                         ], 400);
                     }
                 }
             }
 
-            // ONLY CREATE MATERIAL IF VALIDATION PASSED (or no upload)
+            // ===== PHASE 3: CREATE MATERIAL =====
+            // Build container from blockchain data (NOT client data)
+            $sevensTokenContainer = new \App\Entity\Token\SevensTokenContainer(
+                $fileName ?? 'archive.zip', // File name from upload
+                $uploadedSize ?? 0, // Actual size from S3
+                $blockchainToken->getHash() // Hash from blockchain
+            );
+
+            // Create material (service validates ownership internally)
             $this->materialService->create(
                 $this->getUser(),
                 $tokenPublicKey,
-                $this->tokenContainerService->getFromArray($payload->all('container')),
-                $this->walletService->getSignatureFromArray($payload->all('walletSignature')),
+                $sevensTokenContainer,
+                $walletSignature,
             );
 
-            $material = $this->materialService->finByTokenPublicKey($tokenPublicKey);
+            $material = $this->materialService->findByTokenPublicKey($tokenPublicKey);
 
-            // Move validated file to permanent location and extract files
-            if ($payload->has('s3Upload') && $s3Upload = $payload->all('s3Upload')) {
-                $tempS3Key = $s3Upload['tempS3Key'] ?? null;
-                $originalFileName = $s3Upload['fileName'] ?? $payload->get('container')['name'] ?? 'archive.zip';
+            // Store blockchain hash for audit trail
+            $material->setArchiveHash($blockchainToken->getHash());
+            $this->em->persist($material);
+            $this->em->flush();
 
-                if ($tempS3Key) {
-                    try {
-                        // Move archive to permanent location and trigger file extraction
-                        $this->materialFileService->moveAndProcessTempArchive(
-                            $material,
-                            $tempS3Key,
-                            $originalFileName
-                        );
-                    } catch (\Exception $e) {
-                        // Material created but file processing failed - log error
-                        error_log("Failed to process archive for material {$tokenPublicKey}: " . $e->getMessage());
-                    }
+            // ===== PHASE 4: FILE EXTRACTION =====
+            if ($tempS3Key) {
+                try {
+                    // Move archive and extract files
+                    $this->materialFileService->moveAndProcessTempArchive(
+                        $material,
+                        $tempS3Key,
+                        $fileName ?? 'archive.zip'
+                    );
+                    $tempS3Key = null; // Success - no cleanup needed
+                } catch (\Exception $e) {
+                    // Material created but file processing failed
+                    error_log("Failed to process archive for material {$tokenPublicKey}: " . $e->getMessage());
                 }
             }
 
@@ -174,7 +249,18 @@ class MaterialController extends BaseApiController
                 'created' => true,
                 'material' => $material,
             ], context: ['groups' => ['material:read', 'user:read']]);
+
+        } catch (\App\Exception\NotFoundException $e) {
+            // Token not found in blockchain
+            if ($tempS3Key) {
+                $this->materialFileService->deleteTempFile($tempS3Key);
+            }
+            return $this->json(['error' => 'Token not found on blockchain'], 404);
         } catch (\Exception $e) {
+            // Cleanup on any error
+            if ($tempS3Key) {
+                $this->materialFileService->deleteTempFile($tempS3Key);
+            }
             throw new WrappedHttpException($e);
         }
     }

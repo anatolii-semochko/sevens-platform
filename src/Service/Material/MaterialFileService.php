@@ -454,11 +454,25 @@ readonly class MaterialFileService
     /**
      * Get presigned upload URL for direct client upload.
      *
+     * @param string $key S3 key for the file
+     * @param int|null $expirationSeconds URL expiration in seconds
+     * @param string|null $md5 Base64-encoded MD5 hash (deprecated)
+     * @param string|null $sha256Hash Hex-encoded SHA-256 hash from blockchain for AWS validation
      * @throws \RuntimeException
      */
-    public function getPresignedUploadUrl(string $key, ?int $expirationSeconds = null, ?string $md5 = null): string
-    {
-        return $this->s3Service->getPresignedUploadUrl($key, 'application/zip', $expirationSeconds, $md5);
+    public function getPresignedUploadUrl(
+        string $key,
+        ?int $expirationSeconds = null,
+        ?string $md5 = null,
+        ?string $sha256Hash = null
+    ): string {
+        return $this->s3Service->getPresignedUploadUrl(
+            $key,
+            'application/zip',
+            $expirationSeconds,
+            $md5,
+            $sha256Hash
+        );
     }
 
     /**

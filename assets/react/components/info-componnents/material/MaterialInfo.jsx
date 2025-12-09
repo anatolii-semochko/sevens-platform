@@ -4,16 +4,17 @@ import { route } from '@js/router/routing-with-locale'
 
 const materialApi = new MaterialApi()
 
-export const LogoPreview = ({logo, files}) => {
+export const LogoPreview = ({logo, files, logoUrl: providedLogoUrl}) => {
     // Logo is the thumbnail key, find the file object to get preview variant
     const logoFile = files?.find(file => file.keyThumbnail === logo)
 
-    // Determine logo URL (use preview for best quality, fallback to thumbnail, then original)
-    let logoUrl = null
-    if (logoFile) {
+    // Determine logo URL (use provided logoUrl first, then find in files, then fallback)
+    let logoUrl = providedLogoUrl // Use CDN URL from API if provided
+
+    if (!logoUrl && logoFile) {
         // Use urlPreview (best quality for display), then urlThumbnail, then original url
         logoUrl = logoFile.urlPreview || logoFile.urlThumbnail || logoFile.url
-    } else if (logo) {
+    } else if (!logoUrl && logo) {
         // No file found, use logo thumbnail key directly
         if (logo.startsWith('materials/')) {
             logoUrl = `https://localhost/s3/sevenstime-materials/${logo}`
@@ -54,7 +55,7 @@ export const LogoPreview = ({logo, files}) => {
     )
 }
 
-export const MaterialPreview = ({material}) => {
+export const MaterialPreview = ({material, logoUrl}) => {
     if (!material) {
         return
     }
@@ -62,7 +63,7 @@ export const MaterialPreview = ({material}) => {
     return (
         <div className="row my-4">
             <div className="col-lg-4 col-md-12">
-                <LogoPreview logo={material?.logo} />
+                <LogoPreview logo={material?.logo} files={material?.files} logoUrl={logoUrl} />
             </div>
             <div className="col-lg-8 col-md-12">
                 <p>Title: {material?.title}</p>

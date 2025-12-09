@@ -31,7 +31,7 @@ readonly class MaterialService
         return $this->repository->findBy([]);
     }
 
-    public function finByTokenPublicKey(string $tokenPublicKey): ?Material
+    public function findByTokenPublicKey(string $tokenPublicKey): ?Material
     {
         return $this->repository->findOneBy(['token' => $tokenPublicKey]);
     }
@@ -177,7 +177,7 @@ readonly class MaterialService
         foreach ($tokens as $tokenPublicKey) {
             $tokenData = $this->tokenRepository->get($tokenPublicKey);
             if ($tokenData->getWalletPublicKey() === $walletSignature->getWalletPublicKey()) {
-                if ($material = $this->finByTokenPublicKey($tokenPublicKey)) {
+                if ($material = $this->findByTokenPublicKey($tokenPublicKey)) {
                     $material->setUser($user);
                     $this->em->persist($material);
                     $this->em->flush();

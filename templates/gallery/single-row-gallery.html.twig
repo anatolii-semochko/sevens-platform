@@ -3,8 +3,10 @@
         <h2 class="section-title">{{ title }}</h2>
         <div class="scroll-gallery">
             {% for m in materials|slice(0, 50) %}
+                {% set logo = m.getLogo() %}
+                {% set cdnUrl = logo|cdn_url %}
                 <a href="{{ path('material_page', {'_locale': app.request.locale, token: m.getToken()}) }}">
-                    <img src="{{ global.path.materials }}/{{ m.getLogo() }}" alt="{{ m.getTitle }}" />
+                    <img src="{{ cdnUrl ?: (global.path.materials ~ '/' ~ logo) }}" alt="{{ m.getTitle }}" />
                 </a>
             {% endfor %}
         </div>

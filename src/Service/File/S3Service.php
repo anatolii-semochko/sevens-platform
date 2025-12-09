@@ -127,13 +127,19 @@ readonly class S3Service
      * Get a presigned URL for uploading a file.
      * Client can upload directly to S3 using this URL with a PUT request.
      *
+     * @param string $key S3 object key
+     * @param string $contentType Content type of the file
+     * @param int|null $expirationSeconds URL expiration time in seconds
+     * @param string|null $md5 Base64-encoded MD5 hash (deprecated, use sha256Hash instead)
+     * @param string|null $sha256Hash Hex-encoded SHA-256 hash for AWS checksum validation
      * @throws \RuntimeException
      */
     public function getPresignedUploadUrl(
         string $key,
         string $contentType = 'application/zip',
         ?int $expirationSeconds = null,
-        ?string $md5 = null
+        ?string $md5 = null,
+        ?string $sha256Hash = null
     ): string {
         try {
             $params = [
@@ -143,8 +149,17 @@ readonly class S3Service
             ];
 
             // Add Content-MD5 if provided (S3 will validate on upload)
+            // Note: This is deprecated in favor of SHA-256 checksums
             if ($md5 !== null) {
                 $params['ContentMD5'] = $md5;
+            }
+
+            // Add SHA-256 checksum if provided (AWS native checksum validation)
+            // This ensures S3 automatically rejects files that don't match the expected hash
+            if ($sha256Hash !== null) {
+                // AWS expects base64-encoded binary hash, not hex
+                // Convert hex hash to base64-encoded binary
+                $params['ChecksumSHA256'] = base64_encode(hex2bin($sha256Hash));
             }
 
             $cmd = $this->s3Client->getCommand('PutObject', $params);

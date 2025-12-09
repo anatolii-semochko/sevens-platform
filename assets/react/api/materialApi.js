@@ -12,9 +12,9 @@ export default class MaterialApi {
             .catch(throwErrorMessage)
     }
 
-    async create(container, tokenPublicKey, walletSignature, s3Upload = null) {
+    async create(tokenPublicKey, walletSignature, s3Upload = null) {
         const url = `${mainUrl}/create`
-        const payload = {container, tokenPublicKey, walletSignature}
+        const payload = {tokenPublicKey, walletSignature}
 
         if (s3Upload) {
             payload.s3Upload = s3Upload
@@ -44,20 +44,22 @@ export default class MaterialApi {
 
     /**
      * Get presigned upload URL for direct S3 upload.
+     * SECURITY: Validates token in blockchain before generating upload URL.
+     * Backend fetches expected hash from blockchain (not from client).
+     *
+     * @param {string} tokenPublicKey - Token public key (blockchain validation)
      * @param {string} fileName - Name of the file to upload
-     * @param {string} containerHash - SHA-256 hash of container (optional, for validation)
      * @param {string} containerMd5 - MD5 hash of container (optional, for S3 validation)
-     * @param {number} containerSize - Size of container in bytes (optional, for validation)
-     * @returns {Promise<{uploadUrl: string, tempS3Key: string, bucket: string, expectedSize: number, expectedHash: string}>}
+     * @returns {Promise<{uploadUrl: string, tempS3Key: string, bucket: string, expectedHash: string, expiresAt: number, expiresIn: number}>}
      */
-    async getPresignedUploadUrl(fileName, containerHash = null, containerMd5 = null, containerSize = null) {
+    async getPresignedUploadUrl(tokenPublicKey, fileName, containerMd5 = null) {
         const url = `${mainUrl}/presigned-upload-url`
-        const payload = { fileName }
+        const payload = { tokenPublicKey, fileName }
 
-        // Add optional validation parameters
-        if (containerHash) payload.containerHash = containerHash
-        if (containerMd5) payload.containerMd5 = containerMd5
-        if (containerSize) payload.containerSize = containerSize
+        // Add optional MD5 validation for S3
+        if (containerMd5) {
+            payload.containerMd5 = containerMd5
+        }
 
         return api
             .post(url, payload)
