@@ -1,4 +1,5 @@
 import { unzip } from 'fflate'
+import { createSHA256 } from 'hash-wasm'
 import { getFileType, isAudio, isImage, isPdf, isVideo} from '@js/utils/file'
 
 const generateUniqueId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
@@ -217,9 +218,9 @@ export const getFileHash = async (file, setOverallHashing) => {
     }
 
     try {
+        const hasher = await createSHA256()
         const reader = file.stream().getReader()
         const totalSize = file.size
-        const chunks = []
         let processedBytes = 0
 
         try {
@@ -229,13 +230,15 @@ export const getFileHash = async (file, setOverallHashing) => {
                 if (done) break
 
                 const chunk = new Uint8Array(value)
-                chunks.push(chunk)
                 processedBytes += chunk.byteLength
+
+                hasher.update(chunk)
 
                 const progress = Math.min(95, Math.floor((processedBytes / totalSize) * 100))
                 setOverallHashing(progress)
 
-                await new Promise(resolve => setTimeout(resolve, 10))
+                // Передаємо керування UI
+                await new Promise(resolve => setTimeout(resolve, 0))
             }
         } finally {
             try { reader.releaseLock() } catch (_) {}
@@ -247,20 +250,12 @@ export const getFileHash = async (file, setOverallHashing) => {
 
         setOverallHashing(98)
 
-        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
-        const allBytes = new Uint8Array(totalLength)
-        let offset = 0
-        for (const chunk of chunks) {
-            allBytes.set(chunk, offset)
-            offset += chunk.length
-        }
+        // Фіналізуємо хеш (hash-wasm повертає hex строку напряму)
+        const hash = hasher.digest('hex')
 
-        const hashBuffer = await crypto.subtle.digest('SHA-256', allBytes)
         setOverallHashing(100)
 
-        return Array.from(new Uint8Array(hashBuffer))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('')
+        return hash
     } catch (error) {
         setOverallHashing(0)
         throw error
