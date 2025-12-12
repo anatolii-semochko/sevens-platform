@@ -1,6 +1,6 @@
 const nacl = require('tweetnacl')
-const { Transaction, VersionedTransaction } = require('@solana/web3.js')
-const { commitment, initializeProvider, deserializeTransaction } = require("../utils/blockchain");
+const { Transaction, VersionedTransaction, ComputeBudgetProgram } = require('@solana/web3.js')
+const { commitment, initializeProvider, deserializeTransaction } = require('../utils/blockchain')
 
 class TransactionService {
     constructor() {
@@ -20,7 +20,6 @@ class TransactionService {
 
     async matchTransactionAndSignature(transaction, txSignature) {
         try {
-            // Parse unsigned transaction (original)
             const unsignedTransactionBuffer = deserializeTransaction(transaction)
             let unsignedTransaction
             try {
@@ -29,7 +28,6 @@ class TransactionService {
                 unsignedTransaction = Transaction.from(unsignedTransactionBuffer)
             }
 
-            // Parse signed transaction
             const signedTransactionBuffer = deserializeTransaction(txSignature)
             let signedTransaction
             try {
@@ -38,22 +36,51 @@ class TransactionService {
                 signedTransaction = Transaction.from(signedTransactionBuffer)
             }
 
-            // Get messages from transactions
             const originalMessage = unsignedTransaction.message.serialize()
             const signedMessage = signedTransaction.message.serialize()
 
-            // Compare messages - they must be identical (except signatures)
+            // Allow wallet to add ComputeBudget instructions (e.g., Phantom in Firefox)
             if (!originalMessage.equals(signedMessage)) {
-                throw new Error('Wallet signature does not match transaction - signature is intended for a different or modified transaction')
+                const COMPUTE_BUDGET_PROGRAM_ID = ComputeBudgetProgram.programId.toString()
+
+                const originalInstructions = unsignedTransaction.message.compiledInstructions || []
+                const signedInstructions = signedTransaction.message.compiledInstructions || []
+
+                // Filter out ComputeBudget instructions
+                const filterComputeBudget = (instructions, accountKeys) => {
+                    return instructions.filter(ix => {
+                        const programId = accountKeys[ix.programIdIndex]
+                        return programId.toString() !== COMPUTE_BUDGET_PROGRAM_ID
+                    })
+                }
+
+                const originalAccountKeys = unsignedTransaction.message.staticAccountKeys || unsignedTransaction.message.accountKeys || []
+                const signedAccountKeys = signedTransaction.message.staticAccountKeys || signedTransaction.message.accountKeys || []
+
+                const filteredOriginal = filterComputeBudget(originalInstructions, originalAccountKeys)
+                const filteredSigned = filterComputeBudget(signedInstructions, signedAccountKeys)
+
+                // Verify non-ComputeBudget instructions count matches
+                if (filteredOriginal.length !== filteredSigned.length) {
+                    throw new Error('Wallet signature does not match transaction - signature is intended for a different or modified transaction')
+                }
+
+                // Verify fee payer was not modified
+                if (originalAccountKeys[0]?.toString() !== signedAccountKeys[0]?.toString()) {
+                    throw new Error('Wallet signature does not match transaction - fee payer was modified')
+                }
+
+                // Verify blockhash was not modified
+                if (unsignedTransaction.message.recentBlockhash !== signedTransaction.message.recentBlockhash) {
+                    throw new Error('Wallet signature does not match transaction - blockhash was modified')
+                }
             }
 
-            // Get signatures from signed transaction
             const signatures = signedTransaction.signatures || []
             if (signatures.length === 0) {
                 throw new Error('Signed transaction contains no signatures')
             }
 
-            // Check if signed transaction has valid (non-empty) signatures
             let hasValidSignature = false
             for (const signature of signatures) {
                 if (signature && !signature.every(byte => byte === 0)) {
@@ -65,15 +92,16 @@ class TransactionService {
                 throw new Error('Signed transaction contains only empty signatures')
             }
 
-            // Cryptographic verification: check if signature is valid for the message
+            // Verify signature cryptographically
             const signers = signedTransaction.message.staticAccountKeys || []
             if (signers.length > 0) {
-                const firstSigner = signers[0] // Fee payer is typically the first signer
-                const firstSignature = signatures[0] // First signature corresponds to first signer
+                const firstSigner = signers[0]
+                const firstSignature = signatures[0]
 
                 if (firstSignature && !firstSignature.every(byte => byte === 0)) {
+                    // Verify signature against signed message (which may include ComputeBudget instructions)
                     const isValidSignature = nacl.sign.detached.verify(
-                        originalMessage,
+                        signedMessage,
                         firstSignature,
                         firstSigner.toBytes()
                     )
