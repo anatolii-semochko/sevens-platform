@@ -64,7 +64,6 @@ services:
     networks:
       - default
       - blockchain.dev
-      - sevens-exchanger-default
     environment:
       - NODE_ENV=development
       - NODE_SERVER_PORT=${NODE_SERVER_PORT}
@@ -109,7 +108,7 @@ services:
     environment:
       - SERVICES=s3,lambda
       - DEBUG=1
-      - DATA_DIR=/var/lib/localstack
+      - PERSISTENCE=1
       - LAMBDA_EXECUTOR=docker
       - DOCKER_HOST=unix:///var/run/docker.sock
       - SKIP_INFRA_DOWNLOADS=1
@@ -145,6 +144,3 @@ networks:
   blockchain.dev:
     external: true
     name: sevens.dev
-  sevens-exchanger-default:
-    external: true
-    name: sevens-exchanger-default

@@ -17,7 +17,7 @@ export const LogoPreview = ({logo, files, logoUrl: providedLogoUrl}) => {
     } else if (!logoUrl && logo) {
         // No file found, use logo thumbnail key directly
         if (logo.startsWith('materials/')) {
-            logoUrl = `https://localhost/s3/sevenstime-materials/${logo}`
+            logoUrl = `/s3/sevenstime-materials/${logo}`
         } else {
             // Legacy filename format
             logoUrl = window.AppConfig.path.materials + '/' + logo
