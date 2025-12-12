@@ -98,7 +98,6 @@ export const decompressContainerToMemory = async (
 
     cancellationToken?.throwIfCancelled()
 
-    // Read and decompress ZIP data
     const arrayBuffer = await containerFile.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
 
@@ -169,14 +168,12 @@ export const decompressContainerToMemory = async (
 const createMemoryFileInfo = (fileName, fileData) => {
     const pathParts = fileName.split('/')
     const actualFileName = pathParts.pop() || fileName
+    const fileType = getFileType(fileName)
 
-    // Create blob from file data
-    const blob = new Blob([fileData], { type: getFileType(fileName) })
-
-    // Create file object from blob
+    const blob = new Blob([fileData], { type: fileType })
     const file = new File([blob], actualFileName, {
-        type: getFileType(fileName),
-        lastModified: Date.now()
+        type: fileType,
+        lastModified: Date.now(),
     })
 
     const fileInfo = {
@@ -184,15 +181,14 @@ const createMemoryFileInfo = (fileName, fileData) => {
         file,
         name: actualFileName,
         size: fileData.length,
-        type: getFileType(fileName),
+        type: fileType,
         relativePath: fileName,
         status: 'done',
-        isOnDisk: false
+        isOnDisk: false,
     }
 
     // Generate preview for media files
     try {
-        const fileType = getFileType(fileName)
         if (fileType && (fileType.startsWith('image/') || fileType.startsWith('video/') || fileType.startsWith('audio/'))) {
             fileInfo.previewUrl = URL.createObjectURL(file)
         }
@@ -416,7 +412,7 @@ export const decompressContainerToDisk = async (
         return {
             files,
             extractionPath: folderName,
-            folderHandle: extractionFolderHandle
+            folderHandle: extractionFolderHandle,
         }
     } catch (error) {
         // Clean up zipReader if it exists
@@ -446,6 +442,7 @@ const extractSingleFileStreaming = async (entry, extractionFolderHandle, folderN
     const fileName = entry.filename
     const pathParts = fileName.split('/')
     const actualFileName = pathParts.pop() || fileName
+    const fileType = getFileType(fileName)
 
     // Create nested directories if needed
     let currentDirHandle = extractionFolderHandle
@@ -471,13 +468,8 @@ const extractSingleFileStreaming = async (entry, extractionFolderHandle, folderN
 
     // Streaming запис з ZIP entry напряму в файл (без завантаження в пам'ять)
     try {
-        // @zip.js/zip.js підтримує запис напряму в WritableStream
-        // entry.getData() читає дані streaming і пише в writable
         await entry.getData(writable, {
-            onprogress: (progress, total) => {
-                // Перевіряємо cancellation під час читання великого файлу
-                cancellationToken?.throwIfCancelled()
-            }
+            onprogress: () => cancellationToken?.throwIfCancelled(),
         })
 
         // writable вже закритий після entry.getData()
@@ -501,17 +493,16 @@ const extractSingleFileStreaming = async (entry, extractionFolderHandle, folderN
         id: generateUniqueId(),
         name: actualFileName,
         size: entry.uncompressedSize,
-        type: getFileType(fileName),
+        type: fileType,
         relativePath: fileName,
         status: 'done',
         diskPath: `${folderName}/${fileName}`,
         fileHandle: fileHandle,
-        isOnDisk: true
+        isOnDisk: true,
     }
 
     // Generate preview for media files
     try {
-        const fileType = getFileType(fileName)
         if (fileType && (fileType.startsWith('image/') || fileType.startsWith('video/') || fileType.startsWith('audio/'))) {
             const diskFile = await fileHandle.getFile()
             fileInfo.previewUrl = URL.createObjectURL(diskFile)
