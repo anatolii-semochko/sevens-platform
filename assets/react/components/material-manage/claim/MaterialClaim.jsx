@@ -7,6 +7,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { signNonce, WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { getDateFromDate } from '@js/utils/time'
 import { UserAuthorization } from '@react/components/user-auth/UserAuth'
+import { RepeatableQuery } from '@react/api/RepeatableQuery'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 
@@ -21,22 +22,30 @@ const MaterialClaimInner = () => {
     const wallet = useWallet()
     const [selected, setSelected] = useState([])
     const [waitingSignature, setWaitingSignature] = useState(false)
+    const [loadingTokens, setLoadingTokens] = useState(false)
     const [processing, setProcessing] = useState(false)
-    const [materials, setMaterials] = useState([])
+    const [materials, setMaterials] = useState(null)
     const [error, setError] = useState(null)
 
     useEffect(() => {
         setError(null)
-        setMaterials([])
+        setMaterials(null)
         setSelected([])
         setWaitingSignature(null)
         setProcessing(null)
         if (wallet.publicKey) {
-            tokenApi.fetchTokensByWallet(
-                wallet.publicKey.toString(),
-            ).then(materialClaimApi.get).then(setMaterials).catch(setError)
+            setLoadingTokens(true)
         }
     }, [wallet.publicKey?.toString()])
+
+    const handleTokensSuccess = async (tokens) => {
+        try {
+            const materialsData = await materialClaimApi.get(tokens)
+            setMaterials(materialsData)
+        } catch (error) {
+            setError(error)
+        }
+    }
 
     const handleClaim = async () => {
         try {
@@ -58,6 +67,16 @@ const MaterialClaimInner = () => {
     return (
         <div>
             <WalletForm operation={'claim'} waitingSignature={waitingSignature} />
+            <RepeatableQuery
+                apiEndpoint={(publicKey) => tokenApi.fetchTokensByWallet(publicKey)}
+                params={wallet.publicKey?.toString()}
+                onSuccess={handleTokensSuccess}
+                onError={setError}
+                processing={loadingTokens}
+                setProcessing={setLoadingTokens}
+                loadingMessage={'Loading data...'}
+                cancelButton={false}
+            />
             <MaterialsList {...{wallet, materials, selected, setSelected}} />
             <ErrorMessageBlock message={error} />
             {!!selected.length && (
@@ -77,7 +96,7 @@ const MaterialClaimInner = () => {
 }
 
 const MaterialsList = ({wallet, materials, selected, setSelected}) => {
-    if (!wallet.publicKey) {
+    if (!wallet.publicKey || materials === null) {
         return
     }
 

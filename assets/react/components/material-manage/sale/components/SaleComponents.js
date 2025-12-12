@@ -136,28 +136,30 @@ export const SaleActions = ({tokenData, setType, price, currentPrice, setError})
     </div>
 )
 
-export const SignActions = ({type, waitingSignature, busy, handleCancel, handleSetSale}) => {
-    const processingLabel = () => waitingSignature ? 'Waiting signature...' : 'Processing...'
-
-    return (
-        <div className="row justify-content-center align-items-center mb-4">
-            <div className="col-6">
-                <ButtonWithProcessing
-                    className={'btn-danger w-100'}
-                    label={'Cancel'}
-                    onClick={handleCancel}
-                />
-            </div>
-            <div className="col-6">
-                <ButtonWithProcessing
-                    className={'btn-success w-100'}
-                    label={type === 'sale' ? 'Sign sale token transaction' : 'Sign cancel sale token transaction'}
-                    processingLabel={processingLabel()}
-                    processing={busy()}
-                    disabled={busy()}
-                    onClick={handleSetSale}
-                />
-            </div>
+export const SignActions = ({type, waitingSignature, busy, handleCancel, handleSetSale}) => (
+    <div className="row justify-content-center align-items-center mb-4">
+        <div className="col-6">
+            <ButtonWithProcessing
+                className={'btn-danger w-100'}
+                label={'Cancel'}
+                onClick={handleCancel}
+            />
         </div>
-    )
-}
+        <div className="col-6">
+            <ButtonWithProcessing
+                className={'btn-success w-100'}
+                label={type === 'sale' ? 'Sign sale token transaction' : 'Sign cancel sale token transaction'}
+                processingLabel={waitingSignature ? 'Waiting signature...' : 'Processing...'}
+                processing={busy()}
+                disabled={busy()}
+                onClick={handleSetSale}
+            />
+        </div>
+    </div>
+)
+
+export const ButtonBack = ({setMaterialForm, busy}) => (
+    <button className="btn btn-primary w-100" onClick={() => setMaterialForm(null)} disabled={busy()}>
+        Back
+    </button>
+)

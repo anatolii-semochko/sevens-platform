@@ -4,7 +4,7 @@ import { checkSwAvailability } from '../../utils/files'
 import { createFileData } from '../../utils/files'
 import { CompressContainer } from '../container/CompressContainer'
 
-export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContainer, targetRef}) => {
+export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContainer, setErrorContainer, targetRef}) => {
     const [ssReady, setSsReady] = useState(false)
     const [ssError, setSsError] = useState(null)
 
@@ -51,7 +51,7 @@ export const CreateContainer = ({tokenFiles, setTokenFiles, container, setContai
                 <SelectFiles addFiles={addFiles} disabled={!!container} />
                 <DropZone addFiles={addFiles} disabled={!!container} />
                 <FilesList {...{tokenFiles, removeOne, clearAll, disabled: !!container}} />
-                <CompressContainer {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
+                <CompressContainer {...{tokenFiles, setTokenFiles, container, setContainer, setErrorContainer, targetRef}} />
             </div>
         </div>
     )

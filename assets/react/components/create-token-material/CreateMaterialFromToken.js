@@ -3,6 +3,7 @@ import store from '@react/store'
 import TokenApi from '@react/api/tokenApi'
 import { calculateContainerHash, removeExtractedFilesFolder } from './utils/files'
 import { UserAuthorization } from '@react/components/user-auth/UserAuth'
+import { RepeatableQuery } from '@react/api/RepeatableQuery'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
 import { HashingStatus, SelectContainerFile } from './components/container/Components'
@@ -13,6 +14,7 @@ const tokenApi = new TokenApi()
 
 export const CreateMaterialFromToken = () => {
     const [container, setContainer] = useState(null)
+    const [loadingToken, setLoadingToken] = useState(false)
     const [overallHashing, setOverallHashing] = useState(0)
     const [tokenFiles, setTokenFiles] = useState([])
     const [tokenData, setTokenData] = useState(null)
@@ -39,6 +41,7 @@ export const CreateMaterialFromToken = () => {
         setContainer(null)
         setOverallHashing(0)
         setTokenData(null)
+        setLoadingToken(false)
         setDecompressionFunction(null)
     }
 
@@ -57,10 +60,8 @@ export const CreateMaterialFromToken = () => {
     }, [container?.file])
 
     useEffect(() => {
-        if (container?.hash) {
-            tokenApi.getTokenDataByHash(container.hash).then(setTokenData).catch(() => setTokenData({
-                error: 'Token not found in blockchain',
-            }))
+        if (container?.hash && !tokenData) {
+            setLoadingToken(true)
         }
     }, [container?.hash])
 
@@ -84,6 +85,16 @@ export const CreateMaterialFromToken = () => {
                 onStartDecompression,
                 handleStartDecompression,
             }}/>
+            <RepeatableQuery
+                apiEndpoint={(hash) => tokenApi.getTokenDataByHash(hash)}
+                params={container?.hash}
+                onSuccess={setTokenData}
+                onError={(error) => setTokenData({ error: error.toString() })}
+                onCancel={() => setContainer(null)}
+                processing={loadingToken}
+                setProcessing={setLoadingToken}
+                loadingMessage={'Checking token in blockchain...'}
+            />
             <TokenInfo {...{container, tokenData}} />
             <MessagesBlock error={errorMessage} />
             {tokenData && !tokenData.error && !errorMessage && (

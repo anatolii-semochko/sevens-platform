@@ -2,15 +2,18 @@ import React, { useEffect, useState } from 'react'
 import TokenApi from '@react/api/tokenApi'
 import { getDeserializedTransaction, getSerializedTransaction } from '@js/utils/blockchain'
 import { useWallet } from '@solana/wallet-adapter-react'
+import { RepeatableQuery } from '@react/api/RepeatableQuery'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
 import { HistoryTable } from '@react/components/info-componnents/token/TokenInfo'
-import { SaleActions, SaleForm, SaleMessage, SignActions } from './components/SaleComponents'
+import { SaleActions, SaleForm, SaleMessage, SignActions, ButtonBack} from './components/SaleComponents'
 
 const tokenApi = new TokenApi()
 
 const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
     const wallet = useWallet()
+    const [loadingTariffs, setLoadingTariffs] = useState(true)
+    const [loadingManageToken, setLoadingManageToken] = useState(false)
     const [price, setPrice] = useState(tokenData.sale.price > 0 ? tokenData.sale.price : '')
     const [currentPrice, setCurrentPrice] = useState(price)
     const [retailPrice, setRetailPrice] = useState('')
@@ -21,21 +24,25 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
     const [processing, setProcessing] = useState(false)
     const [error, setError] = useState(false)
 
-    const init = async () => {
-        const tariffs = await tokenApi.getTariffs()
+    const round = (value) => Math.round(value * 1e9) / 1e9
+
+    const handleTariffsSuccess = (tariffs) => {
         setTariffBuy(tariffs.buy)
-        try {
-            const tokenManage = await tokenApi.getManageToken(tokenData.tokenPublicKey)
-            const manageRetailPrice = tokenManage.retailPrice || ''
-            setRetailPrice(manageRetailPrice)
-            setCurrentRetailPrice(manageRetailPrice)
-        } catch (e) {
-            const currentPrice = tokenData.sale.price > 0 ? tokenData.sale.price : ''
-            if (currentPrice && currentPrice > 0) {
-                const tokenRetailPrice = round(currentPrice * (1 + tariffBuy / 100))
-                setRetailPrice(tokenRetailPrice)
-                setCurrentRetailPrice(tokenRetailPrice)
-            }
+        setLoadingManageToken(true)
+    }
+
+    const handleManageTokenSuccess = (tokenManage) => {
+        const manageRetailPrice = tokenManage.retailPrice || ''
+        setRetailPrice(manageRetailPrice)
+        setCurrentRetailPrice(manageRetailPrice)
+    }
+
+    const handleManageTokenError = () => {
+        const currentPrice = tokenData.sale.price > 0 ? tokenData.sale.price : ''
+        if (currentPrice && currentPrice > 0) {
+            const tokenRetailPrice = round(currentPrice * (1 + tariffBuy / 100))
+            setRetailPrice(tokenRetailPrice)
+            setCurrentRetailPrice(tokenRetailPrice)
         }
     }
 
@@ -83,15 +90,39 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
 
     const isWalletExpected = () => wallet?.publicKey?.toString() === tokenData?.walletPublicKey
     const busy = () => waitingSignature || processing
-    const round = (value) => Math.round(value * 1e9) / 1e9
-
-    useEffect(() => {
-        init().then()
-    }, [])
+    const loading = loadingTariffs || loadingManageToken
 
     useEffect(() => {
         setError(null)
     }, [wallet.publicKey?.toString()])
+
+    if (loading) return (
+        <div>
+            <RepeatableQuery
+                apiEndpoint={() => tokenApi.getTariffs()}
+                params={null}
+                onSuccess={handleTariffsSuccess}
+                onError={(error) => setError(error)}
+                processing={loadingTariffs}
+                setProcessing={setLoadingTariffs}
+                loadingMessage={'Loading data...'}
+                cancelButton={false}
+                className={'mb-4'}
+            />
+            <RepeatableQuery
+                apiEndpoint={(publicKey) => tokenApi.getManageToken(publicKey)}
+                params={tokenData.tokenPublicKey}
+                onSuccess={handleManageTokenSuccess}
+                onError={handleManageTokenError}
+                processing={loadingManageToken}
+                setProcessing={setLoadingManageToken}
+                loadingMessage={'Loading token data...'}
+                cancelButton={false}
+                className={'mb-4'}
+            />
+            <ButtonBack {...{setMaterialForm, busy}} />
+        </div>
+    )
 
     return (
         <div className="mb-3">
@@ -121,9 +152,7 @@ const MaterialSaleInner = ({tokenData, handlerSave, setMaterialForm}) => {
                 <SaleActions {...{tokenData, setType, price, currentPrice, setError}} />
             )}
             <HistoryTable tokenPublicKey={tokenData.tokenPublicKey} showChart={true} showTable={true} showWallet={true} />
-            <button className="btn btn-primary w-100" onClick={() => setMaterialForm(null)} disabled={busy()}>
-                Back
-            </button>
+            <ButtonBack {...{setMaterialForm, busy}} />
         </div>
     )
 }

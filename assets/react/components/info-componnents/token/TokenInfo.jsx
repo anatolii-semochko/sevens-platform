@@ -19,7 +19,8 @@ export const TokenInfo = ({container, tokenData, label, text}) => {
 
         return (
             <div className="alert-danger alert text-center text-break p-4">
-                <h4>Checking container error - {tokenData.error}</h4>
+                <h4>Container check error!</h4>
+                <h6 className="text-danger p-2">{tokenData.error}</h6>
                 <InnerTable data={data} />
             </div>
         )

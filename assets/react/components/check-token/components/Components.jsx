@@ -1,17 +1,18 @@
 import React from 'react'
 import { TokenInfo } from '@react/components/info-componnents/token/TokenInfo'
 
-export const ContainerCheckMessage = ({tokenData}) => !!tokenData && (
+export const ContainerCheckMessage = ({tokenData}) => (
     <div>
         {tokenData.error ? (
             <div className="alert-danger alert text-break p-4" role="alert">
                 <h3 className="text-center">Check Fail !</h3>
                 <p className="text-center">Your token container has been not passed the check.</p>
-                <p className="text-center text-danger"><strong>Error: {tokenData.error}.</strong></p>
+                <p className="text-center text-danger"><strong>{tokenData.error}.</strong></p>
                 <p className="text-center">Possible reasons:</p>
                 <ul>
                     <li>Token for this container has been not minted yet. Try to mint the token.</li>
                     <li>Token for this container has been burned. You can mint the token again.</li>
+                    <li>Error retrieving token data. Please try checking the container again.</li>
                 </ul>
             </div>
         ) : (

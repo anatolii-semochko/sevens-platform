@@ -57,7 +57,7 @@ export const CreateTokenMaterial = ({doMaterial}) => {
     return (
         <div>
             {showCreateContainer() && (
-                <CreateContainer {...{tokenFiles, setTokenFiles, container, setContainer, targetRef}} />
+                <CreateContainer {...{tokenFiles, setTokenFiles, container, setContainer, setErrorContainer, targetRef}} />
             )}
             <ContainerFileInfo {...{container, setErrorContainer}} />
             <MessagesBlock error={errorContainer} />

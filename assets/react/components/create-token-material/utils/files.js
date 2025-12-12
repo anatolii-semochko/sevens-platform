@@ -1,5 +1,7 @@
 import { unzip } from 'fflate'
+import { createSHA256 } from 'hash-wasm'
 import { getFileType, isAudio, isImage, isPdf, isVideo} from '@js/utils/file'
+import { BlobReader, ZipReader } from '@zip.js/zip.js'
 
 const generateUniqueId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -96,7 +98,6 @@ export const decompressContainerToMemory = async (
 
     cancellationToken?.throwIfCancelled()
 
-    // Read and decompress ZIP data
     const arrayBuffer = await containerFile.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
 
@@ -167,14 +168,12 @@ export const decompressContainerToMemory = async (
 const createMemoryFileInfo = (fileName, fileData) => {
     const pathParts = fileName.split('/')
     const actualFileName = pathParts.pop() || fileName
+    const fileType = getFileType(fileName)
 
-    // Create blob from file data
-    const blob = new Blob([fileData], { type: getFileType(fileName) })
-
-    // Create file object from blob
+    const blob = new Blob([fileData], { type: fileType })
     const file = new File([blob], actualFileName, {
-        type: getFileType(fileName),
-        lastModified: Date.now()
+        type: fileType,
+        lastModified: Date.now(),
     })
 
     const fileInfo = {
@@ -182,15 +181,14 @@ const createMemoryFileInfo = (fileName, fileData) => {
         file,
         name: actualFileName,
         size: fileData.length,
-        type: getFileType(fileName),
+        type: fileType,
         relativePath: fileName,
         status: 'done',
-        isOnDisk: false
+        isOnDisk: false,
     }
 
     // Generate preview for media files
     try {
-        const fileType = getFileType(fileName)
         if (fileType && (fileType.startsWith('image/') || fileType.startsWith('video/') || fileType.startsWith('audio/'))) {
             fileInfo.previewUrl = URL.createObjectURL(file)
         }
@@ -217,9 +215,9 @@ export const getFileHash = async (file, setOverallHashing) => {
     }
 
     try {
+        const hasher = await createSHA256()
         const reader = file.stream().getReader()
         const totalSize = file.size
-        const chunks = []
         let processedBytes = 0
 
         try {
@@ -229,13 +227,15 @@ export const getFileHash = async (file, setOverallHashing) => {
                 if (done) break
 
                 const chunk = new Uint8Array(value)
-                chunks.push(chunk)
                 processedBytes += chunk.byteLength
+
+                hasher.update(chunk)
 
                 const progress = Math.min(95, Math.floor((processedBytes / totalSize) * 100))
                 setOverallHashing(progress)
 
-                await new Promise(resolve => setTimeout(resolve, 10))
+                // Передаємо керування UI
+                await new Promise(resolve => setTimeout(resolve, 0))
             }
         } finally {
             try { reader.releaseLock() } catch (_) {}
@@ -247,20 +247,12 @@ export const getFileHash = async (file, setOverallHashing) => {
 
         setOverallHashing(98)
 
-        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
-        const allBytes = new Uint8Array(totalLength)
-        let offset = 0
-        for (const chunk of chunks) {
-            allBytes.set(chunk, offset)
-            offset += chunk.length
-        }
+        // Фіналізуємо хеш (hash-wasm повертає hex строку напряму)
+        const hash = hasher.digest('hex')
 
-        const hashBuffer = await crypto.subtle.digest('SHA-256', allBytes)
         setOverallHashing(100)
 
-        return Array.from(new Uint8Array(hashBuffer))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('')
+        return hash
     } catch (error) {
         setOverallHashing(0)
         throw error
@@ -350,97 +342,107 @@ export const decompressContainerToDisk = async (
         throw error
     }
 
-    // Read and decompress ZIP data
-    const arrayBuffer = await containerFile.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
+    // Використовуємо @zip.js/zip.js для streaming декомпресії (не завантажує весь ZIP в пам'ять)
+    let zipReader
+    try {
+        zipReader = new ZipReader(new BlobReader(containerFile))
+        const entries = await zipReader.getEntries()
 
-    return new Promise((resolve, reject) => {
+        cancellationToken?.throwIfCancelled()
+
+        const totalEntries = entries.length
+
+        if (totalEntries === 0) {
+            await zipReader.close()
+            return { files: [], extractionPath: folderName, folderHandle: extractionFolderHandle }
+        }
+
         const files = []
         let processedEntries = 0
-        let totalEntries = 0
 
-        unzip(uint8Array, async (err, data) => {
-            if (err) {
-                reject(new Error(`Failed to decompress ZIP file: ${err.message}`))
-                return
+        for (let i = 0; i < entries.length; i++) {
+            cancellationToken?.throwIfCancelled()
+
+            const entry = entries[i]
+
+            // Пропускаємо директорії (entry.directory === true)
+            if (entry.directory) {
+                processedEntries++
+                const progress = Math.floor((processedEntries / totalEntries) * 100)
+                progressCallback?.(progress)
+                continue
             }
 
             try {
-                cancellationToken?.throwIfCancelled()
+                const fileInfo = await extractSingleFileStreaming(
+                    entry,
+                    extractionFolderHandle,
+                    folderName,
+                    cancellationToken
+                )
 
-                totalEntries = Object.keys(data).length
+                files.push(fileInfo)
 
-                if (totalEntries === 0) {
-                    resolve({ files: [], extractionPath: folderName, folderHandle: extractionFolderHandle })
-                    return
+                processedEntries++
+                const progress = Math.floor((processedEntries / totalEntries) * 100)
+                progressCallback?.(progress)
+
+                // Yield control for UI updates
+                if (i % 5 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0))
                 }
-
-                const entries = Object.entries(data)
-
-                for (let i = 0; i < entries.length; i++) {
-                    cancellationToken?.throwIfCancelled()
-
-                    const [fileName, fileData] = entries[i]
-
-                    try {
-                        const fileInfo = await extractSingleFile(
-                            fileName,
-                            fileData,
-                            extractionFolderHandle,
-                            folderName,
-                            cancellationToken
-                        )
-
-                        files.push(fileInfo)
-
-                        processedEntries++
-                        const progress = Math.floor((processedEntries / totalEntries) * 100)
-                        progressCallback?.(progress)
-
-                        // Yield control for UI updates
-                        if (i % 5 === 0) {
-                            await new Promise(resolve => setTimeout(resolve, 10))
-                        }
-                    } catch (fileError) {
-                        if (cancellationToken?.isCancelled || fileError.name === 'CancellationError') {
-                            // Add folder info to cancellation error for cleanup
-                            fileError.folderHandle = extractionFolderHandle
-                            fileError.extractionPath = folderName
-                            reject(fileError)
-                            return
-                        }
-                        console.warn(`Failed to extract file ${fileName}:`, fileError.message)
-                        // Continue with other files
-                    }
+            } catch (fileError) {
+                if (cancellationToken?.isCancelled || fileError.name === 'CancellationError') {
+                    // Add folder info to cancellation error for cleanup
+                    fileError.folderHandle = extractionFolderHandle
+                    fileError.extractionPath = folderName
+                    await zipReader.close()
+                    throw fileError
                 }
-
-                cancellationToken?.throwIfCancelled()
-
-                progressCallback?.(100)
-
-                resolve({
-                    files,
-                    extractionPath: folderName,
-                    folderHandle: extractionFolderHandle
-                })
-            } catch (error) {
-                // Add folder info to cancellation error for cleanup
-                if (error.name === 'CancellationError' || error.cancelled === true) {
-                    error.folderHandle = extractionFolderHandle
-                    error.extractionPath = folderName
-                }
-                reject(error)
+                console.warn(`Failed to extract file ${entry.filename}:`, fileError.message)
+                // Continue with other files
             }
-        })
-    })
+        }
+
+        cancellationToken?.throwIfCancelled()
+
+        await zipReader.close()
+        progressCallback?.(100)
+
+        return {
+            files,
+            extractionPath: folderName,
+            folderHandle: extractionFolderHandle,
+        }
+    } catch (error) {
+        // Clean up zipReader if it exists
+        if (zipReader) {
+            try {
+                await zipReader.close()
+            } catch (_) {}
+        }
+
+        // Add folder info to cancellation error for cleanup
+        if (error.name === 'CancellationError' || error.cancelled === true) {
+            error.folderHandle = extractionFolderHandle
+            error.extractionPath = folderName
+        }
+        throw error
+    }
 }
 
 /**
- * Extracts a single file from ZIP data to disk
+ * Extracts a single file from ZIP entry to disk using streaming (не завантажує файл в пам'ять)
+ * @param {ZipEntry} entry - ZIP entry from @zip.js/zip.js
+ * @param {FileSystemDirectoryHandle} extractionFolderHandle - Root extraction folder
+ * @param {string} folderName - Folder name for metadata
+ * @param {CancellationToken} cancellationToken - Token to check for cancellation
  */
-const extractSingleFile = async (fileName, fileData, extractionFolderHandle, folderName, cancellationToken) => {
+const extractSingleFileStreaming = async (entry, extractionFolderHandle, folderName, cancellationToken) => {
+    const fileName = entry.filename
     const pathParts = fileName.split('/')
     const actualFileName = pathParts.pop() || fileName
+    const fileType = getFileType(fileName)
 
     // Create nested directories if needed
     let currentDirHandle = extractionFolderHandle
@@ -455,7 +457,7 @@ const extractSingleFile = async (fileName, fileData, extractionFolderHandle, fol
         }
     }
 
-    // Create and write file
+    // Create file handle
     let fileHandle, writable
     try {
         fileHandle = await currentDirHandle.getFileHandle(actualFileName, { create: true })
@@ -464,23 +466,15 @@ const extractSingleFile = async (fileName, fileData, extractionFolderHandle, fol
         throw new Error(`Cannot create file "${actualFileName}": ${error.message}`)
     }
 
+    // Streaming запис з ZIP entry напряму в файл (без завантаження в пам'ять)
     try {
-        // Write file data in chunks
-        const chunkSize = 64 * 1024 // 64KB chunks
-        for (let offset = 0; offset < fileData.length; offset += chunkSize) {
-            cancellationToken?.throwIfCancelled()
+        await entry.getData(writable, {
+            onprogress: () => cancellationToken?.throwIfCancelled(),
+        })
 
-            const chunk = fileData.slice(offset, offset + chunkSize)
-            await writable.write(chunk)
-
-            // Small delay for very large files
-            if (fileData.length > 1024 * 1024 && offset > 0) {
-                await new Promise(resolve => setTimeout(resolve, 1))
-            }
-        }
-
-        await writable.close()
+        // writable вже закритий після entry.getData()
     } catch (error) {
+        // Спробуємо закрити writable якщо він ще відкритий
         try {
             await writable.close()
         } catch (closeError) {
@@ -491,25 +485,24 @@ const extractSingleFile = async (fileName, fileData, extractionFolderHandle, fol
         if (error.name === 'CancellationError' || error.cancelled === true) {
             throw error
         }
-        throw new Error(`Failed to write file "${actualFileName}": ${error.message}`)
+        throw new Error(`Failed to extract file "${actualFileName}": ${error.message}`)
     }
 
     // Create file metadata
     const fileInfo = {
         id: generateUniqueId(),
         name: actualFileName,
-        size: fileData.length,
-        type: getFileType(fileName),
+        size: entry.uncompressedSize,
+        type: fileType,
         relativePath: fileName,
         status: 'done',
         diskPath: `${folderName}/${fileName}`,
         fileHandle: fileHandle,
-        isOnDisk: true
+        isOnDisk: true,
     }
 
     // Generate preview for media files
     try {
-        const fileType = getFileType(fileName)
         if (fileType && (fileType.startsWith('image/') || fileType.startsWith('video/') || fileType.startsWith('audio/'))) {
             const diskFile = await fileHandle.getFile()
             fileInfo.previewUrl = URL.createObjectURL(diskFile)
