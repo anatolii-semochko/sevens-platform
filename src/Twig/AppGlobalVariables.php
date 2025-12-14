@@ -6,6 +6,7 @@ use App\Entity\Category\CategoryConstants;
 use App\Repository\Category\CategoryRepository;
 use App\Service\Help\HelpService;
 use App\Service\LanguagesService;
+use App\Service\PageContent\SeoLdService;
 use App\Service\PageContent\SeoService;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
@@ -20,6 +21,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
         private readonly LanguagesService $languagesService,
         private readonly HelpService $helpService,
         private readonly SeoService $seoService,
+        private readonly SeoLdService $seoLdService,
         private readonly CategoryRepository $categoryRepository,
     ) {}
 
@@ -38,6 +40,7 @@ class AppGlobalVariables extends AbstractExtension implements GlobalsInterface
                 'canonicalUrl' => $request->getUri(),
                 'path' => $this->path,
                 'seo' => $this->seoService->get(),
+                'seoLd' => $this->seoLdService->get(),
                 'seoAlternates' => $this->seoService->getAlternates(),
                 'languages' => $this->languagesService->fetch(),
                 'mainLanguage' => $this->languagesService->getMainLanguage(),
