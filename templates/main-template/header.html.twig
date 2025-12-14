@@ -31,7 +31,11 @@
 
         <!-- Right side: Create + Icons -->
         <div class="d-flex align-items-center gap-3 header-right">
-            <a href="{{ path('check_token', {'_locale': app.request.locale}) }}" class="create-btn">
+            <a
+                class="create-btn"
+                href="{{ path('check_token', {'_locale': app.request.locale}) }}"
+                title="Check presence and validity your token container on blockchain"
+            >
                 <i class="bi bi-patch-check me-1"></i> {{ 'Check Container'|trans }}
             </a>
             {% include 'main-template/header/create.html.twig' %}

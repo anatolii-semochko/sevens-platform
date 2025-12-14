@@ -21,6 +21,7 @@ import { Buffer } from 'buffer'
 import { Toaster } from 'react-hot-toast'
 import { RoutingWithLocale } from '@js/router/routing-with-locale'
 import { showModal } from '@js/modal'
+import { seo } from '@js/seo-test'
 import { Provider } from 'react-redux'
 import { WebSocketProvider } from '@react/context/WebSocketContext'
 import { RateUpdateListener } from '@react/components/websocket/RateUpdateListener'
@@ -37,7 +38,9 @@ import MaterialComments from '@react/components/material-comments/MaterialCommen
 import CommentsManage from '@react/components/comments-manage/CommentsManage'
 
 window.bootstrap = bootstrap
+window.Routing = RoutingWithLocale
 window.Buffer = Buffer
+window.seo = seo
 
 streamSaver.WritableStream = streamSaver.WritableStream || window.WritableStream
 if ('serviceWorker' in navigator) {
@@ -186,5 +189,3 @@ document.addEventListener('DOMContentLoaded', function () {
     const toastRoot = createRoot(toastContainer)
     toastRoot.render(<Toaster position="top-right" />)
 })
-
-window.Routing = RoutingWithLocale
