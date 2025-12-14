@@ -1,8 +1,8 @@
 <div class="d-flex align-items-center">
     <div class="dropdown">
-        <a class="create-btn" href="#" role="button" id="createDropdown" data-bs-toggle="dropdown">
+        <button class="create-btn" id="createDropdown" data-bs-toggle="dropdown">
             + {{ 'Create'|trans }}
-        </a>
+        </button>
         {% set current_route = app.request.get('_route') %}
         {% set locale = current_locale is defined ? current_locale : app.request.locale %}
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="createDropdown">

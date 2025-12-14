@@ -1,13 +1,13 @@
 <div class="d-flex align-items-center">
     <div class="dropdown">
-        <a href="#" role="button" id="languageDropdown" data-bs-toggle="dropdown">
+        <span id="languageDropdown" data-bs-toggle="dropdown">
             <img src="{{ global.path.languageFlags }}/{{ current_locale }}.png"
                  title="{{ current_locale|upper }}"
                  alt="{{ current_locale|upper }}"
                  height="20"
                  style="border-radius: 3px;"
             >
-        </a>
+        </span>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
             {% set current_path = app.request.pathInfo %}
             {% for lang in global.languages %}
