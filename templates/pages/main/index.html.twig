@@ -11,10 +11,10 @@
                         {% if material.getPrice() %}
                         <div>{{ material.getPrice() }} <span class="fst-italic">$SEV</span></div>
                         {% endif %}
+</div>
+                        <div class="sevens-card-description gallery-item-desc">{{ material.getDescription() }}</div>
                     </div>
-                    <div class="sevens-card-description gallery-item-desc">{{ material.getDescription() }}</div>
-                </div>
-            </a>
+                </a>
         {% endfor %}
     </div>
 </div>

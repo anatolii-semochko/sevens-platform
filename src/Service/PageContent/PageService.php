@@ -28,9 +28,11 @@ readonly class PageService
     public function init(
         string $mainUrl,
         array $seoTerms = [],
+        array $seoLdParams = [],
     ): void {
         $page = $this->findByUrl($mainUrl);
         $page->setSeoTerms($seoTerms);
         $this->localeStorage->setPage($page);
+        $this->localeStorage->setSeoLdParams($seoLdParams);
     }
 }

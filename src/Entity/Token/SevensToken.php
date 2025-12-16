@@ -95,4 +95,9 @@ class SevensToken
     {
         return $this->price;
     }
+
+    public function getBlockchainTokenUrl(): string
+    {
+        return str_replace('{tokenPublicKey}', $this->tokenPublicKey, $_ENV['TOKEN_BLOCKCHAIN_URL']);
+    }
 }
