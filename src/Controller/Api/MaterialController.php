@@ -39,15 +39,11 @@ class MaterialController extends BaseApiController
             $this->checkAuthorization($material->getUser()?->getId());
 
             // Convert logo S3 key to CDN URL
-            $logoUrl = null;
-            if ($material->getLogo()) {
-                $logoUrl = $this->cdnService->getUrl($material->getLogo());
-            }
+            $logoUrl = $material->getLogo() ? $this->cdnService->getUrl($material->getLogo()) : null;
 
-            return $this->json([
-                'material' => $material,
-                'logoUrl' => $logoUrl, // Add CDN URL for logo
-            ], context: ['groups' => ['material:read']]);
+            $response = \App\Response\Api\Material\GetMaterialResponse::fromMaterial($material, $logoUrl);
+
+            return $this->json(['material' => $response]);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
         }
