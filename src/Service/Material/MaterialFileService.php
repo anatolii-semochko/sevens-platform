@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Service\Material;
 
 use App\Entity\Material\Material;
+use App\Repository\Material\MaterialRepository;
+use App\Repository\Token\TokenRepository;
 use App\Service\File\CdnService;
 use App\Service\File\LambdaService;
 use App\Service\File\S3Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Uid\Uuid;
 
 readonly class MaterialFileService
 {
@@ -23,13 +26,73 @@ readonly class MaterialFileService
     // File size limits
     private const int MAX_ARCHIVE_SIZE = 100 * 1024 * 1024; // 100 MB
 
+    // Presigned URL expiration
+    private const int PRESIGNED_URL_EXPIRATION = 900; // 15 minutes
+
     public function __construct(
         private EntityManagerInterface $em,
         private S3Service $s3Service,
         private LambdaService $lambdaService,
         private CdnService $cdnService,
         private LoggerInterface $logger,
+        private TokenRepository $tokenRepository,
+        private MaterialRepository $materialRepository,
     ) {}
+
+    /**
+     * Prepare presigned upload URL for new material creation.
+     *
+     * SECURITY:
+     * 1. Validates token exists in blockchain
+     * 2. Checks material doesn't already exist for this token
+     * 3. Generates presigned URL with blockchain hash validation
+     *
+     * @param string $tokenPublicKey Token public key from blockchain
+     * @param string $fileName Original filename
+     * @param string|null $containerMd5 MD5 hash (deprecated, optional)
+     * @return array{uploadUrl: string, tempS3Key: string, bucket: string, expectedHash: string, expiresAt: int, expiresIn: int}
+     * @throws \App\Exception\NotFoundException If token not found in blockchain
+     * @throws \InvalidArgumentException If material already exists for this token
+     * @throws \RuntimeException On S3/URL generation failure
+     */
+    public function preparePresignedUploadForToken(
+        string $tokenPublicKey,
+        string $fileName,
+        ?string $containerMd5 = null
+    ): array {
+        // Validate token exists in blockchain
+        $blockchainToken = $this->tokenRepository->get($tokenPublicKey);
+
+        // Check if material already exists for this token
+        if ($this->materialRepository->findOneBy(['token' => $tokenPublicKey])) {
+            throw new \InvalidArgumentException('Material already exists for this token');
+        }
+
+        // Generate temporary S3 key with UUID
+        $uuid = Uuid::v4()->toString();
+        $sanitizedFileName = $this->sanitizeFilename($fileName);
+        $tempS3Key = sprintf('materials/temp/%s/%s', $uuid, $sanitizedFileName);
+
+        // Get blockchain hash (immutable, trusted source)
+        $expectedHash = $blockchainToken->getHash();
+
+        // Generate presigned upload URL (S3 will validate SHA-256 hash)
+        $uploadUrl = $this->getPresignedUploadUrl(
+            $tempS3Key,
+            self::PRESIGNED_URL_EXPIRATION,
+            $containerMd5,
+            $expectedHash
+        );
+
+        return [
+            'uploadUrl' => $uploadUrl,
+            'tempS3Key' => $tempS3Key,
+            'bucket' => $this->getBucket(),
+            'expectedHash' => $expectedHash,
+            'expiresAt' => time() + self::PRESIGNED_URL_EXPIRATION,
+            'expiresIn' => self::PRESIGNED_URL_EXPIRATION,
+        ];
+    }
 
     /**
      * Upload and process material archive.
@@ -174,28 +237,6 @@ readonly class MaterialFileService
         }
 
         return $this->cdnService->addUrlsToImages($files);
-    }
-
-    /**
-     * Get available images with CDN URLs (alias for backward compatibility).
-     *
-     * @return array<array{key: string, name: string, size: int, type: string, url: string}>
-     * @deprecated Use getFilesWithUrls() instead
-     */
-    public function getAvailableImagesWithUrls(Material $material): array
-    {
-        return $this->getFilesWithUrls($material);
-    }
-
-    /**
-     * Get gallery images with CDN URLs (alias for backward compatibility).
-     *
-     * @return array<array{key: string, name: string, size: int, type: string, url: string}>
-     * @deprecated Use getFilesWithUrls() instead
-     */
-    public function getGalleryImagesWithUrls(Material $material): array
-    {
-        return $this->getFilesWithUrls($material);
     }
 
     /**
