@@ -95,11 +95,8 @@ class MaterialController extends BaseApiController
         } catch (TokenNotFoundException $e) {
             // Token not found in blockchain
             return $this->json(['error' => $e->getMessage()], 404);
-        } catch (MaterialException $e) {
-            // Material-related business logic errors (already exists, validation, etc.)
-            return $this->json(['error' => $e->getMessage()], 400);
-        } catch (FileException $e) {
-            // File operation errors (S3, Lambda, etc.)
+        } catch (MaterialException | FileException $e) {
+            // Material and file operation errors
             return $this->json(['error' => $e->getMessage()], 400);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
