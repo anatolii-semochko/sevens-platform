@@ -5,7 +5,7 @@ import { useWallet } from '@solana/wallet-adapter-react'
 import { signNonce, WalletForm } from '@react/components/form-elements/WalletForm'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
-import { getFileMd5 } from '@react/components/create-token-material/utils/files'
+import { useMaterialPublish } from '@react/components/create-token-material/hooks/useMaterialPublish'
 
 const materialApi = new MaterialApi()
 
@@ -25,6 +25,7 @@ const MaterialExists = ({tokenPublicKey}) => (
 
 export const PublishMaterial = ({container, tokenData, setPublishing}) => {
     const wallet = useWallet()
+    const { publishMaterial } = useMaterialPublish()
     const [waitingSignature, setWaitingSignature] = useState(false)
     const [processing, setProcessing] = useState(false)
     const [published, setPublished] = useState(false)
@@ -32,19 +33,22 @@ export const PublishMaterial = ({container, tokenData, setPublishing}) => {
     const [error, setError] = useState(null)
     const [uploadProgress, setUploadProgress] = useState(0)
     const [uploadingToS3, setUploadingToS3] = useState(false)
-    const [uploadPhase, setUploadPhase] = useState('') // 'preparing', 'requesting', 'uploading', 'creating'
+    const [uploadPhase, setUploadPhase] = useState('') // 'preparing', 'requesting', 'uploading', 'creating', 'waiting'
 
     const handlePublish = async () => {
         try {
+            // Wallet validation
             if (!wallet.publicKey?.toString()) {
                 throw new Error('No active wallet.')
             }
             if (wallet.publicKey?.toString() !== tokenData.walletPublicKey) {
                 throw new Error(`This wallet doesn't contain current token. Expected wallet - ${tokenData.walletPublicKey}`)
             }
+
             setError(null)
             setPublishing(true)
 
+            // Get wallet signature
             setWaitingSignature(true)
             const walletSignature = await signNonce(wallet)
             setWaitingSignature(false)
@@ -52,82 +56,30 @@ export const PublishMaterial = ({container, tokenData, setPublishing}) => {
             setProcessing(true)
             setUploadProgress(0)
 
-            console.log('PublishMaterial (with sig) - container:', container)
-            console.log('PublishMaterial (with sig) - container?.file:', container?.file)
-
-            let s3Upload = null
-
-            // Get the actual file for S3 upload
-            if (container?.file instanceof File) {
-                console.log('PublishMaterial (with sig) - File found, uploading to S3...')
-
-                // Phase 0: Calculate MD5 for S3 validation
-                setUploadPhase('preparing')
-                console.log('PublishMaterial (with sig) - Calculating MD5 hash...')
-                const containerMd5 = await getFileMd5(container.file).catch(err => {
-                    console.error('PublishMaterial (with sig) - Failed to calculate MD5:', err)
-                    throw new Error('Failed to prepare file validation: ' + err.message)
-                })
-                console.log('PublishMaterial (with sig) - MD5 calculated')
-
-                // Phase 1: Request presigned upload URL (backend fetches hash from blockchain)
-                setUploadPhase('requesting')
-                console.log('PublishMaterial (with sig) - Requesting presigned URL (blockchain validation)')
-                const presignedData = await materialApi.getPresignedUploadUrl(
-                    tokenData.tokenPublicKey,  // Backend validates token in blockchain
-                    container.file.name,
-                    containerMd5               // MD5 for S3 validation only
-                ).catch(err => {
-                    console.error('PublishMaterial (with sig) - Failed to get presigned URL:', err)
-                    throw new Error('Failed to prepare upload: ' + err.message)
-                })
-                console.log('PublishMaterial (with sig) - Presigned data:', presignedData)
-
-                // Phase 2: Upload file directly to S3 with MD5 header
-                setUploadPhase('uploading')
-                setUploadingToS3(true)
-                console.log('PublishMaterial (with sig) - Starting S3 upload with MD5 validation')
-
-                await materialApi.uploadToS3(
-                    presignedData.uploadUrl,
-                    container.file,
-                    (progress) => setUploadProgress(progress),
-                    containerMd5  // MD5 for Content-MD5 header
-                ).catch(err => {
-                    console.error('PublishMaterial (with sig) - Failed to upload to S3:', err)
-                    throw new Error('Failed to upload file: ' + err.message)
-                })
-
-                setUploadingToS3(false)
-                console.log('PublishMaterial (with sig) - S3 upload complete')
-
-                s3Upload = {
-                    tempS3Key: presignedData.tempS3Key,
-                    fileName: container.file.name,
-                    bucket: presignedData.bucket,
-                }
-            } else {
-                console.log('PublishMaterial (with sig) - No File object found, skipping S3 upload')
-            }
-
-            // Phase 3: Create material (backend fetches container data from blockchain)
-            setUploadPhase('creating')
-            console.log('PublishMaterial (with sig) - Creating material (blockchain provides container data)')
-            const response = await materialApi.create(
-                tokenData.tokenPublicKey,
-                walletSignature || null,
-                s3Upload
-            )
-
-            if (response.material.user?.id === store.getState().user?.id) {
-                window.location.href = Routing.generate('material_manage_one', {token: tokenData.tokenPublicKey})
-            } else {
-                setMaterialExists(true)
-            }
-
-            setPublished(true)
+            // Use hook to publish material
+            await publishMaterial({
+                getFile: async () => container.file,
+                tokenPublicKey: tokenData.tokenPublicKey,
+                walletSignature,
+                onSuccess: (response) => {
+                    if (response.material.user?.id === store.getState().user?.id) {
+                        window.location.href = Routing.generate('material_manage_one', {token: tokenData.tokenPublicKey})
+                    } else {
+                        setMaterialExists(true)
+                    }
+                    setPublished(true)
+                },
+                setError,
+                setUploadProgress,
+                setUploadingToS3,
+                setUploadPhase,
+            })
         } catch (error) {
-            setError(error.message)
+            // Errors are already handled by the hook
+            // Only set error if it wasn't handled (hook rethrows unhandled errors)
+            if (error.message) {
+                setError(error.message)
+            }
         } finally {
             setPublishing(false)
             setWaitingSignature(false)
@@ -150,6 +102,7 @@ export const PublishMaterial = ({container, tokenData, setPublishing}) => {
         if (uploadPhase === 'requesting') return 'Preparing upload...'
         if (uploadPhase === 'uploading') return `Uploading to cloud storage... ${uploadProgress}%`
         if (uploadPhase === 'creating') return 'Creating material...'
+        if (uploadPhase === 'waiting') return 'Processing in background... This may take a few minutes for large files.'
         return 'Publishing...'
     }
 
@@ -191,6 +144,7 @@ export const PublishMaterial = ({container, tokenData, setPublishing}) => {
 }
 
 export const PublishMaterialWithoutSignature = ({container, minted, doMaterial}) => {
+    const { publishMaterial } = useMaterialPublish()
     const [processing, setProcessing] = useState(false)
     const [published, setPublished] = useState(false)
     const [error, setError] = useState(null)
@@ -204,82 +158,33 @@ export const PublishMaterialWithoutSignature = ({container, minted, doMaterial})
             setProcessing(true)
             setUploadProgress(0)
 
-            console.log('PublishMaterial - container:', container)
-            console.log('PublishMaterial - container?.targetRef:', container?.targetRef)
-            console.log('PublishMaterial - container?.targetRef?.current:', container?.targetRef?.current)
-
-            let s3Upload = null
-
-            // Get the actual file from the targetRef (File System Access API)
-            if (container?.targetRef?.current) {
-                console.log('PublishMaterial - Getting file from targetRef...')
-                // Phase 1: Get the actual File object from the file handle
-                setUploadPhase('preparing')
-                const fileHandle = container.targetRef.current
-                const file = await fileHandle.handle.getFile()
-                console.log('PublishMaterial - File retrieved:', file)
-
-                // Phase 1.5: Calculate MD5 for S3 validation
-                console.log('PublishMaterial - Calculating MD5 hash...')
-                const containerMd5 = await getFileMd5(file).catch(err => {
-                    console.error('PublishMaterial - Failed to calculate MD5:', err)
-                    throw new Error('Failed to prepare file validation: ' + err.message)
-                })
-                console.log('PublishMaterial - MD5 calculated')
-
-                // Phase 2: Request presigned upload URL (backend fetches hash from blockchain)
-                setUploadPhase('requesting')
-                console.log('PublishMaterial - Requesting presigned URL (blockchain validation)')
-                const presignedData = await materialApi.getPresignedUploadUrl(
-                    minted.tokenPublicKey,  // Backend validates token in blockchain
-                    file.name,
-                    containerMd5            // MD5 for S3 validation only
-                ).catch(err => {
-                    console.error('PublishMaterial - Failed to get presigned URL:', err)
-                    throw new Error('Failed to prepare upload: ' + err.message)
-                })
-                console.log('PublishMaterial - Presigned data:', presignedData)
-
-                // Phase 3: Upload file directly to S3 with MD5 header
-                setUploadPhase('uploading')
-                setUploadingToS3(true)
-                console.log('PublishMaterial - Starting S3 upload with MD5 validation')
-
-                await materialApi.uploadToS3(
-                    presignedData.uploadUrl,
-                    file,
-                    (progress) => setUploadProgress(progress),
-                    containerMd5  // MD5 for Content-MD5 header
-                ).catch(err => {
-                    console.error('PublishMaterial - Failed to upload to S3:', err)
-                    throw new Error('Failed to upload file: ' + err.message)
-                })
-
-                setUploadingToS3(false)
-                console.log('PublishMaterial - S3 upload complete')
-
-                s3Upload = {
-                    tempS3Key: presignedData.tempS3Key,
-                    fileName: file.name,
-                    bucket: presignedData.bucket,
-                }
-            } else {
-                console.log('PublishMaterial - No targetRef found, skipping S3 upload')
-            }
-
-            // Phase 4: Create material (backend fetches container data from blockchain)
-            setUploadPhase('creating')
-            console.log('PublishMaterial - Creating material (blockchain provides container data)')
-            await materialApi.create(
-                minted.tokenPublicKey,
-                null,
-                s3Upload
-            )
-
-            window.location.href = Routing.generate('material_manage_one', {token: minted.tokenPublicKey})
-            setPublished(true)
+            // Use hook to publish material
+            await publishMaterial({
+                getFile: async () => {
+                    // Get file from File System Access API
+                    if (container?.targetRef?.current) {
+                        const fileHandle = container.targetRef.current
+                        return await fileHandle.handle.getFile()
+                    }
+                    return null
+                },
+                tokenPublicKey: minted.tokenPublicKey,
+                walletSignature: null,
+                onSuccess: () => {
+                    window.location.href = Routing.generate('material_manage_one', {token: minted.tokenPublicKey})
+                    setPublished(true)
+                },
+                setError,
+                setUploadProgress,
+                setUploadingToS3,
+                setUploadPhase,
+            })
         } catch (error) {
-            setError(error.message)
+            // Errors are already handled by the hook
+            // Only set error if it wasn't handled (hook rethrows unhandled errors)
+            if (error.message) {
+                setError(error.message)
+            }
         } finally {
             setProcessing(false)
             setUploadingToS3(false)
@@ -296,6 +201,7 @@ export const PublishMaterialWithoutSignature = ({container, minted, doMaterial})
         if (uploadPhase === 'requesting') return 'Preparing upload...'
         if (uploadPhase === 'uploading') return `Uploading to cloud storage... ${uploadProgress}%`
         if (uploadPhase === 'creating') return 'Creating material...'
+        if (uploadPhase === 'waiting') return 'Processing in background... This may take a few minutes for large files.'
         return 'Publishing...'
     }
 

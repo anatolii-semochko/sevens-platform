@@ -180,4 +180,28 @@ readonly class NodeServerApiClient extends NodeServerApi
     {
         return $this->get('/manage/tariffs', null);
     }
+
+    /**
+     * Emit WebSocket event to all connected clients.
+     *
+     * @param string $event Event name (e.g., 'material.created')
+     * @param array $data Event data
+     */
+    public function emitWebSocketEvent(string $event, array $data): void
+    {
+        try {
+            $this->post('/websocket/emit', [
+                'event' => $event,
+                'data' => $data,
+            ]);
+        } catch (NodeServerApiException $e) {
+            // Log error but don't break material creation
+            error_log(sprintf(
+                'WebSocket notification failed for event %s: %s',
+                $event,
+                $e->getMessage()
+            ));
+            // Don't rethrow - WebSocket failures shouldn't break material creation
+        }
+    }
 }

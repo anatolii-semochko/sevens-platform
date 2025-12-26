@@ -26,6 +26,7 @@ class MaterialController extends BaseApiController
         private readonly \Doctrine\ORM\EntityManagerInterface $em,
         private readonly \App\Service\File\S3Service $s3Service,
         private readonly \App\Service\File\CdnService $cdnService,
+        private readonly \App\Service\NodeServer\NodeServerApiClient $nodeServerApiClient,
     ) {}
 
     /**
@@ -225,6 +226,13 @@ class MaterialController extends BaseApiController
             $this->em->persist($material);
             $this->em->flush();
 
+            // Emit WebSocket event for real-time notification
+            $this->nodeServerApiClient->emitWebSocketEvent('material.created', [
+                'token' => $tokenPublicKey,
+                'title' => $material->getTitle(),
+                'status' => 'created',
+            ]);
+
             // ===== PHASE 4: FILE EXTRACTION =====
             if ($tempS3Key) {
                 try {
@@ -235,6 +243,14 @@ class MaterialController extends BaseApiController
                         $fileName ?? 'archive.zip'
                     );
                     $tempS3Key = null; // Success - no cleanup needed
+
+                    // Emit WebSocket event when processing is complete
+                    $this->nodeServerApiClient->emitWebSocketEvent('material.processing.complete', [
+                        'token' => $tokenPublicKey,
+                        'title' => $material->getTitle(),
+                        'status' => 'validated',
+                        'filesCount' => count($material->getFiles() ?? []),
+                    ]);
                 } catch (\Exception $e) {
                     // Material created but file processing failed
                     error_log("Failed to process archive for material {$tokenPublicKey}: " . $e->getMessage());

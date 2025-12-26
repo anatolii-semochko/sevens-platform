@@ -12,6 +12,16 @@ export default class MaterialApi {
             .catch(throwErrorMessage)
     }
 
+    async materialExists(token) {
+        try {
+            await this.get(token)
+            return true
+        } catch (error) {
+            // 404 means material doesn't exist
+            return false
+        }
+    }
+
     async create(tokenPublicKey, walletSignature, s3Upload = null) {
         const url = `${mainUrl}/create`
         const payload = {tokenPublicKey, walletSignature}
