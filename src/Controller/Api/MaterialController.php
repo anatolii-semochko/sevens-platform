@@ -8,6 +8,7 @@ use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\TokenContainerService;
 use App\Service\Blockchain\WalletService;
 use App\Service\Material\MaterialService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -27,6 +28,7 @@ class MaterialController extends BaseApiController
         private readonly \App\Service\File\S3Service $s3Service,
         private readonly \App\Service\File\CdnService $cdnService,
         private readonly \App\Service\NodeServer\NodeServerApiClient $nodeServerApiClient,
+        private readonly LoggerInterface $logger,
     ) {}
 
     /**
@@ -253,7 +255,10 @@ class MaterialController extends BaseApiController
                     ]);
                 } catch (\Exception $e) {
                     // Material created but file processing failed
-                    error_log("Failed to process archive for material {$tokenPublicKey}: " . $e->getMessage());
+                    $this->logger->error("Failed to process archive for material {$tokenPublicKey}: " . $e->getMessage(), [
+                        'exception' => $e,
+                        'tokenPublicKey' => $tokenPublicKey,
+                    ]);
                 }
             }
 

@@ -26,8 +26,22 @@ export const useMaterialPublish = () => {
     ) => {
         console.error('Material creation error:', error)
 
-        // Check if error is network-related
-        const isNetworkError = error.message?.toLowerCase().includes('network')
+        // Check if error is network-related (robust detection)
+        const isNetworkError = (
+            // Axios/fetch error codes
+            error.code === 'ECONNABORTED' ||
+            error.code === 'ENOTFOUND' ||
+            error.code === 'ETIMEDOUT' ||
+            error.code === 'ERR_NETWORK' ||
+            error.code === 'ERR_CONNECTION_REFUSED' ||
+            // No response received from server
+            error.response?.status === 0 ||
+            error.response?.status === undefined ||
+            // Network-related error messages as fallback
+            error.message?.toLowerCase().includes('network') ||
+            error.message?.toLowerCase().includes('timeout') ||
+            error.message?.toLowerCase().includes('failed to fetch')
+        )
 
         if (isNetworkError && socket?.connected) {
             // Network error - backend might still be processing
@@ -37,14 +51,27 @@ export const useMaterialPublish = () => {
             let redirected = false
             const timeoutSeconds = 60
             let elapsed = 0
+            let pollInterval = null
+
+            // Centralized cleanup function to prevent memory leaks
+            const cleanup = () => {
+                if (pollInterval) {
+                    clearInterval(pollInterval)
+                    pollInterval = null
+                }
+                socket.off('material.created', handleMaterialCreated)
+                socket.off('material.processing.complete', handleProcessingComplete)
+            }
 
             // Helper to fetch material and call onSuccess
             const fetchAndCallSuccess = async () => {
                 try {
                     const material = await materialApi.get(tokenPublicKey)
+                    cleanup()
                     onSuccess({ material })
                 } catch (error) {
                     console.error('Failed to fetch material after recovery:', error)
+                    cleanup()
                     setError('Material created but failed to load details. Please refresh the page.')
                 }
             }
@@ -52,20 +79,14 @@ export const useMaterialPublish = () => {
             // Subscribe to material.created event
             const handleMaterialCreated = async (eventData) => {
                 if (eventData.token === tokenPublicKey && !redirected) {
-                    console.log('Material created via WebSocket:', eventData)
                     redirected = true
-                    socket.off('material.created', handleMaterialCreated)
-                    socket.off('material.processing.complete', handleProcessingComplete)
                     await fetchAndCallSuccess()
                 }
             }
 
             const handleProcessingComplete = async (eventData) => {
                 if (eventData.token === tokenPublicKey && !redirected) {
-                    console.log('Processing complete via WebSocket:', eventData)
                     redirected = true
-                    socket.off('material.created', handleMaterialCreated)
-                    socket.off('material.processing.complete', handleProcessingComplete)
                     await fetchAndCallSuccess()
                 }
             }
@@ -74,22 +95,18 @@ export const useMaterialPublish = () => {
             socket.on('material.processing.complete', handleProcessingComplete)
 
             // Fallback: Poll every 5 seconds for up to 60 seconds
-            const pollInterval = setInterval(async () => {
+            pollInterval = setInterval(async () => {
                 elapsed += 5
 
                 if (redirected) {
-                    clearInterval(pollInterval)
+                    cleanup()
                     return
                 }
 
                 try {
                     const exists = await materialApi.materialExists(tokenPublicKey)
                     if (exists) {
-                        console.log('Material found via polling')
                         redirected = true
-                        socket.off('material.created', handleMaterialCreated)
-                        socket.off('material.processing.complete', handleProcessingComplete)
-                        clearInterval(pollInterval)
                         await fetchAndCallSuccess()
                     }
                 } catch (pollError) {
@@ -98,9 +115,7 @@ export const useMaterialPublish = () => {
 
                 // Timeout after 60 seconds
                 if (elapsed >= timeoutSeconds) {
-                    clearInterval(pollInterval)
-                    socket.off('material.created', handleMaterialCreated)
-                    socket.off('material.processing.complete', handleProcessingComplete)
+                    cleanup()
                     if (!redirected) {
                         setError('Material creation timed out. Please check your materials page.')
                     }
@@ -146,16 +161,13 @@ export const useMaterialPublish = () => {
             if (file) {
                 // Phase 2: Calculate MD5 for S3 validation
                 setUploadPhase('preparing')
-                console.log('Calculating MD5 hash...')
                 const containerMd5 = await getFileMd5(file).catch(err => {
                     console.error('Failed to calculate MD5:', err)
                     throw new Error('Failed to prepare file validation: ' + err.message)
                 })
-                console.log('MD5 calculated')
 
                 // Phase 3: Request presigned upload URL (backend fetches hash from blockchain)
                 setUploadPhase('requesting')
-                console.log('Requesting presigned URL (blockchain validation)')
                 const presignedData = await materialApi.getPresignedUploadUrl(
                     tokenPublicKey,
                     file.name,
@@ -164,13 +176,10 @@ export const useMaterialPublish = () => {
                     console.error('Failed to get presigned URL:', err)
                     throw new Error('Failed to prepare upload: ' + err.message)
                 })
-                console.log('Presigned data:', presignedData)
 
                 // Phase 4: Upload file directly to S3 with MD5 header
                 setUploadPhase('uploading')
                 setUploadingToS3(true)
-                console.log('Starting S3 upload with MD5 validation')
-
                 await materialApi.uploadToS3(
                     presignedData.uploadUrl,
                     file,
@@ -182,20 +191,15 @@ export const useMaterialPublish = () => {
                 })
 
                 setUploadingToS3(false)
-                console.log('S3 upload complete')
-
                 s3Upload = {
                     tempS3Key: presignedData.tempS3Key,
                     fileName: file.name,
                     bucket: presignedData.bucket,
                 }
-            } else {
-                console.log('No file provided, skipping S3 upload')
             }
 
             // Phase 5: Create material (backend fetches container data from blockchain)
             setUploadPhase('creating')
-            console.log('Creating material (blockchain provides container data)')
             const response = await materialApi.create(
                 tokenPublicKey,
                 walletSignature,

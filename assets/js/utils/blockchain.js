@@ -19,14 +19,6 @@ export const getSerializedTransaction = (transactionBuffer) => transactionBuffer
 export const getAnchorErrorText = (error) => {
     const originalMessage = error?.message || 'Unknown error'
 
-    // TODO - REMOVE: Debug logging
-    // console.log('getAnchorErrorText input:', {
-    //     error,
-    //     originalMessage,
-    //     hasLogs: !!error?.logs,
-    //     logsLength: error?.logs?.length,
-    // })
-
     // Define user-friendly error patterns and their messages
     const errorPatterns = [
         // Wallet/Account issues

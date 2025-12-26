@@ -9,6 +9,7 @@ use App\Service\File\CdnService;
 use App\Service\File\LambdaService;
 use App\Service\File\S3Service;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 readonly class MaterialFileService
@@ -27,6 +28,7 @@ readonly class MaterialFileService
         private S3Service $s3Service,
         private LambdaService $lambdaService,
         private CdnService $cdnService,
+        private LoggerInterface $logger,
     ) {}
 
     /**
@@ -393,7 +395,10 @@ readonly class MaterialFileService
             }
         } catch (\Exception $e) {
             // Log error but don't throw - file cleanup is not critical
-            error_log("Failed to delete temp file {$tempS3Key}: " . $e->getMessage());
+            $this->logger->warning("Failed to delete temp file {$tempS3Key}: " . $e->getMessage(), [
+                'exception' => $e,
+                'tempS3Key' => $tempS3Key,
+            ]);
         }
     }
 

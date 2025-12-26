@@ -90,7 +90,7 @@ export const PublishMaterial = ({container, tokenData, setPublishing}) => {
     }
 
     useEffect(() => {
-        setError(false)
+        setError(null)
     }, [wallet.publicKey?.toString()])
 
     if (materialExists) return (
