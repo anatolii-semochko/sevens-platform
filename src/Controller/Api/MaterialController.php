@@ -7,6 +7,8 @@ use App\Exception\WrappedHttpException;
 use App\Repository\Material\MaterialRepository;
 use App\Service\Blockchain\WalletService;
 use App\Service\File\CdnService;
+use App\Service\File\FileException;
+use App\Service\Material\MaterialException;
 use App\Service\Material\MaterialFileService;
 use App\Service\Material\MaterialService;
 use App\Service\NodeServer\NodeServerApiClient;
@@ -91,11 +93,12 @@ class MaterialController extends BaseApiController
             return $this->json($uploadData);
         } catch (\App\Exception\NotFoundException $e) {
             // Token not found in blockchain
-            return $this->json([
-                'error' => 'Token not found on blockchain'
-            ], 404);
-        } catch (\InvalidArgumentException $e) {
-            // Material already exists
+            return $this->json(['error' => 'Token not found on blockchain'], 404);
+        } catch (MaterialException $e) {
+            // Material-related business logic errors (already exists, validation, etc.)
+            return $this->json(['error' => $e->getMessage()], 400);
+        } catch (FileException $e) {
+            // File operation errors (S3, Lambda, etc.)
             return $this->json(['error' => $e->getMessage()], 400);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
@@ -172,8 +175,14 @@ class MaterialController extends BaseApiController
                 $this->materialFileService->deleteTempFile($tempS3Key);
             }
             return $this->json(['error' => 'Token not found on blockchain'], 404);
+        } catch (MaterialException | FileException $e) {
+            // Business logic or file operation errors
+            if ($tempS3Key) {
+                $this->materialFileService->deleteTempFile($tempS3Key);
+            }
+            return $this->json(['error' => $e->getMessage()], 400);
         } catch (\Exception $e) {
-            // Cleanup on any error
+            // Cleanup on any unexpected error
             if ($tempS3Key) {
                 $this->materialFileService->deleteTempFile($tempS3Key);
             }

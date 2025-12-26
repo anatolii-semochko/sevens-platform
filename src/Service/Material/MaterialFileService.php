@@ -8,7 +8,10 @@ use App\Entity\Material\Material;
 use App\Repository\Material\MaterialRepository;
 use App\Repository\Token\TokenRepository;
 use App\Service\File\CdnService;
+use App\Service\File\InvalidArchiveException;
+use App\Service\File\LambdaException;
 use App\Service\File\LambdaService;
+use App\Service\File\S3Exception;
 use App\Service\File\S3Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -65,7 +68,7 @@ readonly class MaterialFileService
 
         // Check if material already exists for this token
         if ($this->materialRepository->findOneBy(['token' => $tokenPublicKey])) {
-            throw new \InvalidArgumentException('Material already exists for this token');
+            throw new MaterialAlreadyExistsException($tokenPublicKey);
         }
 
         // Generate temporary S3 key with UUID
@@ -149,7 +152,7 @@ readonly class MaterialFileService
     public function processArchive(Material $material): void
     {
         if (!$material->getArchiveS3Key() || !$material->getArchiveS3Bucket()) {
-            throw new \InvalidArgumentException('Material does not have an archive uploaded');
+            throw MaterialValidationException::archiveNotUploaded();
         }
 
         try {
@@ -180,7 +183,7 @@ readonly class MaterialFileService
             $this->em->persist($material);
             $this->em->flush();
 
-            throw new \RuntimeException('Failed to process archive: ' . $e->getMessage(), 0, $e);
+            throw LambdaException::archiveProcessingFailed($e->getMessage());
         }
     }
 
@@ -193,12 +196,12 @@ readonly class MaterialFileService
     public function selectGalleryImages(Material $material, array $selectedImageKeys): void
     {
         if ($material->getArchiveStatus() !== self::STATUS_VALIDATED) {
-            throw new \InvalidArgumentException('Archive must be validated before selecting images');
+            throw MaterialValidationException::archiveNotValidated();
         }
 
         $files = $material->getFiles();
         if (!$files) {
-            throw new \InvalidArgumentException('No files available to select from');
+            throw MaterialValidationException::noFilesAvailable();
         }
 
         // Extract available file keys
@@ -207,9 +210,7 @@ readonly class MaterialFileService
         // Validate that all selected keys exist in available files
         $invalidKeys = array_diff($selectedImageKeys, $availableKeys);
         if (!empty($invalidKeys)) {
-            throw new \InvalidArgumentException(
-                'Invalid file keys selected: ' . implode(', ', $invalidKeys)
-            );
+            throw MaterialValidationException::invalidFileKeys($invalidKeys);
         }
 
         // Filter files to get only selected ones
@@ -247,7 +248,7 @@ readonly class MaterialFileService
     public function getArchiveDownloadUrl(Material $material, ?int $expirationSeconds = null): string
     {
         if (!$material->getArchiveS3Key()) {
-            throw new \InvalidArgumentException('Material does not have an archive');
+            throw MaterialValidationException::missingArchive();
         }
 
         return $this->s3Service->getPresignedDownloadUrl(
@@ -298,34 +299,23 @@ readonly class MaterialFileService
     {
         // Check if file was uploaded successfully
         if (!$file->isValid()) {
-            throw new \InvalidArgumentException(
-                'File upload failed: ' . $file->getErrorMessage()
-            );
+            throw InvalidArchiveException::uploadFailed($file->getErrorMessage());
         }
 
         // Check MIME type
         $allowedMimeTypes = ['application/zip', 'application/x-zip-compressed'];
         if (!in_array($file->getMimeType(), $allowedMimeTypes, true)) {
-            throw new \InvalidArgumentException(
-                'Invalid file type. Only ZIP archives are allowed.'
-            );
+            throw InvalidArchiveException::invalidFileType($file->getMimeType());
         }
 
         // Check file size
         if ($file->getSize() > self::MAX_ARCHIVE_SIZE) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    'File too large. Maximum size is %d MB.',
-                    self::MAX_ARCHIVE_SIZE / (1024 * 1024)
-                )
-            );
+            throw InvalidArchiveException::fileTooLarge($file->getSize(), self::MAX_ARCHIVE_SIZE);
         }
 
         // Check file extension
         if (strtolower($file->getClientOriginalExtension()) !== 'zip') {
-            throw new \InvalidArgumentException(
-                'Invalid file extension. Only .zip files are allowed.'
-            );
+            throw InvalidArchiveException::invalidExtension($file->getClientOriginalExtension());
         }
     }
 
@@ -415,11 +405,7 @@ readonly class MaterialFileService
             return $result;
 
         } catch (\Exception $e) {
-            throw new \RuntimeException(
-                'Container validation failed: ' . $e->getMessage(),
-                0,
-                $e
-            );
+            throw LambdaException::containerValidationFailed($e->getMessage());
         }
     }
 
@@ -489,11 +475,7 @@ readonly class MaterialFileService
                 $this->s3Service->deleteFile($permanentKey);
             }
 
-            throw new \RuntimeException(
-                'Failed to move validated archive: ' . $e->getMessage(),
-                0,
-                $e
-            );
+            throw S3Exception::copyFailed($tempS3Key, $permanentKey, $e->getMessage());
         }
     }
 
@@ -543,7 +525,7 @@ readonly class MaterialFileService
         try {
             // Verify temp file exists
             if (!$this->s3Service->fileExists($tempS3Key)) {
-                throw new \RuntimeException('Temporary file not found in S3');
+                throw S3Exception::fileNotFound($tempS3Key);
             }
 
             // Generate permanent S3 key
@@ -580,7 +562,7 @@ readonly class MaterialFileService
             $this->em->persist($material);
             $this->em->flush();
 
-            throw new \RuntimeException('Failed to process uploaded archive: ' . $e->getMessage(), 0, $e);
+            throw LambdaException::archiveProcessingFailed($e->getMessage());
         }
     }
 
@@ -595,11 +577,7 @@ readonly class MaterialFileService
             // Use S3's native copyObject - efficient, no download/upload needed
             $this->s3Service->copyFile($sourceKey, $destinationKey);
         } catch (\Exception $e) {
-            throw new \RuntimeException(
-                "Failed to copy file in S3: {$e->getMessage()}",
-                0,
-                $e
-            );
+            throw S3Exception::copyFailed($sourceKey, $destinationKey, $e->getMessage());
         }
     }
 }

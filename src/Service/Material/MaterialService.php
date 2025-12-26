@@ -120,9 +120,7 @@ readonly class MaterialService
             if (!$validationResult['success']) {
                 // Validation failed - clean up temp file
                 $this->materialFileService->deleteTempFile($tempS3Key);
-                throw new \InvalidArgumentException(
-                    'Container verification failed: ' . ($validationResult['error'] ?? 'Hash mismatch')
-                );
+                throw MaterialValidationException::containerVerificationFailed($validationResult['error'] ?? 'Hash mismatch');
             }
         }
 
@@ -233,10 +231,10 @@ readonly class MaterialService
             if ($data['active']) {
                 $this->tokenRepository->get($material->getToken());
                 if (!$material->getTitle()) {
-                    throw new \InvalidArgumentException('The title is required to activate the publication..');
+                    throw MaterialValidationException::missingTitleForActivation();
                 }
                 if (!$material->getDescription()) {
-                    throw new \InvalidArgumentException('The description is required to activate the publication.');
+                    throw MaterialValidationException::missingDescriptionForActivation();
                 }
             }
             $material->setActive((bool) $data['active']);
@@ -284,7 +282,7 @@ readonly class MaterialService
     {
         try {
             $this->tokenRepository->get($material->getToken());
-            throw new \InvalidArgumentException("Material can't be removed for active token in blockchain.");
+            throw MaterialValidationException::cannotDeleteActiveToken();
         } catch (NotFoundException $e) {
             $this->materialCommentRepository->deleteByMaterialToken($material->getToken());
             $this->repository->deleteByToken($material->getToken());
