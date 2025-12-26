@@ -4,6 +4,7 @@ namespace App\Repository\Token;
 
 use App\Entity\Token\SevensToken;
 use App\Exception\NotFoundException;
+use App\Service\Blockchain\TokenNotFoundException;
 use App\Service\NodeServer\NodeServerApiClient;
 use App\Service\NodeServer\NodeServerApiException;
 use DateTime;
@@ -31,7 +32,7 @@ readonly class TokenRepository
                 $tokenData['sale']['price'],
             );
         } catch (NodeServerApiException $e) {
-            throw new NotFoundException('The token was not found on the blockchain.');
+            throw new TokenNotFoundException($tokenPublicKey);
         }
     }
 
@@ -39,7 +40,7 @@ readonly class TokenRepository
     {
         try {
             return $this->get($tokenPublicKey);
-        } catch (NotFoundException $e) {
+        } catch (TokenNotFoundException $e) {
             return null;
         }
     }

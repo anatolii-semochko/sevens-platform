@@ -9,6 +9,7 @@ use App\Exception\NotFoundException;
 use App\Repository\Material\MaterialCommentRepository;
 use App\Repository\Material\MaterialRepository;
 use App\Repository\Token\TokenRepository;
+use App\Service\Blockchain\TokenNotFoundException;
 use App\Service\Blockchain\TokenService;
 use App\Service\Blockchain\WalletService;
 use App\Service\File\S3Service;
@@ -283,7 +284,7 @@ readonly class MaterialService
         try {
             $this->tokenRepository->get($material->getToken());
             throw MaterialValidationException::cannotDeleteActiveToken();
-        } catch (NotFoundException $e) {
+        } catch (TokenNotFoundException $e) {
             $this->materialCommentRepository->deleteByMaterialToken($material->getToken());
             $this->repository->deleteByToken($material->getToken());
         }

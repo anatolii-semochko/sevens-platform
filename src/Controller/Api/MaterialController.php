@@ -5,6 +5,7 @@ namespace App\Controller\Api;
 use App\Controller\BaseApiController;
 use App\Exception\WrappedHttpException;
 use App\Repository\Material\MaterialRepository;
+use App\Service\Blockchain\TokenNotFoundException;
 use App\Service\Blockchain\WalletService;
 use App\Service\File\CdnService;
 use App\Service\File\FileException;
@@ -91,9 +92,9 @@ class MaterialController extends BaseApiController
             );
 
             return $this->json($uploadData);
-        } catch (\App\Exception\NotFoundException $e) {
+        } catch (TokenNotFoundException $e) {
             // Token not found in blockchain
-            return $this->json(['error' => 'Token not found on blockchain'], 404);
+            return $this->json(['error' => $e->getMessage()], 404);
         } catch (MaterialException $e) {
             // Material-related business logic errors (already exists, validation, etc.)
             return $this->json(['error' => $e->getMessage()], 400);
@@ -169,12 +170,12 @@ class MaterialController extends BaseApiController
                 'material' => $material,
             ], context: ['groups' => ['material:read', 'user:read']]);
 
-        } catch (\App\Exception\NotFoundException $e) {
+        } catch (TokenNotFoundException $e) {
             // Token not found in blockchain
             if ($tempS3Key) {
                 $this->materialFileService->deleteTempFile($tempS3Key);
             }
-            return $this->json(['error' => 'Token not found on blockchain'], 404);
+            return $this->json(['error' => $e->getMessage()], 404);
         } catch (MaterialException | FileException $e) {
             // Business logic or file operation errors
             if ($tempS3Key) {
