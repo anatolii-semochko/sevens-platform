@@ -33,6 +33,7 @@ lambda/**/build/
 
 ###> Claude Code documentation ###
 CLAUDE.md
+BACKLOG.md
 ###< Claude Code documentation ###
 /sevenstime.local.crt
 /sevenstime.local.key
