@@ -134,25 +134,41 @@ curl -I https://files.sevenstime.com/test.jpg
 
 ## Code Flow
 
-### File Upload (materials create)
+### File Upload (Material Creation)
 
-1. Frontend generates presigned upload URL via `/api/material/presigned-upload-url`
-2. Browser uploads directly to S3 (temp location)
-3. Lambda validates and extracts files to permanent location
-4. Files stored with keys like: `materials/{token}/files/{filename}`
+1. Frontend calls `POST /api/material/presigned-upload-url` with tokenPublicKey
+2. Backend validates token in blockchain & user ownership
+3. Backend returns presigned S3 upload URL (temp storage, 15min expiration)
+4. Browser uploads ZIP directly to S3 with SHA-256 checksum header
+5. Frontend calls `POST /api/material/create` with tempS3Key
+6. Backend validates & Lambda processes:
+   - Validates file hash === blockchain hash
+   - Extracts images to permanent storage
+   - Generates preview/thumbnail variants
+7. Material created with files: `materials/{token}/images/{filename}.jpg`
 
-### File Display (materials view/edit)
+### File Display (Material View/Edit)
 
-1. Backend fetches file list from database (`Material::$files`)
-2. `CdnService::addUrlsToImages()` transforms S3 keys to CDN URLs
-3. Frontend receives: `{key: "materials/...", url: "https://files.sevenstime.com/materials/..."}`
-4. Images display using CDN URLs
+1. Backend fetches material with files from database (`Material::$files`)
+2. `MaterialFileService::getFilesWithUrls()` uses `CdnService::getUrls()` to transform S3 keys
+3. Frontend receives files with CDN URLs:
+   ```json
+   {
+     "key": "materials/abc123.../images/photo1.jpg",
+     "keyPreview": "materials/abc123.../images/photo1_preview.jpg",
+     "keyThumbnail": "materials/abc123.../images/photo1_thumb.jpg",
+     "url": "https://files.sevenstime.com/materials/abc123.../images/photo1.jpg"
+   }
+   ```
+4. Images rendered using CDN URLs (fast, cached globally)
 
 **Key Files**:
 - `src/Service/File/CdnService.php` - CDN URL generation
-- `src/Service/File/S3Service.php` - S3 operations
-- `src/Controller/Api/MaterialController.php` - Archive status endpoint
-- `assets/react/components/material-manage/edit/MaterialEdit.jsx` - Frontend display
+- `src/Service/File/S3Service.php` - S3 operations, presigned URLs
+- `src/Service/File/LambdaService.php` - Lambda validation
+- `src/Service/Material/MaterialFileService.php` - File processing orchestration
+- `src/Controller/Api/MaterialController.php` - API endpoints
+- `assets/react/api/materialApi.js` - Frontend API client
 
 ## Cloudflare Cache Configuration
 
