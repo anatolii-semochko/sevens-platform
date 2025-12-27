@@ -3,11 +3,13 @@
 namespace App\Service\NodeServer;
 
 use CurlHandle;
+use Psr\Log\LoggerInterface;
 
 readonly class NodeServerApi
 {
     public function __construct(
         private string $nodeServerBaseUrl,
+        protected LoggerInterface $logger,
     ) {}
 
     /**

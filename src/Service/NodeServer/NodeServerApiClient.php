@@ -196,11 +196,11 @@ readonly class NodeServerApiClient extends NodeServerApi
             ]);
         } catch (NodeServerApiException $e) {
             // Log error but don't break material creation
-            error_log(sprintf(
-                'WebSocket notification failed for event %s: %s',
-                $event,
-                $e->getMessage()
-            ));
+            $this->logger->error('WebSocket notification failed', [
+                'event' => $event,
+                'error' => $e->getMessage(),
+                'exception' => $e,
+            ]);
             // Don't rethrow - WebSocket failures shouldn't break material creation
         }
     }
