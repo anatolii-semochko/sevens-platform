@@ -26,8 +26,14 @@ sevenstime.local-key.pem
 
 /public/storage/files/materials/
 
+###> Lambda build artifacts ###
+lambda/**/function.zip
+lambda/**/build/
+###< Lambda build artifacts ###
+
 ###> Claude Code documentation ###
 CLAUDE.md
+BACKLOG.md
 ###< Claude Code documentation ###
 /sevenstime.local.crt
 /sevenstime.local.key

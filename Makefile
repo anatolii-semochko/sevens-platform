@@ -214,3 +214,19 @@ yarn-watch: routes
 
 build-permissions:
 	sudo chmod 777 composer.json composer.lock config/bundles.php package.json symfony.lock
+
+##########
+## Lambda
+##########
+lambda-deploy:
+	@echo "🚀 Deploying Lambda function..."
+	@lambda/material-validator/deploy.sh
+
+lambda-deploy-restart:
+	@echo "🔄 Restarting LocalStack..."
+	@docker compose restart localstack
+	@echo "⏳ Waiting for LocalStack to be ready..."
+	@sleep 5
+	@echo "🚀 Deploying Lambda function..."
+	@lambda/material-validator/deploy.sh
+	@echo "✅ Lambda deployed and LocalStack restarted!"

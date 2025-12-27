@@ -12,6 +12,26 @@ parameters:
     path_materials: '%env(PATH_MATERIALS)%'
     allowed_publishing_time_without_signature_minutes: '%env(int:ALLOWED_PUBLISHING_TIME_WITHOUT_SIGNATURE_MINUTES)%'
 
+    # AWS Configuration
+    aws.endpoint: '%env(AWS_ENDPOINT)%'
+    aws.region: '%env(AWS_REGION)%'
+    aws.access_key_id: '%env(AWS_ACCESS_KEY_ID)%'
+    aws.secret_access_key: '%env(AWS_SECRET_ACCESS_KEY)%'
+    aws.use_path_style_endpoint: '%env(bool:AWS_USE_PATH_STYLE_ENDPOINT)%'
+
+    # S3 Configuration
+    aws.s3.materials_bucket: '%env(AWS_S3_MATERIALS_BUCKET)%'
+    aws.s3.presigned_expiration: '%env(int:AWS_S3_PRESIGNED_EXPIRATION)%'
+    aws.s3.public_endpoint: '%env(AWS_S3_PUBLIC_ENDPOINT)%'
+
+    # Lambda Configuration
+    aws.lambda.material_validator_function: '%env(AWS_LAMBDA_MATERIAL_VALIDATOR_FUNCTION)%'
+    aws.lambda.timeout: '%env(int:AWS_LAMBDA_TIMEOUT)%'
+
+    # CDN Configuration
+    cdn.enabled: '%env(bool:CDN_ENABLED)%'
+    cdn.base_url: '%env(CDN_BASE_URL)%'
+
 services:
     # default configuration for services in *this* file
     _defaults:

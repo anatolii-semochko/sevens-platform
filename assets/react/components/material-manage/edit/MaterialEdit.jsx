@@ -3,6 +3,9 @@ import { getExt, isAudio, isImage, isPdf, isVideo } from '@js/utils/file'
 import { Input, TextArea } from '@react/components/form-elements/Inputs'
 import { LogoPreview } from '@react/components/info-componnents/material/MaterialInfo'
 import { MessagesBlock } from '@react/components/info-componnents/Messages'
+import MaterialApi from '@react/api/materialApi'
+
+const materialApi = new MaterialApi()
 
 const Title = ({title, setTitle, error, setErrorMessage}) => (
     <div className="col-12">
@@ -70,68 +73,91 @@ const Description = ({description, setDescription, error, setErrorMessage}) => (
 // }
 
 
-export const ImageSelectMain = ({images, logo, setLogo}) => {
-    if (!images || images.length < 2) return null
+export const ImageSelectMain = ({files, logo, setLogo}) => {
+    // Filter only image files
+    const imageFiles = useMemo(() => {
+        if (!files || !Array.isArray(files)) return []
+        return files.filter(file => {
+            const type = file.type?.toLowerCase() || ''
+            return type === 'png' || type === 'jpg' || type === 'jpeg' || type === 'gif' || type === 'webp'
+        })
+    }, [files])
 
-    const handleClick = (selectedImage) => {
-        setLogo(selectedImage)
+    if (imageFiles.length < 2) return null
+
+    const handleClick = (fileThumbnailKey) => {
+        // Logo should be set to thumbnail key for fast list loading
+        setLogo(fileThumbnailKey)
     }
 
     return (
         <div className="mt-3">
             <label htmlFor="imageSelect" className="form-label">Select main image:</label>
             <div className="row g-2">
-                {images.map((image) => (
-                    <div key={image} className="col-6 col-sm-4 col-md-3 col-lg-4 col-xl-3 mb-2">
-                        <div
-                            className={`border rounded p-2 position-relative transition-all ${
-                                logo === image
-                                    ? 'border-primary shadow-sm'
-                                    : 'border-light hover:border-secondary'
-                            }`}
-                            onClick={() => handleClick(image)}
-                            style={{
-                                cursor: 'pointer',
-                                minHeight: '120px'
-                            }}
-                            title={image}
-                            onMouseEnter={(e) => {
-                                if (logo !== image) {
-                                    e.target.classList.add('border-secondary', 'shadow-sm')
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (logo !== image) {
-                                    e.target.classList.remove('border-secondary', 'shadow-sm')
-                                }
-                            }}
-                        >
-                            {logo === image && (
-                                <div className="position-absolute top-0 end-0 mt-1 me-1">
-                                    <span className="badge bg-primary text-white small">Main</span>
-                                </div>
-                            )}
-                            <div style={{ height: '80px', overflow: 'hidden' }} className="d-flex align-items-center justify-content-center">
-                                <img
-                                    src={window.AppConfig.path.materials + '/' + image}
-                                    alt={image}
+                {imageFiles.map((file) => {
+                    const isSelected = logo === file.keyThumbnail
+                    return (
+                        <div key={file.key} className="col-6 col-sm-4 col-md-3 col-lg-4 col-xl-3 mb-2">
+                            <div
+                                className={`border rounded p-2 position-relative ${
+                                    isSelected
+                                        ? 'border-primary shadow-sm'
+                                        : 'border-light'
+                                }`}
+                                onClick={() => handleClick(file.keyThumbnail)}
+                                style={{
+                                    cursor: 'pointer',
+                                    height: '140px',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                title={file.name}
+                                onMouseEnter={(e) => {
+                                    if (!isSelected) {
+                                        e.currentTarget.classList.add('border-secondary', 'shadow-sm')
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    if (!isSelected) {
+                                        e.currentTarget.classList.remove('border-secondary', 'shadow-sm')
+                                    }
+                                }}
+                            >
+                                {isSelected && (
+                                    <div className="position-absolute top-0 end-0 mt-1 me-1" style={{ zIndex: 1 }}>
+                                        <span className="badge bg-primary text-white small">Main</span>
+                                    </div>
+                                )}
+                                <div
+                                    className="d-flex align-items-center justify-content-center bg-light rounded"
                                     style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover"
+                                        height: '90px',
+                                        width: '100%',
+                                        overflow: 'hidden'
                                     }}
-                                />
-                            </div>
-                            <div className="text-center mt-2">
-                                <small className={`text-truncate d-block ${
-                                    logo === image ? 'text-primary fw-bold' : 'text-muted'
-                                }`} style={{ fontSize: '0.75rem' }}>
-                                    {image}
-                                </small>
+                                >
+                                    <img
+                                        src={file.urlThumbnail || file.url}
+                                        alt={file.name}
+                                        style={{
+                                            maxWidth: "100%",
+                                            maxHeight: "100%",
+                                            width: "auto",
+                                            height: "auto",
+                                            objectFit: "contain"
+                                        }}
+                                    />
+                                </div>
+                                <div className="text-center mt-2" style={{ height: '32px', overflow: 'hidden' }}>
+                                    <small className={`text-truncate d-block ${
+                                        isSelected ? 'text-primary fw-bold' : 'text-muted'
+                                    }`} style={{ fontSize: '0.75rem' }}>
+                                        {file.name}
+                                    </small>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
     )
@@ -207,6 +233,40 @@ export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessa
     const [title, setTitle] = useState(material?.title || '')
     const [description, setDescription] = useState(material?.description || '')
     const [logo, setLogo] = useState(material?.logo || null)
+    const [files, setFiles] = useState([])
+    const [filesLoading, setFilesLoading] = useState(true)
+
+    // Fetch files with URLs when component mounts
+    useEffect(() => {
+        const fetchFiles = async () => {
+            if (!material?.token) return
+
+            setFilesLoading(true)
+            try {
+                const archiveStatus = await materialApi.getArchiveStatus(material.token)
+                if (archiveStatus?.files) {
+                    setFiles(archiveStatus.files)
+
+                    // Auto-select first image's thumbnail as logo if none is set
+                    if (!logo && archiveStatus.files.length > 0) {
+                        const firstImage = archiveStatus.files.find(file => {
+                            const type = file.type?.toLowerCase() || ''
+                            return type === 'png' || type === 'jpg' || type === 'jpeg' || type === 'gif' || type === 'webp'
+                        })
+                        if (firstImage && firstImage.keyThumbnail) {
+                            setLogo(firstImage.keyThumbnail)
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch files:', error)
+            } finally {
+                setFilesLoading(false)
+            }
+        }
+
+        fetchFiles()
+    }, [material?.token])
 
     useEffect(() => {
         setMaterialData(prev => ({...prev, title, description, logo}))
@@ -220,8 +280,8 @@ export const MaterialEdit = ({material, handlerSave, setMaterialForm, errorMessa
                     <label htmlFor="tokenDescription" className="form-label text-center w-100">
                         Main publication image:
                     </label>
-                    <LogoPreview logo={logo} />
-                    <ImageSelectMain images={materialData.images} logo={logo} setLogo={setLogo} />
+                    <LogoPreview logo={logo} files={files} />
+                    {!filesLoading && <ImageSelectMain files={files} logo={logo} setLogo={setLogo} />}
                 </div>
                 <div className="col-12 col-lg-7">
                     <div className="row g-3 mb-3">

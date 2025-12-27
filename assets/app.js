@@ -62,7 +62,13 @@ wsRoot.render(
 const createTokenMaterial = document.getElementById('create-token-material')
 if (createTokenMaterial) {
     const root = createRoot(createTokenMaterial)
-    root.render(<Provider store={store}><Create type={createTokenMaterial.dataset.type} /></Provider>)
+    root.render(
+        <Provider store={store}>
+            <WebSocketProvider>
+                <Create type={createTokenMaterial.dataset.type} />
+            </WebSocketProvider>
+        </Provider>
+    )
 }
 
 const checkToken = document.getElementById('check-token')

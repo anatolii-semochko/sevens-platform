@@ -19,8 +19,6 @@ class UserController extends BaseController
     public function index(): Response
     {
         $user = $this->getUser();
-        error_log('UserController: User is ' . ($user ? 'logged in: ' . $user->getUserIdentifier() : 'null'));
-        
         $this->pageService->init('/user');
 
         return $this->render('base.html.twig', [

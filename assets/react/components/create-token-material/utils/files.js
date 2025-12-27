@@ -2,6 +2,7 @@ import { unzip } from 'fflate'
 import { createSHA256 } from 'hash-wasm'
 import { getFileType, isAudio, isImage, isPdf, isVideo} from '@js/utils/file'
 import { BlobReader, ZipReader } from '@zip.js/zip.js'
+import CryptoJS from 'crypto-js'
 
 const generateUniqueId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`
 
@@ -256,6 +257,116 @@ export const getFileHash = async (file, setOverallHashing) => {
     } catch (error) {
         setOverallHashing(0)
         throw error
+    }
+}
+
+/**
+ * Calculate MD5 hash of a file.
+ * Returns base64-encoded MD5 for S3 Content-MD5 header.
+ * @param {File} file - File to hash
+ * @returns {Promise<string>} Base64-encoded MD5 hash
+ */
+export const getFileMd5 = async (file) => {
+    if (!file) {
+        throw new Error('Cannot calculate MD5: no file provided')
+    }
+
+    try {
+        // Read file as ArrayBuffer
+        const arrayBuffer = await file.arrayBuffer()
+        const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer)
+
+        // Calculate MD5
+        const md5Hash = CryptoJS.MD5(wordArray)
+
+        // Convert to base64 for S3 Content-MD5 header
+        return CryptoJS.enc.Base64.stringify(md5Hash)
+    } catch (error) {
+        throw new Error(`Failed to calculate MD5: ${error.message}`)
+    }
+}
+
+/**
+ * Calculate both SHA-256 and MD5 hashes of a file efficiently.
+ * Reads the file once and calculates both hashes in parallel.
+ * @param {File} file - File to hash
+ * @param {Function} setOverallHashing - Progress callback (0-100)
+ * @returns {Promise<{sha256: string, md5: string, size: number}>}
+ */
+export const getFileDualHash = async (file, setOverallHashing) => {
+    if (!file) {
+        throw new Error('Cannot calculate hashes: no file provided')
+    }
+
+    try {
+        const reader = file.stream().getReader()
+        const totalSize = file.size
+        const chunks = []
+        let processedBytes = 0
+
+        try {
+            if (setOverallHashing) setOverallHashing(0)
+
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = new Uint8Array(value)
+                chunks.push(chunk)
+                processedBytes += chunk.byteLength
+
+                if (setOverallHashing) {
+                    const progress = Math.min(95, Math.floor((processedBytes / totalSize) * 100))
+                    setOverallHashing(progress)
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 10))
+            }
+        } finally {
+            try { reader.releaseLock() } catch (_) {}
+        }
+
+        if (processedBytes === 0) {
+            throw new Error('No data was read from file')
+        }
+
+        if (setOverallHashing) setOverallHashing(98)
+
+        // Combine all chunks into single buffer
+        const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+        const allBytes = new Uint8Array(totalLength)
+        let offset = 0
+        for (const chunk of chunks) {
+            allBytes.set(chunk, offset)
+            offset += chunk.length
+        }
+
+        // Calculate both hashes from the same data
+        const [sha256Buffer, md5Hash] = await Promise.all([
+            // SHA-256 using Web Crypto API
+            crypto.subtle.digest('SHA-256', allBytes),
+            // MD5 using crypto-js
+            (async () => {
+                const wordArray = CryptoJS.lib.WordArray.create(allBytes)
+                const md5 = CryptoJS.MD5(wordArray)
+                return CryptoJS.enc.Base64.stringify(md5)
+            })()
+        ])
+
+        const sha256 = Array.from(new Uint8Array(sha256Buffer))
+            .map(b => b.toString(16).padStart(2, '0'))
+            .join('')
+
+        if (setOverallHashing) setOverallHashing(100)
+
+        return {
+            sha256,  // 64-char hex string (for blockchain)
+            md5,     // base64 string (for S3 Content-MD5)
+            size: totalSize
+        }
+    } catch (error) {
+        if (setOverallHashing) setOverallHashing(0)
+        throw new Error(`Failed to calculate hashes: ${error.message}`)
     }
 }
 

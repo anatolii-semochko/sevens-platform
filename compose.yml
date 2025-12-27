@@ -64,7 +64,6 @@ services:
     networks:
       - default
       - blockchain.dev
-      - sevens-exchanger-default
     environment:
       - NODE_ENV=development
       - NODE_SERVER_PORT=${NODE_SERVER_PORT}
@@ -72,6 +71,7 @@ services:
       - SEVENS_TOKEN_MANAGEMENT_IDL_PATH=${NODE_SERVER_SEVENS_TOKEN_MANAGEMENT_IDL_PATH}
       - ANCHOR_PROVIDER_URL=${ANCHOR_PROVIDER_URL}
       - NONCE_EXPIRATION_MIN=${NONCE_EXPIRATION_MIN}
+      - MYSQL_DATABASE=sevens_time
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
       - EXCHANGER_WEBSOCKET_URL=${EXCHANGER_WEBSOCKET_URL}
     extra_hosts:
@@ -88,7 +88,7 @@ services:
     image: mysql:9.3
     environment:
       MYSQL_USER: app
-      MYSQL_DATABASE: sevens-time
+      MYSQL_DATABASE: sevens_time
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
     ports:
@@ -97,6 +97,26 @@ services:
       - ./../.data/sevens:/var/lib/mysql
     secrets:
       - db_password
+    networks:
+      - default
+
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      - "4566:4566"            # LocalStack Gateway
+      - "4510-4559:4510-4559"  # External services port range
+    environment:
+      - SERVICES=s3,lambda
+      - DEBUG=1
+      - PERSISTENCE=1
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - SKIP_INFRA_DOWNLOADS=1
+    volumes:
+      - "./docker/development/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./../.data/localstack:/var/lib/localstack"
+      - "./lambda:/app/lambda:ro"
     networks:
       - default
 
@@ -124,6 +144,3 @@ networks:
   blockchain.dev:
     external: true
     name: sevens.dev
-  sevens-exchanger-default:
-    external: true
-    name: sevens-exchanger-default

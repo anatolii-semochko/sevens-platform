@@ -4,17 +4,58 @@ import { route } from '@js/router/routing-with-locale'
 
 const materialApi = new MaterialApi()
 
-export const LogoPreview = ({logo}) => logo ? (
-    <div className="d-flex justify-content-center">
-        <img src={window.AppConfig.path.materials + '/' + logo} alt={logo} />
-    </div>
-) : (
-    <div className="bg-light rounded d-flex align-items-center justify-content-center py-5">
-        <span className="small text-muted">No main file selected</span>
-    </div>
-)
+export const LogoPreview = ({logo, files, logoUrl: providedLogoUrl}) => {
+    // Logo is the thumbnail key, find the file object to get preview variant
+    const logoFile = files?.find(file => file.keyThumbnail === logo)
 
-export const MaterialPreview = ({material}) => {
+    // Determine logo URL (use provided logoUrl first, then find in files, then fallback)
+    let logoUrl = providedLogoUrl // Use CDN URL from API if provided
+
+    if (!logoUrl && logoFile) {
+        // Use urlPreview (best quality for display), then urlThumbnail, then original url
+        logoUrl = logoFile.urlPreview || logoFile.urlThumbnail || logoFile.url
+    } else if (!logoUrl && logo) {
+        // No file found, use logo thumbnail key directly
+        if (logo.startsWith('materials/')) {
+            logoUrl = `/s3/sevenstime-materials/${logo}`
+        } else {
+            // Legacy filename format
+            logoUrl = window.AppConfig.path.materials + '/' + logo
+        }
+    }
+
+    return logoUrl ? (
+        <div
+            className="d-flex justify-content-center align-items-center bg-light rounded mb-3"
+            style={{
+                minHeight: '200px',
+                maxHeight: '400px',
+                overflow: 'hidden'
+            }}
+        >
+            <img
+                src={logoUrl}
+                alt={logoFile?.name || logo}
+                style={{
+                    maxWidth: '100%',
+                    maxHeight: '400px',
+                    width: 'auto',
+                    height: 'auto',
+                    objectFit: 'contain'
+                }}
+            />
+        </div>
+    ) : (
+        <div
+            className="bg-light rounded d-flex align-items-center justify-content-center mb-3"
+            style={{ minHeight: '200px' }}
+        >
+            <span className="small text-muted">No main file selected</span>
+        </div>
+    )
+}
+
+export const MaterialPreview = ({material, logoUrl}) => {
     if (!material) {
         return
     }
@@ -22,7 +63,7 @@ export const MaterialPreview = ({material}) => {
     return (
         <div className="row my-4">
             <div className="col-lg-4 col-md-12">
-                <LogoPreview logo={material?.logo} />
+                <LogoPreview logo={material?.logo} files={material?.files} logoUrl={logoUrl} />
             </div>
             <div className="col-lg-8 col-md-12">
                 <p>Title: {material?.title}</p>

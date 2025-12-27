@@ -25,7 +25,7 @@ class Database {
             port: 3306,
             user: 'app',
             password: password,
-            database: 'sevens-time',
+            database: process.env.MYSQL_DATABASE,
             waitForConnections: true,
             connectionLimit: 10,
             queueLimit: 0,

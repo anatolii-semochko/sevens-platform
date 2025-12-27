@@ -23,6 +23,7 @@ const MaterialManage = ({token}) => {
     const getMaterial = async () => {
         try {
             const data = await materialApi.get(token)
+            // Material already contains logoUrl from backend
             setMaterial(data.material)
         } catch (error) {
             setErrorMessage(error.message)
@@ -82,7 +83,7 @@ const MaterialManage = ({token}) => {
                 className={'mb-4'}
             />
             <TokenInfo tokenData={tokenData} />
-            <MaterialPreview {...{material}}/>
+            <MaterialPreview material={material} logoUrl={material?.logoUrl} />
 
             {material && !material?.active && tokenOk() && (
                 <ErrorMessageBlock

@@ -114,13 +114,6 @@ class MaterialController extends BaseController
                 'materialsByPublisher' => $this->materialService->getByPublisher($material, 10),
                 'likeCount' => $this->voteRepository->countLikes($material->getToken()),
                 'dislikeCount' => $this->voteRepository->countDislikes($material->getToken()),
-
-                // TODO - for OLEG
-                // Current Authorized User Info
-                // Twig - app.user (app.user.id, app.user.email, app.user.firstName, app.user.roles...)
-                // React - store.getState().user (store.getState().user.id...)
-                'isLoggedIn' => $this->getUser() !== null,
-                // TODO - REMOVE
             ],
         ]);
     }

@@ -1,4 +1,4 @@
 <div class="mp-full-block" id="material-comments"
      data-material-token="{{ data.material.getToken() }}"
-     data-is-logged-in="{{ data.isLoggedIn ? 'true' : 'false' }}">
+     data-is-logged-in="{{ app.user is not null ? 'true' : 'false' }}">
 </div>

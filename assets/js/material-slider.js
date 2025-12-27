@@ -4,33 +4,41 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (!carousel || thumbs.length === 0) return;
     
-    // Set first thumb as active
+    // Set first thumb as active and initialize carousel with original URL
     thumbs[0].classList.add('active');
-    
+    const firstImg = thumbs[0].querySelector('img');
+    if (firstImg && firstImg.dataset.original) {
+        carousel.dataset.original = firstImg.dataset.original;
+    }
+
     // Add click handlers to thumbnails
     thumbs.forEach((thumb, index) => {
         thumb.addEventListener('click', function() {
             // Remove active class from all thumbs
             thumbs.forEach(t => t.classList.remove('active'));
-            
+
             // Add active class to clicked thumb
             this.classList.add('active');
-            
-            // Update main carousel image
+
+            // Update main carousel image to preview (not thumbnail)
             const img = this.querySelector('img');
             if (img) {
-                carousel.src = img.src;
+                carousel.src = img.dataset.preview || img.src;
                 carousel.alt = img.alt;
+                // Store original URL for modal
+                carousel.dataset.original = img.dataset.original || img.dataset.preview || img.src;
             }
         });
-        
+
         // Add cursor pointer style
         thumb.style.cursor = 'pointer';
     });
     
     // Fullscreen modal functionality
     carousel.addEventListener('click', function() {
-        openImageModal(this.src, this.alt);
+        // Use original image for modal, fallback to current src
+        const originalSrc = this.dataset.original || this.src;
+        openImageModal(originalSrc, this.alt);
     });
     carousel.style.cursor = 'pointer';
     
