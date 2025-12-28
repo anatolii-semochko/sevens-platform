@@ -71,7 +71,7 @@ services:
       - SEVENS_TOKEN_MANAGEMENT_IDL_PATH=${NODE_SERVER_SEVENS_TOKEN_MANAGEMENT_IDL_PATH}
       - ANCHOR_PROVIDER_URL=${ANCHOR_PROVIDER_URL}
       - NONCE_EXPIRATION_MIN=${NONCE_EXPIRATION_MIN}
-      - MYSQL_DATABASE=sevens_time
+      - MYSQL_DATABASE=platform
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
       - EXCHANGER_WEBSOCKET_URL=${EXCHANGER_WEBSOCKET_URL}
     extra_hosts:
@@ -88,7 +88,7 @@ services:
     image: mysql:9.3
     environment:
       MYSQL_USER: app
-      MYSQL_DATABASE: sevens_time
+      MYSQL_DATABASE: platform
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
     ports:
