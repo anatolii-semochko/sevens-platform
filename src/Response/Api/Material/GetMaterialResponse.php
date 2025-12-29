@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Response\Api\Material;
 
 use App\Entity\Material\Material;
+use App\Response\Api\User\BasicUserResponse;
 
 /**
  * Response DTO for GET /api/material/{token} endpoint.
@@ -20,6 +21,7 @@ readonly class GetMaterialResponse
      */
     public function __construct(
         public string $token,
+        public ?BasicUserResponse $user,
         public bool $active,
         public string $title,
         public string $logo,
@@ -44,6 +46,7 @@ readonly class GetMaterialResponse
     {
         return new self(
             token: $material->getToken(),
+            user: BasicUserResponse::fromUser($material->getUser()),
             active: $material->isActive(),
             title: $material->getTitle(),
             logo: $material->getLogo(),

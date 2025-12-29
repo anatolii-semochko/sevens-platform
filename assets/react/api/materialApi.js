@@ -126,4 +126,17 @@ export default class MaterialApi {
             .then(response => response.data)
             .catch(throwErrorMessage)
     }
+
+    /**
+     * Get presigned download URL for material archive.
+     * @param {string} token - Material token
+     * @returns {Promise<{downloadUrl: string, filename: string}>}
+     */
+    async getArchiveDownloadUrl(token) {
+        const url = `${mainUrl}/${token}/archive-download-url`
+        return api
+            .get(url)
+            .then(response => response.data)
+            .catch(throwErrorMessage)
+    }
 }

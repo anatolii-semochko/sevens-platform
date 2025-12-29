@@ -8,7 +8,7 @@ APP_PATH=.
 
 init: docker-down-clear  clear  docker-pull docker-build docker-up
 init-build: init app-build
-app-build: composer-install npm-install routes yarn-build-development node-server-build node-server-restart
+app-build: composer-install npm-install routes yarn-build-development node-server-build node-server-restart lambda-deploy
 
 up: docker-up
 down: docker-down
@@ -230,3 +230,7 @@ lambda-deploy-restart:
 	@echo "🚀 Deploying Lambda function..."
 	@lambda/material-validator/deploy.sh
 	@echo "✅ Lambda deployed and LocalStack restarted!"
+
+lambda-check-s3:
+	@echo "📦 Checking S3 bucket contents..."
+	@docker compose exec -T localstack awslocal s3 ls s3://sevenstime-materials --recursive --human-readable --summarize
