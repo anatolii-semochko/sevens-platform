@@ -1,7 +1,7 @@
 import { Transaction } from '@solana/web3.js'
 
 export let sevensIdl
-fetch(process.env.SEVENS_TOKEN_IDL_PATH)
+fetch(process.env.HDT_IDL_PATH)
     .then(response => response.json())
     .then(idl => sevensIdl = idl)
     .catch(error => console.error(error))

@@ -5,7 +5,7 @@ const { lampToSol, solToLamp } = require('../utils/currency')
 
 class TariffsService {
     constructor() {
-        loadIdl('SEVENS_TOKEN_MANAGEMENT_IDL_PATH').then(idl => {
+        loadIdl('HDT_MANAGEMENT_IDL_PATH').then(idl => {
             const { connection, provider, program} = initializeProvider(idl)
             this.connection = connection
             this.provider = provider

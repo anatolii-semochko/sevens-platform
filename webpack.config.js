@@ -56,7 +56,7 @@ config.plugins.push(
     new FOSJsRoutingPlugin(),
     new webpack.DefinePlugin({
         'process.env.ANCHOR_PROVIDER_URL': JSON.stringify(process.env.ANCHOR_PROVIDER_URL),
-        'process.env.SEVENS_TOKEN_IDL_PATH': JSON.stringify(process.env.SEVENS_TOKEN_IDL_PATH),
+        'process.env.HDT_IDL_PATH': JSON.stringify(process.env.HDT_IDL_PATH),
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
         'process.env.NONCE_EXPIRATION_MIN': JSON.stringify(process.env.NONCE_EXPIRATION_MIN || 30),
         'process.env.BROWSER_FILE_MEMORY_DECOMPRESSION_LIMIT': JSON.stringify(process.env.BROWSER_FILE_MEMORY_DECOMPRESSION_LIMIT),
