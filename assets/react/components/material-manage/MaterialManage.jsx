@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import MaterialApi from '@react/api/materialApi'
-import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
+import { fetchHDTokenByPublicKey } from '@react/api/nodeApi'
 import { RepeatableQuery } from '@react/api/RepeatableQuery'
 import { ToggleSwitch } from '@react/components/form-elements/Inputs'
 import { MaterialEdit } from '@react/components/material-manage/edit/MaterialEdit'
@@ -72,7 +72,7 @@ const MaterialManage = ({token}) => {
     return (
         <div>
             <RepeatableQuery
-                apiEndpoint={(token) => fetchSevensTokenByPublicKey(token)}
+                apiEndpoint={(token) => fetchHDTokenByPublicKey(token)}
                 params={token}
                 onSuccess={setTokenData}
                 onError={(error) => setErrorMessage(error.message)}

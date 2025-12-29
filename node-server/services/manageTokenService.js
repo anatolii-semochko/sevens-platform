@@ -4,7 +4,7 @@ const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRA
 const { MPL_TOKEN_METADATA_PROGRAM_ID } = require('@metaplex-foundation/mpl-token-metadata')
 const { loadIdl, initializeProvider, getPda, serializeTransaction} = require('../utils/blockchain')
 const { solToLamp, lampToSol } = require('../utils/currency')
-const sevensTokenService = require('./sevensTokenService')
+const tokenService = require('./tokenService')
 const tariffsService = require('./tariffsService')
 
 class ManageTokenService {
@@ -18,11 +18,11 @@ class ManageTokenService {
     }
 
     async getValidatedTokenData(tokenPublicKey) {
-        const sevensTokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
+        const tokenData = await tokenService.getTokenByPublicKey(tokenPublicKey)
         const managementData = await this.getTokenManagementData(tokenPublicKey)
 
         // Validate price matches between TokenPDA and token.sale
-        const tokenSalePrice = parseFloat(sevensTokenData.sale.price)
+        const tokenSalePrice = parseFloat(tokenData.sale.price)
         const managementPrice = lampToSol(managementData.price)
         if (Math.abs(tokenSalePrice - managementPrice) > 0.000000001) {
             throw new Error(`TokenPDA price (${managementPrice}) does not match token.sale.price (${tokenSalePrice})`)
@@ -67,7 +67,7 @@ class ManageTokenService {
 
     async matchTokenData(tokenPublicKey) {
         try {
-            const sevensTokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
+            const tokenData = await tokenService.getTokenByPublicKey(tokenPublicKey)
             const managementData = await this.getTokenManagementData(tokenPublicKey)
 
             if (!managementData) {
@@ -78,15 +78,15 @@ class ManageTokenService {
             }
 
             const mismatches = []
-            if (sevensTokenData.walletPublicKey !== managementData.owner) {
+            if (tokenData.walletPublicKey !== managementData.owner) {
                 mismatches.push('walletPublicKey')
             }
-            if (sevensTokenData.sale.onSale !== managementData.onSale) {
+            if (tokenData.sale.onSale !== managementData.onSale) {
                 mismatches.push('onSale')
             }
             // Compare prices
             const managementPriceSol = lampToSol(managementData.price)
-            if (Math.abs(sevensTokenData.sale.price - managementPriceSol) > 0.000000001) {
+            if (Math.abs(tokenData.sale.price - managementPriceSol) > 0.000000001) {
                 mismatches.push('price')
             }
 
@@ -134,8 +134,8 @@ class ManageTokenService {
         const tokenAccount = getAssociatedTokenAddressSync(mint, payer, false, TOKEN_PROGRAM_ID)
         const tokenDataPda = this.getTokenManagementDataPda(mint.toString())
 
-        // Get Sevens Token PDAs
-        const { metadataPda, salePda, hashRegistryPda } = sevensTokenService.getSevensToken(mintPublicKey, hash)
+        // Get HD Token PDAs
+        const { metadataPda, salePda, hashRegistryPda } = tokenService.getHDToken(mintPublicKey, hash)
 
         // Get Metaplex Metadata PDA
         const metaplexMetadataPda = this.getMetaplexPda(mintPublicKey)
@@ -168,7 +168,7 @@ class ManageTokenService {
                 metaplexMetadata: metaplexMetadataPda,
                 metaplexMetadataProgram: new PublicKey(MPL_TOKEN_METADATA_PROGRAM_ID),
                 tokenManagementData: tokenDataPda,
-                sevensTokenProgram: sevensTokenService.program.programId,
+                sevensTokenProgram: tokenService.program.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
@@ -191,7 +191,7 @@ class ManageTokenService {
 
     async getSetSaleTransaction(tokenPublicKey, priceSol) {
         const mint = new PublicKey(tokenPublicKey)
-        const ownerPublicKey = await sevensTokenService.getWalletPublicKeyByToken(tokenPublicKey)
+        const ownerPublicKey = await tokenService.getWalletPublicKeyByToken(tokenPublicKey)
         const owner = new PublicKey(ownerPublicKey)
         const tokenAccount = getAssociatedTokenAddressSync(mint, owner, false, TOKEN_PROGRAM_ID)
 
@@ -199,7 +199,7 @@ class ManageTokenService {
 
         const tariffsPda = this.getTariffsPda()
         const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
-        const salePda = sevensTokenService.getSalePda(tokenPublicKey)
+        const salePda = tokenService.getSalePda(tokenPublicKey)
 
         // Build instruction
         const ix = await this.managementProgram.methods
@@ -216,7 +216,7 @@ class ManageTokenService {
                 tokenManagementData: tokenDataPda,
                 sale: salePda,
                 saleAuthority: salePda,
-                sevensTokenProgram: sevensTokenService.program.programId,
+                sevensTokenProgram: tokenService.program.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
             })
@@ -239,7 +239,7 @@ class ManageTokenService {
 
         const tariffsPda = this.getTariffsPda()
         const tokenDataPda = this.getTokenManagementDataPda(tokenPublicKey)
-        const salePda = sevensTokenService.getSalePda(tokenPublicKey)
+        const salePda = tokenService.getSalePda(tokenPublicKey)
 
         // Get management data to get seller and expected price
         const managementData = await this.getTokenManagementData(tokenPublicKey)
@@ -269,7 +269,7 @@ class ManageTokenService {
                 buyerTokenAccount,
                 sale: salePda,
                 saleAuthority: salePda,
-                sevensTokenProgram: sevensTokenService.program.programId,
+                sevensTokenProgram: tokenService.program.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
@@ -286,8 +286,8 @@ class ManageTokenService {
     }
 
     async getBurnTransaction(tokenPublicKey) {
-        const tokenData = await sevensTokenService.getTokenByPublicKey(tokenPublicKey)
-        const ownerPublicKey = await sevensTokenService.getWalletPublicKeyByToken(tokenPublicKey)
+        const tokenData = await tokenService.getTokenByPublicKey(tokenPublicKey)
+        const ownerPublicKey = await tokenService.getWalletPublicKeyByToken(tokenPublicKey)
         const tariffs = await tariffsService.getTariffs()
         const mint = new PublicKey(tokenPublicKey)
         const owner = new PublicKey(ownerPublicKey)
@@ -296,7 +296,7 @@ class ManageTokenService {
             metadataPda,
             salePda,
             hashRegistryPda,
-        } = sevensTokenService.getSevensToken(tokenPublicKey, tokenData.metadata.hash)
+        } = tokenService.getHDToken(tokenPublicKey, tokenData.metadata.hash)
 
         // Build instruction
         const ix = await this.managementProgram.methods
@@ -311,7 +311,7 @@ class ManageTokenService {
                 metadata: metadataPda,
                 sale: salePda,
                 hashRegistry: hashRegistryPda,
-                sevensTokenProgram: sevensTokenService.program.programId,
+                sevensTokenProgram: tokenService.program.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
             })

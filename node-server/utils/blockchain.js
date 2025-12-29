@@ -133,7 +133,7 @@ const getAnchorErrorText = (error) => {
                 }
 
                 const errorCodeMap = {
-                    // sevens-token-management errors (6000-6011)
+                    // hd-token-management errors (6000-6011)
                     '6000': 'Unauthorized: only the authority can update tariffs',
                     '6001': 'Invalid buy percentage: must be between 0 and 99',
                     '6002': 'Invalid target wallet: cannot be the default address',
@@ -146,7 +146,7 @@ const getAnchorErrorText = (error) => {
                     '6009': 'Invalid mint address',
                     '6010': 'Invalid seller address',
                     '6011': 'Math overflow occurred',
-                    // sevens-token errors (6012+)
+                    // hd-token errors (6012+)
                     '6012': 'Token name cannot be empty',
                     '6013': 'Invalid token parameters',
                     '6014': 'Insufficient funds',

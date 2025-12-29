@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { sevensIdl } from '@js/utils/blockchain'
+import { hdtIdl } from '@js/utils/blockchain'
 import { Input, TextArea, Select } from '@react/components/form-elements/Inputs'
 
 const Name = ({name, setName, maxLength, error, setErrorMessage}) => (
@@ -80,7 +80,7 @@ export const TokenForm = ({tokenData, setTokenData, setErrorMessage}) => {
 
     useEffect(() => {
         const lengthConstants = {}
-        sevensIdl.constants.map(constant => {
+        hdtIdl.constants.map(constant => {
             if (constant.name === 'MAX_TOKEN_NAME_LENGTH') lengthConstants.name = constant.value
             if (constant.name === 'MAX_AUTHOR_LENGTH') lengthConstants.author = constant.value
             if (constant.name === 'MAX_DESCRIPTION_LENGTH') lengthConstants.description = constant.value

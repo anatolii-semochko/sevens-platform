@@ -1,9 +1,9 @@
 import { Transaction } from '@solana/web3.js'
 
-export let sevensIdl
+export let hdtIdl
 fetch(process.env.HDT_IDL_PATH)
     .then(response => response.json())
-    .then(idl => sevensIdl = idl)
+    .then(idl => hdtIdl = idl)
     .catch(error => console.error(error))
 
 export const getDeserializedTransaction = (transactionString) => Transaction.from(Buffer.from(
