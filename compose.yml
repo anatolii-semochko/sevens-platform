@@ -54,7 +54,7 @@ services:
     networks:
       - default
 
-  sevenstime-node-server:
+  platform-node-server:
     build:
       context: .
       dockerfile: docker/development/node-server/Dockerfile
@@ -82,7 +82,7 @@ services:
     depends_on:
       - mysql
       - web
-    container_name: sevenstime-node-server
+    container_name: platform-node-server
 
   mysql:
     image: mysql:9.3

@@ -1,5 +1,5 @@
 {
-  "name": "sevenstime-node-server",
+  "name": "platform-node-server",
   "version": "1.0.0",
   "description": "Node.js server for Solana blockchain interactions",
   "main": "server.js",
