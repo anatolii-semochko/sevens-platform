@@ -3,7 +3,7 @@ const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
 const { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token')
 const { MPL_TOKEN_METADATA_PROGRAM_ID } = require('@metaplex-foundation/mpl-token-metadata')
 const { loadIdl, initializeProvider, getPda, serializeTransaction} = require('../utils/blockchain')
-const { sevensToLamp, lampToSevens } = require('../utils/currency')
+const { solToLamp, lampToSol } = require('../utils/currency')
 const sevensTokenService = require('./sevensTokenService')
 const tariffsService = require('./tariffsService')
 
@@ -23,13 +23,13 @@ class ManageTokenService {
 
         // Validate price matches between TokenPDA and token.sale
         const tokenSalePrice = parseFloat(sevensTokenData.sale.price)
-        const managementPrice = lampToSevens(managementData.price)
+        const managementPrice = lampToSol(managementData.price)
         if (Math.abs(tokenSalePrice - managementPrice) > 0.000000001) {
             throw new Error(`TokenPDA price (${managementPrice}) does not match token.sale.price (${tokenSalePrice})`)
         }
 
         // Calculate retailPrice = price + (price * saleFee / 100)
-        const basePrice = lampToSevens(managementData.price)
+        const basePrice = lampToSol(managementData.price)
         const saleFee = managementData.saleFee
         const feeAmount = (basePrice * saleFee) / 100
         const retailPrice = basePrice + feeAmount
@@ -85,8 +85,8 @@ class ManageTokenService {
                 mismatches.push('onSale')
             }
             // Compare prices
-            const managementPriceSevens = lampToSevens(managementData.price)
-            if (Math.abs(sevensTokenData.sale.price - managementPriceSevens) > 0.000000001) {
+            const managementPriceSol = lampToSol(managementData.price)
+            if (Math.abs(sevensTokenData.sale.price - managementPriceSol) > 0.000000001) {
                 mismatches.push('price')
             }
 
@@ -111,7 +111,7 @@ class ManageTokenService {
             return null
         }
 
-        const basePrice = lampToSevens(managementData.price)
+        const basePrice = lampToSol(managementData.price)
         const feeAmount = (basePrice * managementData.saleFee) / 100
 
         return  basePrice + feeAmount
@@ -189,7 +189,7 @@ class ManageTokenService {
         }
     }
 
-    async getSetSaleTransaction(tokenPublicKey, priceSevens) {
+    async getSetSaleTransaction(tokenPublicKey, priceSol) {
         const mint = new PublicKey(tokenPublicKey)
         const ownerPublicKey = await sevensTokenService.getWalletPublicKeyByToken(tokenPublicKey)
         const owner = new PublicKey(ownerPublicKey)
@@ -204,8 +204,8 @@ class ManageTokenService {
         // Build instruction
         const ix = await this.managementProgram.methods
             .managedSetSale(
-                priceSevens > 0,
-                new anchor.BN(sevensToLamp(priceSevens)),
+                priceSol > 0,
+                new anchor.BN(solToLamp(priceSol)),
             )
             .accounts({
                 owner,

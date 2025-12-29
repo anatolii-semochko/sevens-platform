@@ -2,7 +2,7 @@ const crypto = require('crypto')
 const { PublicKey } = require('@solana/web3.js')
 const { TOKEN_PROGRAM_ID } = require('@solana/spl-token')
 const { loadIdl, initializeProvider, getPda } = require('../utils/blockchain')
-const { lampToSevens } = require('../utils/currency')
+const { lampToSol } = require('../utils/currency')
 
 class SevensTokenService {
     constructor() {
@@ -39,7 +39,7 @@ class SevensTokenService {
         const { metadataPda, salePda } = this.getSevensToken(new PublicKey(tokenPublicKey))
         const metadata = await this.program.account.trustDataMetadata.fetch(metadataPda)
         const sale = await this.program.account.tokenSaleData.fetch(salePda)
-        sale.price = lampToSevens(sale.price.toNumber())
+        sale.price = lampToSol(sale.price.toNumber())
 
         return {
             tokenPublicKey,

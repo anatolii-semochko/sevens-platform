@@ -20,7 +20,7 @@ export const RateUpdateListener = () => {
         if (response.data && typeof response.data.rate === 'number') {
           dispatch({
             type: 'SET',
-            sevensUsdRate: response.data.rate,
+            solUsdRate: response.data.rate,
           })
           console.log('[RateUpdateListener] Initial rate loaded:', response.data.rate)
         }
@@ -39,7 +39,7 @@ export const RateUpdateListener = () => {
       if (eventData && typeof eventData.newRate === 'number') {
         dispatch({
           type: 'SET',
-          sevensUsdRate: eventData.newRate,
+          solUsdRate: eventData.newRate,
         })
       }
     },

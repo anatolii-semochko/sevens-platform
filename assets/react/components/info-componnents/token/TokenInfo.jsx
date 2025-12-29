@@ -74,7 +74,7 @@ export const HistoryTable = ({tokenPublicKey, showChart, showTable, showWallet})
     }, [tokenPublicKey]);
 
     const Info = (row, key) => row.price ?
-        <span className="fw-bold">{row.price} <span className="fw-normal fst-italic mx-2">$SEV</span></span> :
+        <span className="fw-bold">{row.price} <span className="fw-normal fst-italic mx-2">SOL</span></span> :
         <span>{key && history[key - 1]?.wallet !== row.wallet ? <span className="text-danger fw-bold">SOLD</span> : 'Canceled'}</span>
 
     if (!tokenPublicKey || !history.length) {

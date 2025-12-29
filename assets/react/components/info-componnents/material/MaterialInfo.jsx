@@ -68,7 +68,7 @@ export const MaterialPreview = ({material, logoUrl}) => {
             <div className="col-lg-8 col-md-12">
                 <p>Title: {material?.title}</p>
                 <p>Description: {material?.description}</p>
-                <p>Price: {material?.price ? ('On sale: ' + material?.price + ' $SEV') : 'Not on sale'}</p>
+                <p>Price: {material?.price ? ('On sale: ' + material?.price + ' SOL') : 'Not on sale'}</p>
             </div>
         </div>
     )
