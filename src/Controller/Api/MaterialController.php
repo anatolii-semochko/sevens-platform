@@ -144,6 +144,7 @@ class MaterialController extends BaseApiController
 
             // Clear tempS3Key - service handles cleanup
             $tempS3Key = null;
+            sleep(5);
 
             // Emit WebSocket event for real-time notification
             $this->nodeServerApiClient->emitWebSocketEvent('material.created', [
@@ -245,6 +246,41 @@ class MaterialController extends BaseApiController
             }
 
             return $this->json($response);
+        } catch (\Exception $e) {
+            throw new WrappedHttpException($e);
+        }
+    }
+
+    /**
+     * Get presigned download URL for material archive.
+     *
+     * @throws HttpException
+     */
+    #[Route('/{token}/archive-download-url', name: 'archive_download_url', methods: ['GET'])]
+    public function getArchiveDownloadUrl(string $token): JsonResponse
+    {
+        try {
+            $material = $this->materialRepository->get($token);
+            $this->checkAuthorization($material->getUser()?->getId());
+
+            if (!$material->getArchiveS3Key()) {
+                return $this->json(['error' => 'Archive not found'], 404);
+            }
+
+            // Record download timestamp
+            $this->materialService->recordDownload($material);
+
+            // Generate presigned download URL
+            $downloadUrl = $this->materialFileService->getArchiveDownloadUrl($material);
+
+            // Extract filename from S3 key (e.g., "materials/token/archive/file.zip" -> "file.zip")
+            $s3Key = $material->getArchiveS3Key();
+            $filename = basename($s3Key);
+
+            return $this->json([
+                'downloadUrl' => $downloadUrl,
+                'filename' => $filename,
+            ]);
         } catch (\Exception $e) {
             throw new WrappedHttpException($e);
         }

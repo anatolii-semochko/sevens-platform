@@ -1,31 +1,57 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import clsx from 'clsx'
 import { showModal } from '@js/modal'
-import { StatusBar } from '@react/components/info-componnents/Charts'
 import { SuccessMessageBlock } from '@react/components/info-componnents/Messages'
+import MaterialApi from '@react/api/materialApi'
+
+const materialApi = new MaterialApi()
 
 export const DownloadContainer = ({token, onDownloaded}) => {
-    const [downloading, setDownloading] = useState(null)
+    const [downloading, setDownloading] = useState(false)
     const [downloaded, setDownloaded] = useState(false)
+    const [error, setError] = useState(null)
+    const timeoutRef = useRef(null)
 
-    const handleDownload = () => {
-        setDownloading(0)
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current)
+            }
+        }
+    }, [])
+
+    const handleDownload = async () => {
+        setDownloading(true)
         setDownloaded(false)
+        setError(null)
 
-        let progress = 0
-        const interval = setInterval(() => {
-            progress += 10
-            setDownloading(progress)
+        try {
+            // Fetch presigned download URL from backend
+            const { downloadUrl, filename } = await materialApi.getArchiveDownloadUrl(token)
 
-            if (progress >= 100) {
-                clearInterval(interval)
-                setDownloading(null)
+            // Create hidden link to trigger download
+            const link = document.createElement('a')
+            link.href = downloadUrl
+            link.download = filename || `material-${token}.zip`
+            link.style.display = 'none'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+
+            // Show success message after short delay
+            // (we can't actually detect download completion with presigned URLs)
+            timeoutRef.current = setTimeout(() => {
+                setDownloading(false)
                 setDownloaded(true)
                 if (onDownloaded) {
                     onDownloaded()
                 }
-            }
-        }, 100)
+            }, 1000)
+        } catch (err) {
+            setDownloading(false)
+            setError(err.message || 'Failed to download archive')
+        }
     }
 
     return (
@@ -38,13 +64,24 @@ export const DownloadContainer = ({token, onDownloaded}) => {
             </p>
             <p className="text-center mb-2">Token public key:</p>
             <p className="text-center fw-bold mb-3">{token}</p>
+            {error && (
+                <div className="alert alert-danger mb-3" role="alert">
+                    {error}
+                </div>
+            )}
             {!downloaded && !downloading && (
                 <button className="btn w-100 fs-5 btn-primary p-2 mb-1" onClick={handleDownload}>
                     Download
                 </button>
             )}
-            {!!downloading && (
-                <StatusBar label={'Downloading'} processStatus={downloading} className={'bg-success'} />
+            {downloading && (
+                <div className="text-center mb-3">
+                    <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Preparing download...</span>
+                    </div>
+                    <p className="mt-2 mb-0">Preparing your archive...</p>
+                    <small className="text-muted">Download will start automatically</small>
+                </div>
             )}
             {downloaded && (
                 <SuccessMessageBlock

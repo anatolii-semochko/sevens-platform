@@ -328,4 +328,14 @@ readonly class MaterialService
         $this->em->persist($material);
         $this->em->flush();
     }
+
+    /**
+     * Record archive download timestamp.
+     * Tracks when user downloaded their material archive for analytics and support.
+     */
+    public function recordDownload(Material $material): void
+    {
+        $material->setDownloadedAt(new \DateTime());
+        $this->em->flush();
+    }
 }

@@ -101,21 +101,20 @@ services:
       - default
 
   localstack:
-    image: localstack/localstack:3.0
+    image: gresau/localstack-persist:3.0
     ports:
       - "4566:4566"            # LocalStack Gateway
       - "4510-4559:4510-4559"  # External services port range
     environment:
       - SERVICES=s3,lambda
       - DEBUG=1
-      - PERSISTENCE=1
       - LAMBDA_EXECUTOR=docker
       - DOCKER_HOST=unix:///var/run/docker.sock
       - SKIP_INFRA_DOWNLOADS=1
     volumes:
       - "./docker/development/localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./../.data/localstack:/var/lib/localstack"
+      - "./../.data/localstack-persist:/persisted-data"
       - "./lambda:/app/lambda:ro"
     networks:
       - default
