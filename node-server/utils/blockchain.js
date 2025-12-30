@@ -73,11 +73,11 @@ const getAnchorErrorText = (error) => {
         // Wallet/Account issues
         {
             pattern: /Attempt to debit an account but found no record of a prior credit/,
-            message: 'Insufficient wallet balance. Please add $SEV to your wallet to cover transaction fees.'
+            message: 'Insufficient wallet balance. Please add SOL to your wallet to cover transaction fees.'
         },
         {
             pattern: /Account does not have enough SOL to perform the operation/,
-            message: 'Insufficient $SEV balance. Please add more $SEV to your wallet.'
+            message: 'Insufficient SOL balance. Please add more SOL to your wallet.'
         },
         {
             pattern: /Account not found/,
@@ -133,7 +133,7 @@ const getAnchorErrorText = (error) => {
                 }
 
                 const errorCodeMap = {
-                    // sevens-token-management errors (6000-6011)
+                    // hd-token-management errors (6000-6011)
                     '6000': 'Unauthorized: only the authority can update tariffs',
                     '6001': 'Invalid buy percentage: must be between 0 and 99',
                     '6002': 'Invalid target wallet: cannot be the default address',
@@ -146,7 +146,7 @@ const getAnchorErrorText = (error) => {
                     '6009': 'Invalid mint address',
                     '6010': 'Invalid seller address',
                     '6011': 'Math overflow occurred',
-                    // sevens-token errors (6012+)
+                    // hd-token errors (6012+)
                     '6012': 'Token name cannot be empty',
                     '6013': 'Invalid token parameters',
                     '6014': 'Insufficient funds',

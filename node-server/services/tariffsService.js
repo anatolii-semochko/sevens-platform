@@ -1,11 +1,11 @@
 const anchor = require('@coral-xyz/anchor')
 const { PublicKey, SystemProgram, Transaction } = require('@solana/web3.js')
 const { loadIdl, initializeProvider, serializeTransaction, getPda } = require('../utils/blockchain')
-const { lampToSevens, sevensToLamp } = require('../utils/currency')
+const { lampToSol, solToLamp } = require('../utils/currency')
 
 class TariffsService {
     constructor() {
-        loadIdl('SEVENS_TOKEN_MANAGEMENT_IDL_PATH').then(idl => {
+        loadIdl('HDT_MANAGEMENT_IDL_PATH').then(idl => {
             const { connection, provider, program} = initializeProvider(idl)
             this.connection = connection
             this.provider = provider
@@ -28,10 +28,10 @@ class TariffsService {
         return {
             authority: tariffsAccount.authority.toString(),
             targetWallet: tariffsAccount.targetWallet.toString(),
-            mint: lampToSevens(tariffsAccount.mint.toString()),
-            setSale: lampToSevens(tariffsAccount.setSale.toString()),
+            mint: lampToSol(tariffsAccount.mint.toString()),
+            setSale: lampToSol(tariffsAccount.setSale.toString()),
             buy: tariffsAccount.buy,
-            burn: lampToSevens(tariffsAccount.burn.toString()),
+            burn: lampToSol(tariffsAccount.burn.toString()),
             paused: tariffsAccount.paused,
         }
     }
@@ -39,10 +39,10 @@ class TariffsService {
     async getSetTariffsTransaction(
         authorityPublicKey,
         targetWallet,
-        mintSevens,
-        setSaleSevens,
+        mintSol,
+        setSaleSol,
         buy,
-        burnSevens,
+        burnSol,
         paused,
     ) {
         // Validate inputs
@@ -54,7 +54,7 @@ class TariffsService {
             throw new Error('Invalid target wallet address')
         }
 
-        if (mintSevens < 0 || setSaleSevens < 0 || burnSevens < 0) {
+        if (mintSol < 0 || setSaleSol < 0 || burnSol < 0) {
             throw new Error('Tariff values must be >= 0')
         }
 
@@ -83,10 +83,10 @@ class TariffsService {
             const initIx = await this.program.methods
                 .initialize(
                     targetWalletPubkey,
-                    new anchor.BN(sevensToLamp(mintSevens)),
-                    new anchor.BN(sevensToLamp(setSaleSevens)),
+                    new anchor.BN(solToLamp(mintSol)),
+                    new anchor.BN(solToLamp(setSaleSol)),
                     buy,
-                    new anchor.BN(sevensToLamp(burnSevens))
+                    new anchor.BN(solToLamp(burnSol))
                 )
                 .accounts({
                     authority: authority,
@@ -100,10 +100,10 @@ class TariffsService {
             const updateIx = await this.program.methods
                 .updateTariffs(
                     targetWalletPubkey,
-                    new anchor.BN(sevensToLamp(mintSevens)),
-                    new anchor.BN(sevensToLamp(setSaleSevens)),
+                    new anchor.BN(solToLamp(mintSol)),
+                    new anchor.BN(solToLamp(setSaleSol)),
                     buy,
-                    new anchor.BN(sevensToLamp(burnSevens))
+                    new anchor.BN(solToLamp(burnSol))
                 )
                 .accounts({
                     authority: authority,

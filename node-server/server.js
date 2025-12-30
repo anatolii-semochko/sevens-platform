@@ -7,7 +7,7 @@ const WebSocketController = require('./controllers/websocketController')
 const TransactionController = require('./controllers/transactionController')
 const AuthController = require('./controllers/authController')
 const WalletController = require('./controllers/walletController')
-const TokenController = require('./controllers/sevensTokenController')
+const TokenController = require('./controllers/tokenController')
 const TariffsController = require('./controllers/tariffsController')
 const ManageTokenController = require('./controllers/manageTokenController')
 
@@ -45,8 +45,8 @@ app.get('/auth/nonce', AuthController.getNonce)
 app.post('/auth/verify', AuthController.verifySignature)
 
 // Token routes
-app.get('/sevens-token', TokenController.getTokens)
-app.get('/sevens-token/age-minutes', TokenController.getAgeMinutes)
+app.get('/hd-token', TokenController.getTokens)
+app.get('/hd-token/age-minutes', TokenController.getAgeMinutes)
 
 // Token operation tariffs routes
 app.get('/manage/tariffs', TariffsController.getTariffs)
@@ -99,9 +99,9 @@ server.listen(port, '0.0.0.0', () => {
     console.log(`  Wallet: GET /node/wallet/balance?walletAddress=xxx`)
     console.log(`  Auth nonce: GET /node/auth/nonce?walletAddress=xxx`)
     console.log(`  Auth verify: POST /node/auth/verify`)
-    console.log(`  Tokens: GET /node/sevens-token?publicKey|hash|walletPublicKey=xxx`)
-    console.log(`  Tokens: GET /node/sevens-token?hash=xxx`)
-    console.log(`  Tokens: GET /node/sevens-token/age-minutes?publicKey=xxx`)
+    console.log(`  Tokens: GET /node/hd-token?publicKey|hash|walletPublicKey=xxx`)
+    console.log(`  Tokens: GET /node/hd-token?hash=xxx`)
+    console.log(`  Tokens: GET /node/hd-token/age-minutes?publicKey=xxx`)
     console.log(`  Managed: GET /node/manage/tariffs`)
     console.log(`  Managed: GET /node/manage/tariffs/transaction`)
     console.log(`  Managed: GET /node/manage/mint-transaction?walletPublicKey=xxx&mintPublicKey=xxx&tokenName=xxx&hash=xxx&author=xxx&description=xxx&canBeBurned=xxx`)

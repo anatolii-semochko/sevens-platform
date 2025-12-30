@@ -33,9 +33,16 @@
     </div>
     <div class="mp-row">
         <div class="mp-label">Blockchain:</div>
-        <div class="mp-value ps-2">sevenscoin</div>
+        <div class="mp-value ps-2">Solana</div>
     </div>
 </div>
+
+<a href="{{ data.material.tokenData.getBlockchainTokenUrl() }}"
+   target="_blank"
+   rel="noopener"
+>
+    Check token in blockchain
+</a>
 
 {% if data.material.hasBlockchainProof() %}
 <div class="mp-proof">

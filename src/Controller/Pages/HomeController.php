@@ -20,8 +20,6 @@ class HomeController extends AbstractController
     #[Route('/', name: 'page', methods: ['GET'])]
     public function index(Request $request): Response
     {
-        $this->pageService->init('/');
-
         $sort = $request->query->get('sort', 'default');
         $materials = match($sort) {
             'new' => $this->materialService->getNewest(50),
@@ -30,6 +28,8 @@ class HomeController extends AbstractController
             'price-high' => $this->materialService->getByPriceHighToLow(50),
             default => $this->materialService->fetch(),
         };
+
+        $this->pageService->init('/', seoLdParams: [$materials]);
 
         return $this->render('base.html.twig', [
             'main_template' => 'pages/main/index.html.twig',

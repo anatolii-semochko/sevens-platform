@@ -1,7 +1,7 @@
 import React from 'react'
 import { Number } from '@react/components/form-elements/Inputs'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
-import { $Sevens, $Usd } from '@react/components/info-componnents/Currency'
+import { $Sol, $Usd } from '@react/components/info-componnents/Currency'
 
 export const SaleForm = ({
     price,
@@ -20,7 +20,7 @@ export const SaleForm = ({
             <tbody>
             <tr>
                 {!!currentPrice && (
-                    <td>Current token price: <$Sevens sevens={currentPrice} label color bold /></td>
+                    <td>Current token price: <$Sol sol={currentPrice} label color bold /></td>
                 )}
                 <td className="text-end ps-5 pe-3">
                     <label htmlFor="material-price-1" className="col-form-label">
@@ -52,12 +52,12 @@ export const SaleForm = ({
                         setErrorMessage={setError}
                     />
                 </td>
-                <td>$SEV <span className="ms-2">(<$Usd sevens={price} label color bold />)</span></td>
+                <td>SOL <span className="ms-2">(<$Usd sol={price} label color bold />)</span></td>
             </tr>
             {(!!tariffBuy || (currentPrice && currentRetailPrice && (currentPrice !== currentRetailPrice))) && (
                 <tr>
                     {!!currentPrice && (
-                        <td>Current retail price: <$Sevens sevens={currentRetailPrice} label color bold /></td>
+                        <td>Current retail price: <$Sol sol={currentRetailPrice} label color bold /></td>
                     )}
                     <td className="text-end ps-5 pe-3">
                         <label htmlFor="material-price-2" className="col-form-label">
@@ -90,7 +90,7 @@ export const SaleForm = ({
                             setErrorMessage={setError}
                         />
                     </td>
-                    <td>$SEV <span className="ms-2">(<$Usd sevens={retailPrice} label color bold />)</span></td>
+                    <td>SOL <span className="ms-2">(<$Usd sol={retailPrice} label color bold />)</span></td>
                 </tr>
             )}
             </tbody>
@@ -100,7 +100,7 @@ export const SaleForm = ({
 
 export const SaleMessage = ({type, price, retailPrice}) => {
     const text = type === 'sale'
-        ? `Put the token up for sale at ${price} $SEV` + (retailPrice !== price ? ` (Retail price ${retailPrice} $SEV)` : '')
+        ? `Put the token up for sale at ${price} SOL` + (retailPrice !== price ? ` (Retail price ${retailPrice} SOL)` : '')
         : 'Remove a token from sale'
 
     return (

@@ -1,9 +1,9 @@
 import { Transaction } from '@solana/web3.js'
 
-export let sevensIdl
-fetch(process.env.SEVENS_TOKEN_IDL_PATH)
+export let hdtIdl
+fetch(process.env.HDT_IDL_PATH)
     .then(response => response.json())
-    .then(idl => sevensIdl = idl)
+    .then(idl => hdtIdl = idl)
     .catch(error => console.error(error))
 
 export const getDeserializedTransaction = (transactionString) => Transaction.from(Buffer.from(
@@ -24,11 +24,11 @@ export const getAnchorErrorText = (error) => {
         // Wallet/Account issues
         {
             pattern: /Attempt to debit an account but found no record of a prior credit/,
-            message: 'Insufficient wallet balance. Please add $SEV to your wallet to cover transaction fees.'
+            message: 'Insufficient wallet balance. Please add SOL to your wallet to cover transaction fees.'
         },
         {
             pattern: /Account does not have enough SOL to perform the operation/,
-            message: 'Insufficient $SEV balance. Please add more $SEV to your wallet.'
+            message: 'Insufficient SOL balance. Please add more SOL to your wallet.'
         },
         {
             pattern: /Account not found/,

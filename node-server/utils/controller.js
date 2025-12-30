@@ -80,7 +80,7 @@ const badRequest = (res, error, errorCode = 400) => res.status(errorCode).json({
 const badResponse = (action, res, req, error, errorCode = 404) => {
     console.error({
         action,
-        params: req.query || req.body,
+        params: !!Object.keys(req.query).length ? req.query : req.body,
         error,
     })
     res.status(errorCode).json({

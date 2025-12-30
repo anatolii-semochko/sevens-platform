@@ -7,7 +7,7 @@ import { route } from '@js/router/routing-with-locale'
 import { WalletForm, WalletWrapper } from '@react/components/form-elements/WalletForm'
 import { callUserAuthorization } from '@react/components/user-auth/UserAuth'
 import { getAnchorErrorText, getDeserializedTransaction, getSerializedTransaction } from '@js/utils/blockchain'
-import { fetchSevensTokenByPublicKey } from '@react/api/nodeApi'
+import { fetchHDTokenByPublicKey } from '@react/api/nodeApi'
 import { DownloadContainer } from '@react/components/download-container/DownloadContainer'
 import { ErrorMessageBlock } from '@react/components/info-componnents/Messages'
 import { ButtonWithProcessing } from '@react/components/form-elements/Buttons'
@@ -68,7 +68,7 @@ const BuyTokenInner = ({tokenPublicKey, root, isMyMaterial}) => {
     }
 
     useEffect(() => {
-        fetchSevensTokenByPublicKey(tokenPublicKey).then(setTokenData).catch(setError)
+        fetchHDTokenByPublicKey(tokenPublicKey).then(setTokenData).catch(setError)
     }, [])
 
     useEffect(() => {

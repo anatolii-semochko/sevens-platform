@@ -8,7 +8,7 @@ services:
       - "8444:443"
     volumes:
       - .:/app
-      - ../sevenstime-storage:/app/public/storage
+      - ../platform-storage:/app/public/storage
     networks:
       - default
       - blockchain.dev
@@ -25,7 +25,7 @@ services:
     user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - .:/app
-      - ../sevenstime-storage:/app/public/storage
+      - ../platform-storage:/app/public/storage
     networks:
       - default
     extra_hosts:
@@ -37,7 +37,7 @@ services:
       dockerfile: docker/development/php-cli/Dockerfile
     volumes:
       - .:/app
-      - ../sevenstime-storage:/app/public/storage
+      - ../platform-storage:/app/public/storage
     networks:
       - default
 
@@ -48,30 +48,30 @@ services:
       - WEBPACK_DEV_SERVER_ALLOWED_HOSTS=${WEBPACK_DEV_SERVER_ALLOWED_HOSTS}
     volumes:
       - .:/app
-      - ../sevenstime-storage:/app/public/storage
+      - ../platform-storage:/app/public/storage
     command: sh -c "yarn install && yarn encore dev --watch"
     tty: true
     networks:
       - default
 
-  sevenstime-node-server:
+  platform-node-server:
     build:
       context: .
       dockerfile: docker/development/node-server/Dockerfile
     volumes:
       - ./node-server:/app/node-server
-      - ../sevenstime-storage:/app/public/storage
+      - ../platform-storage:/app/public/storage
     networks:
       - default
       - blockchain.dev
     environment:
       - NODE_ENV=development
       - NODE_SERVER_PORT=${NODE_SERVER_PORT}
-      - SEVENS_TOKEN_IDL_PATH=${NODE_SERVER_SEVENS_TOKEN_IDL_PATH}
-      - SEVENS_TOKEN_MANAGEMENT_IDL_PATH=${NODE_SERVER_SEVENS_TOKEN_MANAGEMENT_IDL_PATH}
+      - HDT_IDL_PATH=${NODE_SERVER_HDT_IDL_PATH}
+      - HDT_MANAGEMENT_IDL_PATH=${NODE_SERVER_HDT_MANAGEMENT_IDL_PATH}
       - ANCHOR_PROVIDER_URL=${ANCHOR_PROVIDER_URL}
       - NONCE_EXPIRATION_MIN=${NONCE_EXPIRATION_MIN}
-      - MYSQL_DATABASE=sevens_time
+      - MYSQL_DATABASE=platform
       - MYSQL_PASSWORD_FILE=/run/secrets/db_password
       - EXCHANGER_WEBSOCKET_URL=${EXCHANGER_WEBSOCKET_URL}
     extra_hosts:
@@ -82,13 +82,12 @@ services:
     depends_on:
       - mysql
       - web
-    container_name: sevenstime-node-server
 
   mysql:
     image: mysql:9.3
     environment:
       MYSQL_USER: app
-      MYSQL_DATABASE: sevens_time
+      MYSQL_DATABASE: platform
       MYSQL_PASSWORD_FILE: /run/secrets/db_password
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_password
     ports:

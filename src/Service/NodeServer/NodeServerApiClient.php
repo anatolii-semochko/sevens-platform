@@ -51,7 +51,7 @@ readonly class NodeServerApiClient extends NodeServerApi
      */
     public function getTokenMetadata(string $tokenPublicKey): array
     {
-        return $this->get('/sevens-token', [
+        return $this->get('/hd-token', [
             'publicKey' => $tokenPublicKey,
         ]);
     }
@@ -61,7 +61,7 @@ readonly class NodeServerApiClient extends NodeServerApi
      */
     public function getTokenMetadataByHash(string $hash): array
     {
-        return $this->get('/sevens-token', [
+        return $this->get('/hd-token', [
             'hash' => $hash,
         ]);
     }
@@ -71,7 +71,7 @@ readonly class NodeServerApiClient extends NodeServerApi
      */
     public function fetchTokensByWallet(string $walletPublicKey): array
     {
-        return $this->get('/sevens-token', [
+        return $this->get('/hd-token', [
             'walletPublicKey' => $walletPublicKey,
         ]);
     }
@@ -99,7 +99,7 @@ readonly class NodeServerApiClient extends NodeServerApi
      */
     public function getTokenAgeMinutes(string $tokenPublicKey): int
     {
-        return $this->get('/sevens-token/age-minutes', [
+        return $this->get('/hd-token/age-minutes', [
             'publicKey' => $tokenPublicKey,
         ]);
     }

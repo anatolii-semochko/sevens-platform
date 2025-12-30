@@ -115,10 +115,10 @@
 }
 
 /* -------------------------
-       Sevens Card
+       Custom Card
 ------------------------- */
 
-.sevens-card {
+.custom-card {
   width: 100%;
   background: #fff;
   margin: 0 0 1rem;
@@ -131,17 +131,17 @@
   transition: transform 0.2s ease;
 }
 
-.sevens-card-hover-transform:hover { transform: scale(1.02); }
-.sevens-card img { width: 100%; height: auto; display: block; }
-.sevens-card-body { padding: 0.5rem; }
+.custom-card-hover-transform:hover { transform: scale(1.02); }
+.custom-card img { width: 100%; height: auto; display: block; }
+.custom-card-body { padding: 0.5rem; }
 
-.sevens-card-title {
+.custom-card-title {
   font-size: 0.95rem;
   font-weight: bold;
   margin: 0 0 0.3rem;
 }
 
-.sevens-card-description {
+.custom-card-description {
   font-size: 0.8rem;
   color: #666;
   margin: 0;

@@ -35,7 +35,7 @@ class WebSocketManager {
 
             // Send initial connection confirmation with current rate
             socket.emit('connected', {
-                message: 'Successfully connected to Sevenstime WebSocket',
+                message: 'Successfully connected to Platform WebSocket',
                 clientId: socket.id,
                 timestamp: new Date().toISOString(),
                 currentRate: this.currentRate,

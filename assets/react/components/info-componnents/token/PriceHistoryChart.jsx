@@ -124,7 +124,7 @@ export const PriceHistoryChart = ({ history }) => {
                                 strokeWidth={Math.max(width / 300, 1)}
                             />
                             <title>
-                                Price: {point.price} $SEV
+                                Price: {point.price} SOL
                                 {'\n'}Date: {new Date(point.date).toLocaleDateString()}
                             </title>
                         </g>
@@ -154,15 +154,15 @@ export const PriceHistoryChart = ({ history }) => {
             <div className="row mt-3">
                 <div className="col-4 text-center">
                     <small className="text-muted">Min Price</small>
-                    <div className="fw-bold">{minPrice.toFixed(2)} $SEV</div>
+                    <div className="fw-bold">{minPrice.toFixed(2)} SOL</div>
                 </div>
                 <div className="col-4 text-center">
                     <small className="text-muted">Max Price</small>
-                    <div className="fw-bold">{maxPrice.toFixed(2)} $SEV</div>
+                    <div className="fw-bold">{maxPrice.toFixed(2)} SOL</div>
                 </div>
                 <div className="col-4 text-center">
                     <small className="text-muted">Current Price</small>
-                    <div className="fw-bold">{prices[prices.length - 1].toFixed(2)} $SEV</div>
+                    <div className="fw-bold">{prices[prices.length - 1].toFixed(2)} SOL</div>
                 </div>
             </div>
         </div>

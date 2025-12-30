@@ -5,6 +5,7 @@ namespace App\Controller\Pages\Help;
 use App\Controller\BaseController;
 use App\Exception\NotFoundException;
 use App\Service\Help\HelpService;
+use App\Service\Material\MaterialService;
 use App\Service\PageContent\PageService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,6 +16,7 @@ class HelpController extends BaseController
     public function __construct(
         private readonly PageService $pageService,
         private readonly HelpService $helpService,
+        private readonly MaterialService $materialService,
     ) {}
 
     #[Route('', name: 'index', methods: ['GET'])]
@@ -22,9 +24,9 @@ class HelpController extends BaseController
     {
         try {
             $tree = $this->helpService->getTree();
-            $this->pageService->init('/help');
+            $this->pageService->init('/help', seoLdParams: [$tree]);
         } catch (NotFoundException $e) {
-            return $this->page404($this->pageService);
+            return $this->page404($this->pageService, $this->materialService);
         }
 
         return $this->render('base.html.twig', [
@@ -44,9 +46,9 @@ class HelpController extends BaseController
                 'title' => $help->seo->title,
                 'keywords' => $help->seo->keywords,
                 'description' => $help->seo->description,
-            ]);
+            ], [$help]);
         } catch (NotFoundException $e) {
-            return $this->page404($this->pageService);
+            return $this->page404($this->pageService, $this->materialService);
         }
 
         return $this->render('base.html.twig', [

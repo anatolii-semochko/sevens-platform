@@ -2,19 +2,19 @@
     <div class="main-gallery-wrapper gallery-grid" id="gallery">
         {% for material in data.materials %}
             {% set cdnUrl = material.getLogo()|cdn_url %}
-            <a class="sevens-card sevens-card-hover-transform gallery-item"
+            <a class="custom-card custom-card-hover-transform gallery-item"
                href="{{ path('material_page', {'_locale': app.request.locale, token: material.getToken()}) }}">
                 <img src="{{ cdnUrl ?: (global.path.materials ~ '/' ~ material.getLogo()) }}" alt="{{ material.getTitle() }}">
-                <div class="sevens-card-body sevens-card__body">
-                    <div class="sevens-card-title gallery-item-title d-flex justify-content-between align-items-center">
+                <div class="custom-card-body custom-card__body">
+                    <div class="custom-card-title gallery-item-title d-flex justify-content-between align-items-center">
                         <div class="flex-grow-1">{{ material.getTitle() }}</div>
                         {% if material.getPrice() %}
-                        <div>{{ material.getPrice() }} <span class="fst-italic">$SEV</span></div>
+                        <div>{{ material.getPrice() }} <span class="fst-italic">SOL</span></div>
                         {% endif %}
+</div>
+                        <div class="custom-card-description gallery-item-desc">{{ material.getDescription() }}</div>
                     </div>
-                    <div class="sevens-card-description gallery-item-desc">{{ material.getDescription() }}</div>
-                </div>
-            </a>
+                </a>
         {% endfor %}
     </div>
 </div>

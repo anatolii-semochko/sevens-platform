@@ -11,7 +11,7 @@ const formatUsd = (n) => {
     return int + '.' + dec
 }
 
-const formatSevens = (n) =>  {
+const formatSol = (n) =>  {
     if (n === null || n === undefined || isNaN(n)) return ''
 
     let num = Number(n).toString()
@@ -23,20 +23,20 @@ const formatSevens = (n) =>  {
     return int + '.' + dec
 }
 
-export const $Sevens = ({sevens, label, color, bold}) => {
-    if (sevens === null || sevens === undefined || isNaN(sevens)) return null
+export const $Sol = ({sol, label, color, bold}) => {
+    if (sol === null || sol === undefined || isNaN(sol)) return null
 
-    const formatted = formatSevens(sevens)
+    const formatted = formatSol(sol)
     return (
         <span className={clsx(color && 'text-primary', bold && 'fw-bold')}>
-      {formatted}{label && ' $SEV'}
+      {formatted}{label && ' SOL'}
     </span>
     )
 }
 
-export const $Usd = ({usd, sevens, label, color, bold}) => {
-    const sevensUsdRate = useSelector((state) => state.sevensUsdRate)
-    const sum = sevens !== undefined ? sevens * sevensUsdRate : usd
+export const $Usd = ({usd, sol, label, color, bold}) => {
+    const solUsdRate = useSelector((state) => state.solUsdRate)
+    const sum = sol !== undefined ? sol * solUsdRate : usd
 
     if (sum === null || sum === undefined || isNaN(sum)) return null
 

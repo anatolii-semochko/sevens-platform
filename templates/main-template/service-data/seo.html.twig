@@ -5,6 +5,11 @@
     <link rel="alternate" href="{{ alternate.href }}" hreflang="{{ alternate.hreflang }}"/>
 {% endfor %}
     <link rel="alternate" href="{{ global.host }}" hreflang="x-default"/>
+{% if global.seoLd %}
+    <script type="application/ld+json">
+        {{ global.seoLd|replace({"\n": "\n        "})|raw}}
+    </script>
+{% endif %}
 {% block stylesheets %}
     {{ encore_entry_link_tags('app') }}
 {% endblock %}

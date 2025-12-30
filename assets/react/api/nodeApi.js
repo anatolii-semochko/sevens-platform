@@ -3,8 +3,8 @@ import { throwErrorMessage } from '@react/api/indexApi'
 
 const mainUrl = '/node'
 
-export const fetchSevensTokenByPublicKey = async (publicKey) => {
-    const url = mainUrl + `/sevens-token?publicKey=${publicKey}`
+export const fetchHDTokenByPublicKey = async (publicKey) => {
+    const url = mainUrl + `/hd-token?publicKey=${publicKey}`
     return axios.get(url)
         .then(response => response.data.data)
         .catch(throwErrorMessage)

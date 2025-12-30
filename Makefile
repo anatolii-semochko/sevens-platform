@@ -170,17 +170,17 @@ rollback:
 ## Node Server
 ##############
 node-server-build:
-	docker compose build sevenstime-node-server --no-cache
+	docker compose build platform-node-server --no-cache
 	make node-server-restart
 
 node-server-restart:
-	docker compose up sevenstime-node-server --build -d
+	docker compose up platform-node-server --build -d
 
 node-server-logs:
-	docker compose logs -f sevenstime-node-server
+	docker compose logs -f platform-node-server
 
 node-server-bash:
-	docker compose exec sevenstime-node-server sh
+	docker compose exec platform-node-server sh
 
 ##########
 ## System

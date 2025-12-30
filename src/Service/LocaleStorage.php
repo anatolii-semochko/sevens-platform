@@ -9,6 +9,7 @@ class LocaleStorage
     private string $currentLocale = ''; // TODO - Set locale as not initialized and FIX Page 404 LANGUAGE !!!
     private Language $language;
     private ?Page $page = null;
+    private array $seoLdParams = [];
 
     public function setLocale(string $locale): void
     {
@@ -35,5 +36,14 @@ class LocaleStorage
     public function getPage(): ?Page
     {
         return $this->page;
+    }
+
+    public function setSeoLdParams(array $seoLdParams): void
+    {
+        $this->seoLdParams = $seoLdParams;
+    }
+    public function getSeoLdParams(): array
+    {
+        return $this->seoLdParams;
     }
 }

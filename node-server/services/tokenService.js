@@ -2,11 +2,11 @@ const crypto = require('crypto')
 const { PublicKey } = require('@solana/web3.js')
 const { TOKEN_PROGRAM_ID } = require('@solana/spl-token')
 const { loadIdl, initializeProvider, getPda } = require('../utils/blockchain')
-const { lampToSevens } = require('../utils/currency')
+const { lampToSol } = require('../utils/currency')
 
-class SevensTokenService {
+class TokenService {
     constructor() {
-        loadIdl('SEVENS_TOKEN_IDL_PATH').then(idl => {
+        loadIdl('HDT_IDL_PATH').then(idl => {
             const { connection, provider, program} = initializeProvider(idl)
             this.connection = connection
             this.provider = provider
@@ -36,10 +36,10 @@ class SevensTokenService {
 
     async getTokenByPublicKey(tokenPublicKey){
         const walletPublicKey = await this.getWalletPublicKeyByToken(tokenPublicKey)
-        const { metadataPda, salePda } = this.getSevensToken(new PublicKey(tokenPublicKey))
+        const { metadataPda, salePda } = this.getHDToken(new PublicKey(tokenPublicKey))
         const metadata = await this.program.account.trustDataMetadata.fetch(metadataPda)
         const sale = await this.program.account.tokenSaleData.fetch(salePda)
-        sale.price = lampToSevens(sale.price.toNumber())
+        sale.price = lampToSol(sale.price.toNumber())
 
         return {
             tokenPublicKey,
@@ -87,7 +87,7 @@ class SevensTokenService {
         return Math.max(0, ageInMinutes)
     }
 
-    getSevensToken (publicKey, hash = null){
+    getHDToken (publicKey, hash = null){
         const pubKey = publicKey ? new PublicKey(publicKey) : null
         return {
             metadataPda: pubKey ? this.getMetadataPda(pubKey) : null,
@@ -118,4 +118,4 @@ class SevensTokenService {
 }
 
 // Export singleton instance
-module.exports = new SevensTokenService()
+module.exports = new TokenService()

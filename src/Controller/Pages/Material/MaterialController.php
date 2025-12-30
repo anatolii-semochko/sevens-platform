@@ -88,7 +88,7 @@ class MaterialController extends BaseController
                 'token' => $material->getToken(),
                 'title' => $material->getTitle(),
                 'description' => $material->getDescription(),
-            ]);
+            ], [$material]);
         } catch (NotFoundException $e) {
             return $this->page404($this->pageService, $this->materialService);
         }

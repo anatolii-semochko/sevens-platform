@@ -1,4 +1,4 @@
-const tokenService = require('../services/sevensTokenService')
+const tokenService = require('../services/tokenService')
 const {
     success,
     badRequest,
@@ -7,7 +7,7 @@ const {
     checkIsWalletAddress,
 } = require('../utils/controller')
 
-class SevensTokenController {
+class TokenController {
     constructor() {
         this.getTokens = this.getTokens.bind(this)
         this.getByPublicKey = this.getByPublicKey.bind(this)
@@ -100,4 +100,4 @@ class SevensTokenController {
     }
 }
 
-module.exports = new SevensTokenController()
+module.exports = new TokenController()
