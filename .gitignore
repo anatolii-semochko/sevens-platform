@@ -20,8 +20,9 @@ yarn-error.log
 ###< symfony/webpack-encore-bundle ###
 
 ###> SSL Certificates ###
-sevenstime.local.pem
-sevenstime.local-key.pem
+*.crt
+*.key
+*.pem
 ###< SSL Certificates ###
 
 /public/storage/files/materials/
@@ -35,5 +36,3 @@ lambda/**/build/
 CLAUDE.md
 BACKLOG.md
 ###< Claude Code documentation ###
-/sevenstime.local.crt
-/sevenstime.local.key

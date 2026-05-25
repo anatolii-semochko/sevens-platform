@@ -21,7 +21,7 @@ class Database {
         }
 
         this.pool = mysql.createPool({
-            host: 'sevenstime-mysql-1',
+            host: 'sevens-mysql-1',
             port: 3306,
             user: 'app',
             password: password,
